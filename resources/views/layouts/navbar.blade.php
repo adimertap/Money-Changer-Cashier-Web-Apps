@@ -12,16 +12,17 @@
     <div class="collapse navbar-collapse" id="navbarVerticalCollapse">
         <div class="navbar-vertical-content scrollbar">
             <ul class="navbar-nav flex-column mb-3" id="navbarVerticalNav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('dashboard') }}" role="button" data-bs-toggle="" aria-expanded="false">
-                        <div class="d-flex align-items-center">
-                            <span class="nav-link-icon">
-                                <i class="fas fa-home"></i>
-                            </span>
-                            <span class="nav-link-text ps-1">Dashboard</span>
-                        </div>
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('dashboard') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span class="nav-link-text ps-1">Dashboard</span>
+                            </div>
+                        </a>
+                    </li>
+                @if (Auth::user()->role == 'Owner')
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Master Data</div>
@@ -45,7 +46,7 @@
                             <span class="nav-link-text ps-1">Currency</span>
                         </div>
                     </a>
-
+                @endif
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Transaction</div>
@@ -53,7 +54,7 @@
                             <hr class="mb-0 navbar-vertical-divider">
                         </div>
                     </div>
-                    <a class="nav-link" href="../app/calendar.html" role="button" data-bs-toggle="" aria-expanded="false">
+                    <a class="nav-link" href="{{ route('modal.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center">
                             <span class="nav-link-icon">
                                 <i class="fas fa-credit-card"></i>
@@ -70,6 +71,7 @@
                         </div>
                     </a>
                 </li>
+              
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Pelaporan</div>
@@ -77,14 +79,15 @@
                             <hr class="mb-0 navbar-vertical-divider">
                         </div>
                     </div>
-                    <a class="nav-link" href="../app/calendar.html" role="button" data-bs-toggle="" aria-expanded="false">
+                    <a class="nav-link" href="{{ route('transaksi.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center">
                             <span class="nav-link-icon">
                                 <i class="fas fa-sync-alt"></i>
                             </span>
-                            <span class="nav-link-text ps-1">Rekapan Pegawai</span>
+                            <span class="nav-link-text ps-1">Rekapan Hari Ini</span>
                         </div>
                     </a>
+                    @if (Auth::user()->role == 'Owner')
                     <a class="nav-link" href="../app/calendar.html" role="button" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center">
                             <span class="nav-link-icon">
@@ -109,7 +112,7 @@
                             <hr class="mb-0 navbar-vertical-divider">
                         </div>
                     </div>
-                    <a class="nav-link" href="../app/calendar.html" role="button" data-bs-toggle="" aria-expanded="false">
+                    <a class="nav-link" href="{{ route('approval-modal.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center">
                             <span class="nav-link-icon">
                                 <i class="fas fa-check-circle"></i>
@@ -118,6 +121,8 @@
                         </div>
                     </a>
                 </li>
+                @endif
+               
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Sesi Login</div>

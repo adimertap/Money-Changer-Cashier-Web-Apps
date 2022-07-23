@@ -1,191 +1,115 @@
 @extends('layouts.app')
 
 @section('content')
-<main>
+<main class="mt-3">
 
     <div class="row g-3">
-        <div class="col-xl-4 order-xl-1">
+        <div class="col-xl-7 order-xl-1">
             <div class="card">
                 <div class="card-header bg-light btn-reveal-trigger d-flex flex-between-center">
-                    <h5 class="mb-0">Order Summary</h5><a class="btn btn-link btn-sm btn-reveal text-600"
-                        href="shopping-cart.html"><svg class="svg-inline--fa fa-pencil-alt fa-w-16" aria-hidden="true"
-                            focusable="false" data-prefix="fas" data-icon="pencil-alt" role="img"
-                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg="">
-                            <path fill="currentColor"
-                                d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z">
-                            </path>
-                        </svg><!-- <span class="fas fa-pencil-alt"></span> Font Awesome fontawesome.com --></a>
+                    <h5 class="mb-0">Order Summary</h5>
+                    <a class="btn btn-falcon-default btn-sm" type="button" data-bs-toggle="modal"
+                        data-bs-target="#modaltambah">
+                        <span class="fas fa-plus me-2" data-fa-transform="shrink-2"></span>Tambah
+                        Transaksi</a>
                 </div>
                 <div class="card-body">
-                    <table class="table table-borderless fs--1 mb-0">
-                        <tbody>
-                            <tr class="border-bottom">
-                                <th class="ps-0 pt-0">Apple MacBook Pro 15" x 1<div class="text-400 fw-normal fs--2">
-                                        Z0V20008N: 2.9GHz 6-core 8th-Gen Intel Core i9, 32GB RAM</div>
-                                </th>
-                                <th class="pe-0 text-end pt-0">$1345</th>
-                            </tr>
-                            <tr class="border-bottom">
-                                <th class="ps-0">Apple iMac Pro x 1<div class="text-400 fw-normal fs--2">27-inch with
-                                        Retina 5K Display, 3.0GHz 10-core Intel Xeon W, 1TB</div>
-                                </th>
-                                <th class="pe-0 text-end">$2010</th>
-                            </tr>
-                            <tr class="border-bottom">
-                                <th class="ps-0">Subtotal</th>
-                                <th class="pe-0 text-end">$3355</th>
-                            </tr>
-                            <tr class="border-bottom">
-                                <th class="ps-0">Coupon: <span class="text-success">40SITEWIDE</span></th>
-                                <th class="pe-0 text-end">-$55</th>
-                            </tr>
-                            <tr class="border-bottom">
-                                <th class="ps-0">Shipping</th>
-                                <th class="pe-0 text-end">$20</th>
-                            </tr>
-                            <tr>
-                                <th class="ps-0 pb-0">Total</th>
-                                <th class="pe-0 text-end pb-0">$3320</th>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive scrollbar">
+                        <table class="table table-hover table-striped overflow-hidden" id="dataTableKonfirmasi">
+                            <thead>
+                                <tr>
+                                    <th class="small">No.</th>
+                                    <th class="small">Currency</th>
+                                    <th class="small">Harga Currency</th>
+                                    <th class="small">Jumlah</th>
+                                    <th class="small">Total</th>
+                                    <th class="small">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="konfirmasi">
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="card-footer d-flex justify-content-between bg-light">
                     <div class="fw-semi-bold">Payable Total</div>
-                    <div class="fw-bold">$3320</div>
+                    <div class="fw-bold payable_total" id="payable_total">Rp. 0.0</div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-8">
-            <div class="card mb-3">
-                <div class="card-header bg-light">
-                    <div class="row flex-between-center">
-                        <div class="col-sm-auto">
-                            <h5 class="mb-2 mb-sm-0">Your Shipping Address</h5>
-                        </div>
-                        <div class="col-sm-auto"><a class="btn btn-falcon-default btn-sm" href="#!"><svg
-                                    class="svg-inline--fa fa-plus fa-w-14 me-2" data-fa-transform="shrink-2"
-                                    aria-hidden="true" focusable="false" data-prefix="fas" data-icon="plus" role="img"
-                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""
-                                    style="transform-origin: 0.4375em 0.5em;">
-                                    <g transform="translate(224 256)">
-                                        <g transform="translate(0, 0)  scale(0.875, 0.875)  rotate(0 0 0)">
-                                            <path fill="currentColor"
-                                                d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"
-                                                transform="translate(-224 -256)"></path>
-                                        </g>
-                                    </g>
-                                </svg>
-                                <!-- <span class="fas fa-plus me-2" data-fa-transform="shrink-2"></span> Font Awesome fontawesome.com -->Add
-                                New Address </a></div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <div class="form-check mb-0 custom-radio radio-select"><input class="form-check-input"
-                                    id="address-1" type="radio" name="clientName" checked="checked"><label
-                                    class="form-check-label mb-0 fw-bold d-block" for="address-1">Antony Hopkins<span
-                                        class="radio-select-content"><span> 2392 Main Avenue,<br>Pensaukee,<br>New
-                                            Jersey 02139<span class="d-block mb-0 pt-2">+(856)
-                                                929-229</span></span></span></label><a class="fs--1" href="#!">Edit</a>
+        <div class="col-xl-5">
+            <form action="{{ route('transaksi.store') }}" id="form" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="row">
+                    <div class="col-6">
+                        <div class="card mb-3">
+                            <div class="bg-holder d-none d-lg-block bg-card"
+                                style="background-image:url(../../falcon/assets/img/icons/spot-illustrations/corner-4.png);opacity: 0.7;">
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="position-relative">
-                                <div class="form-check mb-0 custom-radio radio-select"><input class="form-check-input"
-                                        id="address-2" type="radio" name="clientName"><label
-                                        class="form-check-label mb-0 fw-bold d-block" for="address-2">Robert Bruce<span
-                                            class="radio-select-content"><span>3448 Ile De France St #242<br>Fort
-                                                Wainwright, <br>Alaska, 99703<span class="d-block mb-0 pt-2">+(901)
-                                                    637-734</span></span></span></label><a class="fs--1"
-                                        href="#!">Edit</a></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Payment Method</h5>
-                </div>
-                <div class="card-body">
-                    <form>
-                        <div class="form-check mb-0"><input class="form-check-input" type="radio" value=""
-                                id="credit-card" checked="checked" name="payment-method"><label
-                                class="form-check-label mb-2 fs-1" for="credit-card">Credit Card</label></div>
-                        <div class="row gx-0 ps-2 mb-4">
-                            <div class="col-sm-8 px-3">
-                                <div class="mb-3"><label class="form-label ls text-uppercase text-600 fw-semi-bold mb-0"
-                                        for="inputNumber">Card Number</label><input class="form-control"
-                                        id="inputNumber" type="text" placeholder="•••• •••• •••• ••••"></div>
-                                <div class="row align-items-center">
-                                    <div class="col-6"><label
-                                            class="form-label ls text-uppercase text-600 fw-semi-bold mb-0">Exp
-                                            Date</label><input class="form-control" type="text" placeholder="mm/yyyy">
+                            <!--/.bg-holder-->
+                            <div class="card-body position-relative">
+                                <h6>New Order Code: #{{ $kode_transaksi }}</h6>
+                                <input type="hidden" name="kode_transaksi" value="{{ $kode_transaksi }}">
+                                <input type="hidden" name="tanggal_transaksi" value="{{ $today_format }}">
+                                <input type="hidden" name="id_modal" value="{{ $modal->id_modal }}">
+                                <input type="hidden" name="id_transaksi" value="{{ $idbaru }}">
+                                <p class="fs--1">{{ $today }}</p>
+                                <div><strong class="me-2">Status: </strong>
+                                    <div class="badge rounded-pill badge-soft-info fs--2">On Progress
+                                        <span class="fas fa-check ms-1" data-fa-transform="shrink-2"></span>
                                     </div>
-                                    <div class="col-6"><label
-                                            class="form-label ls text-uppercase text-600 fw-semi-bold mb-0">CVV<a
-                                                class="d-inline-block" href="#" data-bs-toggle="tooltip"
-                                                data-bs-placement="top" title=""
-                                                data-bs-original-title="Card verification value"
-                                                aria-label="Card verification value"><svg
-                                                    class="svg-inline--fa fa-question-circle fa-w-16 ms-2"
-                                                    aria-hidden="true" focusable="false" data-prefix="fa"
-                                                    data-icon="question-circle" role="img"
-                                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"
-                                                    data-fa-i2svg="">
-                                                    <path fill="currentColor"
-                                                        d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z">
-                                                    </path>
-                                                </svg>
-                                                <!-- <span class="fa fa-question-circle ms-2"></span> Font Awesome fontawesome.com --></a></label><input
-                                            class="form-control" type="text" placeholder="123" maxlength="3"
-                                            pattern="[0-9]{3}"></div>
-                                </div>
-                            </div>
-                            <div class="col-4 ps-3 text-center pt-2 d-none d-sm-block">
-                                <div class="rounded-1 p-2 mt-3 bg-100">
-                                    <div class="text-uppercase fs--2 fw-bold">We Accept</div><img
-                                        src="../../assets/img/icons/icon-payment-methods-grid.png" alt="" width="120">
                                 </div>
                             </div>
                         </div>
-                        <div class="form-check d-flex align-items-center"><input class="form-check-input" type="radio"
-                                value="" id="paypal" name="payment-method"><label class="form-check-label mb-0 ms-2"
-                                for="paypal"><img src="../../assets/img/icons/icon-paypal-full.png" height="20"
-                                    alt=""></label></div>
-                        <div class="border-dashed-bottom my-5"></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card overflow-hidden" style="min-width: 12rem">
+                            <div class="bg-holder bg-card"
+                                style="background-image:url(../falcon/assets/img/icons/spot-illustrations/corner-2.png);">
+                            </div>
+                            <div class="card-body position-relative">
+                                @if ($modal == '')
+                                <h6>Anda Belum Menambahkan Modal Hari Ini</h6>
+                                @else
+                                <h6>Modal Anda Hari Ini</h6>
+                                @endif
+
+                                <h4 class="text-primary jumlah_modal" id="jumlah_modal" data-countup="jumlah_modal">
+                                    @if ($modal == '')
+
+                                    @else
+                                    Rp. {{ number_format($modal->riwayat_modal) }}
+                                    @endif
+
+                                </h4>
+                                <a class="fw-semi-bold fs--1 text-nowrap" href="{{ route('modal.index') }}">Tambah Modal
+                                    <span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Confirm Transaksi</h5>
+                    </div>
+                    <div class="card-body">
                         <div class="row">
                             <div class="col-md-7 col-xl-12 col-xxl-7 px-md-3 mb-xxl-0 position-relative">
-                                <div class="d-flex"><img class="me-3" src="../../assets/img/icons/shield.png" alt=""
+                                <div class="d-flex"><img class="me-3" src="../falcon/assets/img/icons/shield.png" alt=""
                                         width="60" height="60">
                                     <div class="flex-1">
-                                        <h5 class="mb-2">Buyer Protection</h5>
-                                        <div class="form-check mb-0"><input class="form-check-input"
-                                                id="protection-option-1" type="checkbox" checked="checked"><label
-                                                class="form-check-label mb-0" for="protection-option-1"> <strong>Full
-                                                    Refund </strong>If you don't <br
-                                                    class="d-none d-md-block d-lg-none">receive your order</label></div>
-                                        <div class="form-check"><input class="form-check-input" id="protection-option-2"
-                                                type="checkbox" checked="checked"><label class="form-check-label mb-0"
-                                                for="protection-option-2"> <strong>Full or Partial Refund, </strong>If
-                                                the product is not as described in details</label></div><a
-                                            class="fs--1 ms-3 ps-2" href="#!">Learn More<svg
-                                                class="svg-inline--fa fa-caret-right fa-w-6 ms-1"
-                                                data-fa-transform="down-2" aria-hidden="true" focusable="false"
-                                                data-prefix="fas" data-icon="caret-right" role="img"
-                                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512"
-                                                data-fa-i2svg="" style="transform-origin: 0.1875em 0.625em;">
-                                                <g transform="translate(96 256)">
-                                                    <g transform="translate(0, 64)  scale(1, 1)  rotate(0 0 0)">
-                                                        <path fill="currentColor"
-                                                            d="M0 384.662V127.338c0-17.818 21.543-26.741 34.142-14.142l128.662 128.662c7.81 7.81 7.81 20.474 0 28.284L34.142 398.804C21.543 411.404 0 402.48 0 384.662z"
-                                                            transform="translate(-96 -256)"></path>
-                                                    </g>
-                                                </g>
-                                            </svg>
-                                            <!-- <span class="fas fa-caret-right ms-1" data-fa-transform="down-2">    </span> Font Awesome fontawesome.com --></a>
+                                        <h5 class="mb-2">Check Kembali</h5>
+                                        <div class="form-check mb-0"><input class="form-check-input" id="check_1"
+                                                type="checkbox"><label class="form-check-label mb-0">Check Detail Order
+                                                Summary<br class="d-none d-md-block d-lg-none"></label></div>
+                                        <div class="form-check mb-0"><input class="form-check-input" id="check_2"
+                                                type="checkbox"><label class="form-check-label mb-0">Check Grand Total
+                                                Payment<br class="d-none d-md-block d-lg-none"></label></div>
+                                        <p class="fs--1 mb-0">Pastikan transaksi telah sesuai, check untuk melanjutkan
+                                        </p>
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="vertical-line d-none d-md-block d-xl-none d-xxl-block"> </div>
@@ -193,19 +117,465 @@
                             <div
                                 class="col-md-5 col-xl-12 col-xxl-5 ps-lg-4 ps-xl-2 ps-xxl-5 text-center text-md-start text-xl-center text-xxl-start">
                                 <div class="border-dashed-bottom d-block d-md-none d-xl-block d-xxl-none my-4"></div>
-                                <div class="fs-2 fw-semi-bold">All Total: <span class="text-primary">$3320</span></div>
-                                <button class="btn btn-success mt-3 px-5" type="submit">Confirm &amp; Pay</button>
-                                <p class="fs--1 mt-3 mb-0">By clicking <strong>Confirm &amp; Pay </strong>button you
-                                    agree to the <a href="#!">Terms &amp; Conditions</a></p>
+                                <div class="fs-2 fw-semi-bold">All Total: <span class="text-primary">
+                                        <span class="grand_total" id="grand_total">Rp. 0.0</span>
+                                </div>
+                                <button class="btn btn-success mt-3 px-4" onclick="submitdata(event)"
+                                    type="button">Confirm &amp; Pay
+                                </button>
+                                <p class="fs--1 mt-3 mb-0">By clicking <strong>Confirm &amp; Pay </strong>button,
+                                    transaction being process
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
-
 </main>
 
+<div class="modal fade" id="modaltambah" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+        <div class="modal-content position-relative">
+            <div class="modal-header px-5 position-relative modal-shape-header bg-shape">
+                <div class="position-relative z-index-1 light">
+                    <h4 class="mb-0 text-white" id="authentication-modal-label">Detail Transaksi</h4>
+                    <p class="fs--1 mb-0 text-white">Tambah detail transaksi untuk melengkapi Order</p>
+                </div><button class="btn-close btn-close-white position-absolute top-0 end-0 mt-2 me-2"
+                    id="btn-close-modal" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('master-currency-store') }}" id="form1" method="POST">
+                @csrf
+                <div class="modal-body p-0">
+                    <div class="p-4 pb-0">
+                        <p class="text-word-break fs--1">Lengkapi Form berikut ini</p>
+                        <div class="border-dashed-bottom mb-2"></div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="currency">Pilih Currency</label><span class="mr-4 mb-3"
+                                    style="color: red">*</span>
+                                <select class="form-select js-choice" id="currency" size="1" name="id_currency"
+                                    data-options='{"removeItemButton":true,"placeholder":true}'>
+                                    @foreach ($currency as $item)
+                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label" for="jumlah_currency">Harga Currency</label><span
+                                class="mr-4 mb-3" style="color: red">*</span>
+                            <div class="input-group"><span class="input-group-text">Rp. </span>
+                                <input class="form-control jumlah_currency" id=" jumlah_currency" name="jumlah_currency"
+                                    type="number" min="1000" placeholder="Input Harga Currency"
+                                    value="{{ old('jumlah_currency') }}" required />
+                            </div>
+                            <p class="text-primary"> IDR:
+                                <span id="detailjumlahcurrency" class="detailjumlahcurrency">
+
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label" for="jumlah_tukar">Jumlah Penukaran</label><span class="mr-4 mb-3"
+                                style="color: red">*</span>
+                            <input class="form-control" id=" jumlah_tukar" name="jumlah_tukar" type="number" min="1"
+                                placeholder="Input Jumlah Penukaran" value="{{ old('jumlah_tukar') }}" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" type="button" onclick="tambahdata(event)">Tambah Data </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<template id="template_delete_button">
+
+    <button class="btn p-0" onclick="hapusdata(this)" type="button"><span class="text-700 fas fa-trash-alt"></span>
+    </button>
+
+</template>
+
+<template id="template_add_button">
+    <button class="btn btn-success btn-datatable" type="button" data-toggle="modal" data-target="#Modaltambah">
+        <i class="fas fa-plus"></i>
+    </button>
+</template>
+
+<script>
+    function submitdata(event) {
+        event.preventDefault()
+        var form = $('#form')
+        var _token = form.find('input[name="_token"]').val()
+        var kode_transaksi = form.find('input[name="kode_transaksi"]').val()
+        var tanggal_transaksi = form.find('input[name="tanggal_transaksi"]').val()
+        var id_transaksi = form.find('input[name="id_transaksi"]').val()
+        var id_modal = form.find('input[name="id_modal"]').val()
+        var dataform2 = []
+        var grand_total = $('#grand_total').html()
+        var check_grand = grand_total.includes("Rp.");
+        if (check_grand == true) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Transaksi Kosong! Tambah Transaksi Terlebih Dahulu',
+            })
+        } else {
+            var total = grand_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
+            var check_1 = $('#check_1').is(":checked")
+            var check_2 = $('#check_2').is(":checked")
+
+            var modal = $('#jumlah_modal').html()
+            var jumlah_modal = modal.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
+
+            if (check_1 == false) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Check Terlebih Dahulu!',
+                })
+            } else if (check_2 == false) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Check Terlebih Dahulu!',
+                })
+            } else if (check_1 == false && check_2 == false) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Check Terlebih Dahulu!',
+                })
+            } else if (check_1 == true && check_2 == true) {
+
+                var detail = $('#konfirmasi').children()
+                for (let index = 0; index < detail.length; index++) {
+                    var children = $(detail[index]).children()
+
+                    var td_currency = children[1]
+                    var span = $(td_currency).children()[0]
+                    var id_currency = $(span).attr('id')
+
+                    var td_jumlah_currency = children[2]
+                    var jumlah_currency_trim = $(td_jumlah_currency).html()
+                    var jumlah_currency = jumlah_currency_trim.split('Rp&nbsp;')[1].replace('.', '').replace('.', '')
+                        .trim()
+
+                    var td_jumlah_tukar = children[3]
+                    var jumlah_tukar = $(td_jumlah_tukar).html()
+
+                    var total_tukar = children[4]
+                    var total_tukar_trim = $(total_tukar).html()
+                    var total_tukar = total_tukar_trim.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
+
+                    dataform2.push({
+                        id_currency: id_currency,
+                        id_transaksi: id_transaksi,
+                        jumlah_currency: jumlah_currency,
+                        jumlah_tukar: jumlah_tukar,
+                        total_tukar: total_tukar
+                    })
+                }
+
+                if (dataform2.length == 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Transaksi Kosong!, Isi Transaksi Terlebih Dahulu',
+                    })
+                } else {
+                    var data = {
+                        _token: _token,
+                        kode_transaksi: kode_transaksi,
+                        tanggal_transaksi: tanggal_transaksi,
+                        id_modal: id_modal,
+                        total: total,
+                        jumlah_modal: jumlah_modal,
+                        detail: dataform2
+                    }
+
+                    console.log(data)
+
+
+                    $.ajax({
+                        method: 'post',
+                        url: '/transaksi',
+                        data: data,
+                        success: function (response) {
+                            window.location.href = '/transaksi/create'
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                                }
+                            })
+
+                            Toast.fire({
+                                icon: 'success',
+                                title: 'Data Masih Diproses Mohon Tunggu'
+                            })
+                        },
+                        error: function (response) {
+                            console.log(response)
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'Error! Transaksi Tidak dapat disimpan',
+                            })
+                        }
+                    });
+                }
+            }
+        }
+
+
+    }
+
+    function tambahdata(event, id_sparepart) {
+        var form = $('#form1')
+        var currency = $('#currency').html()
+        var id_currency = $('#currency').val()
+        var jumlah_currency = form.find('input[name="jumlah_currency"]').val()
+        var jumlah_tukar = form.find('input[name="jumlah_tukar"]').val()
+        var total_tukar = jumlah_tukar * jumlah_currency;
+
+        var harga_currency = new Intl.NumberFormat('id', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(jumlah_currency)
+
+        var total_tukar_rp = new Intl.NumberFormat('id', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(jumlah_tukar * jumlah_currency)
+
+        if (currency == "" | currency == "Pilih Currency") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Currency Tidak Boleh Kosong!',
+            })
+        } else if (jumlah_currency == "" | jumlah_currency == 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Harga Currency Tidak Boleh Bernilai 0 atau Kosong!',
+            })
+        } else if (jumlah_tukar == "" | jumlah_tukar == 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Jumlah Tukar Tidak Boleh Bernilai 0 atau Kosong!',
+            })
+        } else {
+            // PENGURANGAN MODAL
+            var jumlah_modal = $('#jumlah_modal').html()
+            var check_modal = jumlah_modal.includes("Rp.")
+            if (check_modal == true) {
+                var jumlah_modal_trim = jumlah_modal.split('Rp.')[1].replace(',', '').replace(',', '').trim()
+                var jumlah_total_fix = parseInt(jumlah_modal_trim) - parseInt(total_tukar)
+            } else {
+                var jumlah_modal_trim = jumlah_modal.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
+                var jumlah_total_fix = parseInt(jumlah_modal_trim) - parseInt(total_tukar)
+            }
+
+            // JIKA TRANSAKSI LEBIH DARI MODAL
+            if (total_tukar > jumlah_modal_trim) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Mohon Maaf Modal Anda Kurang Dari Transaksi, Lakukan Penambahan!',
+                })
+            } else {
+                // PENGURANGAN MODAL
+                var jumlah_total_idr = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                }).format(jumlah_total_fix)
+                $('#jumlah_modal').html(jumlah_total_idr)
+
+                // PAYABLE TOTAL
+                var payable_total = $('#payable_total').html()
+                var check_payable = payable_total.includes("Rp.");
+                if (check_payable == true) {
+                    var payable_total_trim = payable_total.split('Rp')[1].replace('.', '').replace('.', '').trim()
+                    var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
+                } else {
+                    var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
+                    var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
+                }
+                var payable_total_idr = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                }).format(payable_total_fix)
+                $('#payable_total').html(payable_total_idr)
+
+                // GRAND TOTAL
+                var grand_total = $('#grand_total').html()
+                var check_grand = grand_total.includes("Rp.");
+                if (check_grand == true) {
+                    var grand_total_trim = grand_total.split('Rp')[1].replace('.', '').replace('.', '').trim()
+                    var grand_total_fix = parseInt(grand_total_trim) + parseInt(total_tukar)
+                } else {
+                    var grand_total_trim = grand_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
+                    var grand_total_fix = parseInt(grand_total_trim) + parseInt(total_tukar)
+                }
+                var grand_total_idr = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                }).format(grand_total_fix)
+                $('#grand_total').html(grand_total_idr)
+
+                // DRAW DATATABLE
+                $('#dataTableKonfirmasi').DataTable().row.add([
+                    total_tukar_rp, `<span id=${id_currency}>${currency}</span>`, harga_currency, jumlah_tukar,
+                    total_tukar_rp, total_tukar_rp
+                ]).draw();
+
+                // CLOSE DAN RESET MODAL
+                $('#btn-close-modal').click();
+                $('#form1')[0].reset();
+                var tes = 0;
+                var tes_fix = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR'
+                }).format(tes)
+                $('#detailjumlahcurrency').html(tes_fix)
+
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                })
+
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Berhasil Menambahkan Data Transaksi'
+                })
+            }
+
+
+
+        }
+    }
+
+    function hapusdata(element) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var table = $('#dataTableKonfirmasi').DataTable()
+                var row = $(element).parent().parent()
+                table.row(row).remove().draw();
+                var table = $('#dataTable').DataTable()
+
+                var jumlah = $(row.children()[4]).text()
+                var jumlah_trim = jumlah.split('Rp')[1].replace('.', '').replace('.', '').trim()
+
+                // PAYABLE 
+                var payable_total = $('#payable_total').html()
+                var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '')
+                    .trim()
+                var payable_total_fix = parseInt(payable_total_trim) - parseInt(jumlah_trim)
+                var payable_total_idr = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                }).format(payable_total_fix)
+                $('#payable_total').html(payable_total_idr)
+
+                // GRAND TOTAL
+                var grand_total = $('#grand_total').html()
+                var grand_total_trim = grand_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
+                var grand_total_fix = parseInt(grand_total_trim) - parseInt(jumlah_trim)
+                var grand_total_idr = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                }).format(grand_total_fix)
+                $('#grand_total').html(grand_total_idr)
+
+                // MODAL
+                var jumlah_modal = $('#jumlah_modal').html()
+                var jumlah_modal_trim = jumlah_modal.split('Rp&nbsp;')[1].replace('.', '').replace('.', '')
+                    .trim()
+                var jumlah_total_fix = parseInt(jumlah_modal_trim) + parseInt(jumlah_trim)
+                var jumlah_total_idr = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                }).format(jumlah_total_fix)
+                $('#jumlah_modal').html(jumlah_total_idr)
+            }
+        })
+
+    }
+
+    $(document).ready(function () {
+        $('.jumlah_currency').each(function () {
+            $(this).on('input', function () {
+                var harga = $(this).val()
+                var harga_fix = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                }).format(harga)
+
+                var jumlah = $(this).parent().parent().find('.detailjumlahcurrency')
+                $(jumlah).html(harga_fix);
+            })
+        })
+
+
+        var template = $('#template_delete_button').html()
+        $('#dataTableKonfirmasi').DataTable({
+            "paging": false,
+            "ordering": false,
+            "info": false,
+            "searching": false,
+            "columnDefs": [{
+                    "targets": -1,
+                    "data": null,
+                    "defaultContent": template
+                },
+                {
+                    "targets": 0,
+                    "data": null,
+                    'render': function (data, type, row, meta) {
+                        return meta.row + 1
+                    }
+                }
+            ]
+        });
+    });
+
+</script>
 
 @endsection

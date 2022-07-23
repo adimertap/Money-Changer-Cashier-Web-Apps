@@ -78,9 +78,13 @@
                             @forelse ($currency as $item)
                             <tr role="row" class="odd">
                                 <th scope="row" class="no">{{ $loop->iteration}}.</th>
-                                <td class="name">{{ $item->nama_currency }}</td>
-                                <td class="namapanggilan">{{ $item->country }}</td>
+                                <td class="nama_currency">{{ $item->nama_currency }}</td>
+                                <td class="country">{{ $item->country }}</td>
                                 <td class="text-center">
+                                    <button class="btn p-0 ms-2 editModalBtn" value="{{ $item->id_modal }}"
+                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="Edit"><span class="text-700 fas fa-edit"></span>
+                                    </button>
                                     <button class="btn p-0 ms-2 deleteCurrencyBtn" value="{{ $item->id_currency }}"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Delete"><span class="text-700 fas fa-trash-alt"></span>
@@ -179,18 +183,13 @@
             <form action="{{ url('owner/delete-currency') }}" method="POST">
                 @csrf
                 <div class="modal-body p-0">
-                    <div class="bg-light rounded-top-lg py-3 ps-4 pe-6">
-                        <h4 class="mb-1">Hapus Data Currency</h4>
-                        <p class="fs--2 mb-0">Modal Confirmation</p>
-                    </div>
+                    <div class="bg-danger rounded-top-lg py-3 ps-4 pe-6">
+                        <h4 class="mb-1 text-white">Hapus Data Currency</h4>
+                       </div>
                     <div class="p-3">
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="d-flex">
-                                    <span class="fa-stack ms-n1 me-3"><i
-                                            class="fas fa-circle fa-stack-2x text-200"></i><i
-                                            class="fa-inverse fa-stack-1x text-primary fas fa-align-left"
-                                            data-fa-transform="shrink-2"></i></span>
                                     <div class="flex-1">
                                         <input type="hidden" name="currency_delete_id" id="id_currency">
                                         <h5 class="mb-2 fs-0">Confirmation</h5>

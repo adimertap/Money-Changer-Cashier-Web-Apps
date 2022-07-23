@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\ApprovalModalController;
 use App\Http\Controllers\MasterCurrencyController;
 use App\Http\Controllers\MasterPegawaiController;
+use App\Http\Controllers\ModalController;
 use App\Http\Controllers\TransaksiController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -33,7 +35,16 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/delete-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'hapus'])->name('master-currency-delete');
     });
 
+    // TRANSAKSI
     Route::resource('transaksi', TransaksiController::class);
+    Route::post('/delete-transaksi', [\App\Http\Controllers\TransaksiController::class, 'hapus'])->name('transaksi-delete');
+
+    // MODAL
+    Route::resource('modal', ModalController::class);
+    Route::post('/delete-modal', [\App\Http\Controllers\ModalController::class, 'hapus'])->name('modal-delete');
+    Route::post('/transfer-modal', [\App\Http\Controllers\ModalController::class, 'transfer'])->name('modal-transfer');
   
+    // APPROVAL
+    Route::resource('approval-modal', ApprovalModalController::class)->middleware(['Owner']);
 
 });

@@ -142,18 +142,13 @@
             <form action="{{ url('owner/delete-pegawai') }}" method="POST">
                 @csrf
                 <div class="modal-body p-0">
-                    <div class="bg-light rounded-top-lg py-3 ps-4 pe-6">
-                        <h4 class="mb-1">Konfirmasi Hapus Data Pegawai</h4>
-                        <p class="fs--2 mb-0">Modal Confirmation</p>
+                    <div class="bg-danger rounded-top-lg py-3 ps-4 pe-6">
+                        <h4 class="mb-1 text-white">Konfirmasi Hapus Data Pegawai</h4>
                     </div>
                     <div class="p-4">
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="d-flex">
-                                    <span class="fa-stack ms-n1 me-3"><i
-                                            class="fas fa-circle fa-stack-2x text-200"></i><i
-                                            class="fa-inverse fa-stack-1x text-primary fas fa-align-left"
-                                            data-fa-transform="shrink-2"></i></span>
                                     <div class="flex-1">
                                         <input type="hidden" name="pegawai_delete_id" id="id_pegawai">
                                         <h5 class="mb-2 fs-0">Confirmation</h5>

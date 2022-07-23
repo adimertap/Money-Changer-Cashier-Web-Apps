@@ -6,6 +6,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class MasterPegawaiController extends Controller
 {
@@ -54,7 +55,8 @@ class MasterPegawaiController extends Controller
 
         event(new Registered($pegawai));
 
-        return redirect()->route('master-pegawai.index')->with('messageberhasil','Data Pegawai Berhasil Ditambahkan');
+        Alert::success('Success Title', 'Data Pegawai Berhasil Terhapus');
+        return redirect()->route('master-pegawai.index');
     }
 
     /**
@@ -99,8 +101,8 @@ class MasterPegawaiController extends Controller
         $pegawai->role = $request->role;
         $pegawai->email = $request->email;
         $pegawai->update();
-
-        return redirect()->route('master-pegawai.index')->with('messageberhasil','Data Pegawai Berhasil Diedit');
+        Alert::success('Success Title', 'Data Pegawai Berhasil Diedit');
+        return redirect()->route('master-pegawai.index');
 
     }
 
@@ -114,15 +116,15 @@ class MasterPegawaiController extends Controller
     {
         $pegawai = User::find($id);
         $pegawai->delete();
-
-        return redirect()->back()->with('messageberhasil', 'Data Pegawai berhasil Dihapus');
+        Alert::success('Success Title', 'Data Pegawai Berhasil Terhapus');
+        return redirect()->back();
     }
 
     public function hapus(Request $request)
     {
         $pegawai = User::find($request->pegawai_delete_id);
         $pegawai->delete();
-
-        return redirect()->route('master-pegawai.index')->with('messageberhasil', 'Data Pegawai berhasil Dihapus');
+        Alert::success('Success Title', 'Data Pegawai Berhasil Terhapus');
+        return redirect()->route('master-pegawai.index');
     }
 }

@@ -15,7 +15,10 @@ class ModalTransaksi extends Model
         'id_pegawai',
         'jumlah_modal',
         'tanggal_modal',
-        'status_modal'
+        'status_modal',
+        'keterangan_approval',
+        'riwayat_modal',
+        'pengajuan_tambah'
     ];
 
     protected $hidden = [

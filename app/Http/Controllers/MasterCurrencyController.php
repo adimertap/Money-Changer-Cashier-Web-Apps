@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MasterCurrency;
 use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class MasterCurrencyController extends Controller
 {
@@ -21,19 +22,20 @@ class MasterCurrencyController extends Controller
         $item->nama_currency = $request->nama_currency;
         $item->country = $request->country;
         $item->save();
-
-        return redirect()->back()->with('messageberhasil','Data Currency Berhasil Ditambahkan');
+        Alert::success('Success Title', 'Data Currency Berhasil Ditambahkan');
+        return redirect()->back();
     }
 
     public function hapus(Request $request)
     {
         $item = MasterCurrency::find($request->currency_delete_id);
         $item->delete();
-
-        return redirect()->route('master-currency')->with('messageberhasil','Data Currency Berhasil Dihapus');
+        
+        Alert::success('Success Title', 'Data Currency Berhasil Terhapus');
+        return redirect()->route('master-currency');
     }
 
-    public function update(Type $var = null)
+    public function update(Request $request)
     {
         # code...
     }

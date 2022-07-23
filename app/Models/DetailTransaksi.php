@@ -30,4 +30,9 @@ class DetailTransaksi extends Model
     {
         return $this->belongsTo(Transaksi::class, 'id_transaksi','id_transaksi');
     }
+
+    public function Currency()
+    {
+        return $this->belongsTo(MasterCurrency::class, 'id_currency','id_currency');
+    }
 }
