@@ -2,6 +2,26 @@
 
 @section('content')
 <main>
+    <div class="card py-3 mb-3">
+        <div class="card-body py-3">
+            <div class="row g-0">
+                <div class="col-6 col-md-6 border-200 border-bottom border-end pb-4">
+                    <h6 class="pb-1 text-700">Transaksi Keseluruhan</h6>
+                    <p class="font-sans-serif lh-1 mb-1 fs-2">{{ $jumlah }}</p>
+                    <div class="d-flex align-items-center">
+                        <h6 class="fs--1 text-500 mb-0">Transaksi</h6>
+                    </div>
+                </div>
+                <div class="col-6 col-md-6 border-200 border-md-200 border-bottom border-md-end pb-4 ps-3">
+                    <h6 class="pb-1 text-700">Total Transaksi Keseluruhan</h6>
+                    <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total) }}</p>
+                    <div class="d-flex align-items-center">
+                        <h6 class="fs--1 text-500 mb-0"></h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="card mb-3">
         <div class="bg-holder d-none d-lg-block bg-card"
             style="background-image:url(/../falcon/assets/img/icons/spot-illustrations/corner-4.png);"></div>
@@ -12,10 +32,7 @@
                     <p class="mt-2">Pilih Tanggal Awal dan Pilih Tanggal Akhir</p>
                     <hr>
                     <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button">
-                        <span class="fas fa-arrow-down me-1"> </span>Download (.pdf)
-                    </button>
-                    <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button">
-                        <span class="fas fa-print me-1"> </span>Print Invoice
+                        <span class="fas fa-arrow-down me-1"> </span>Download (.excel)
                     </button>
                 </div>
                 <div class="col-lg-6">
@@ -38,13 +55,12 @@
                                 </div>
                             </div>
                         </form>
-                    </div>
-                
-                        
+                    </div> 
                 </div>
             </div>
         </div>
     </div>
+    
     <div class="card mb-3">
         <div class="card-body">
             <div id="tableExample"
@@ -79,11 +95,7 @@
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Detail"><span class="text-700 fas fa-eye"></span>
                                     </a>
-                                    <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0 ms-2"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Download"><span class="text-700 fas fa-download"></span>
-                                    </a>
-                                    <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0 ms-2"
+                                    <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0 ms-2"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Print"><span class="text-700 fas fa-print"></span>
                                     </a>

@@ -28,7 +28,10 @@ class JurnalHarianController extends Controller
 
         $transaksi = $transaksi->get();
 
-        return view('pages.jurnal.harian.index', compact('transaksi'));
+        $jumlah = Transaksi::count();
+        $total = Transaksi::sum('total');
+
+        return view('pages.jurnal.harian.index', compact('transaksi','jumlah','total'));
     }
 
     /**

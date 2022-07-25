@@ -23,12 +23,17 @@ class TransaksiController extends Controller
         if(Auth::user()->role == 'Pegawai'){
             $transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->get();
             $count = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
-            
-            return view('pages.transaksi.index', compact('transaksi','count'));
+            $today =  Carbon::now()->format('Y-m-d');
+            $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
+
+            return view('pages.transaksi.index', compact('transaksi','count','today','total_transaksi'));
         }else{
             $transaksi = Transaksi::with('Pegawai')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->get();
             $count = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
-            return view('pages.transaksi.owner', compact('transaksi', 'count'));
+            $today =  Carbon::now()->format('Y-m-d');
+            $total_transaksi = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
+
+            return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi'));
         }
 
         

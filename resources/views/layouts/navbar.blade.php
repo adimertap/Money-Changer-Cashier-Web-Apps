@@ -12,6 +12,7 @@
     <div class="collapse navbar-collapse" id="navbarVerticalCollapse">
         <div class="navbar-vertical-content scrollbar">
             <ul class="navbar-nav flex-column mb-3" id="navbarVerticalNav">
+                @if (Auth::user()->role == 'Owner')
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('dashboard') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
@@ -22,7 +23,7 @@
                             </div>
                         </a>
                     </li>
-                @if (Auth::user()->role == 'Owner')
+             
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Master Data</div>

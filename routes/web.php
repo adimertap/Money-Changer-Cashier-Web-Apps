@@ -26,7 +26,7 @@ Auth::routes();
 
 
 Route::group(['middleware' => 'auth'], function () {
-    Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->middleware('Owner')->name('dashboard');
 
     Route::prefix('owner')->middleware(['Owner'])->group(function(){
         // MASTER DATA
@@ -58,5 +58,5 @@ Route::group(['middleware' => 'auth'], function () {
 
     // CETAK DOWNLOAD
     Route::get('/cetak/{id}', [\App\Http\Controllers\CetakController::class, 'cetak'])->name('cetak');
-
+    Route::get('/exportexcel/{today}', [\App\Http\Controllers\CetakController::class, 'exportexcel'])->name('exportexcel');
 });

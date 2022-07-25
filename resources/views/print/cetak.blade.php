@@ -52,16 +52,11 @@
         }
 
         @media print {
-
-            html,
-            body {
+            @page{
                 size: 80mm;
-                /* auto is the initial value */
                 size: 80mm portrait;
                 margin: 0;
-                /* this affects the margin in the printer settings */
                 border: 1px solid red;
-                /* set a border for all printed pages */
                 position: absolute;
             }
         }
@@ -81,6 +76,14 @@
             font-size: 16pt;
         }
 
+        hr{
+            height:2px;
+            border-width:0;
+            color:gray;
+            background-color:gray;
+            border-top: solid 1px #000 !important;
+        }
+
         @page {
             size: A4;
             margin: 0;
@@ -88,9 +91,8 @@
 
     </style>
 </head>
-
-
-<body class="page">
+  
+<body class="page" onload="window.print()">
     <main class="text-kecil" style="color: white">
         <div class="row align-items-center  text-center mb-3 mt-3">
             <div class="col-sm-2 text-sm-start justify-content-center">
@@ -114,7 +116,7 @@
                 <p class="fs--2 text-danger fw-bold m-0">{{ $transaksi->kode_transaksi }}</p>
             </div>
         </div>
-        <hr class="mt-2 mb-2" style="height:1px;border-width:0;color:gray;background-color:gray">
+        <hr class="mt-2 mb-2">
         @forelse ($transaksi->detailTransaksi as $item)
         <div class="row align-items-center mt-2">
             <div class="col-sm-1">
@@ -146,7 +148,7 @@
             </div>
             <h6 class="text-600 m-0 fs--2 text-center mt-4">#Customer Signature</h6>
         </div>
-        <div class=" mt-7">
+        <div class=" mt-8">
          
            
         </div>
@@ -203,7 +205,7 @@
 
     <script>
           $(document).ready(function () {
-
+            
           });
 
         

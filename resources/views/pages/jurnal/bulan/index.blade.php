@@ -44,14 +44,6 @@
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Detail"><span class="text-700 fas fa-eye"></span>
                                     </a>
-                                    <a href="{{ route('transaksi.show', $item->month) }}" class="btn p-0 ms-2"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Download"><span class="text-700 fas fa-download"></span>
-                                    </a>
-                                    <a href="{{ route('transaksi.show', $item->month) }}" class="btn p-0 ms-2"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Print"><span class="text-700 fas fa-print"></span>
-                                    </a>
                                 </td>
                             </tr>
                             @empty

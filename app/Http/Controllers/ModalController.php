@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Mail\MailModal;
+use App\Mail\MailModalTambah;
 use App\Models\ModalTransaksi;
 use App\Models\RiwayatModal;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use RealRashid\SweetAlert\Facades\Alert;
+
 
 class ModalController extends Controller
 {
@@ -31,6 +36,8 @@ class ModalController extends Controller
         if(count($modal_today) == 0){
             Alert::warning('Modal Belum Diinput', 'Anda Belum Menginputkan Modal Hari Ini, Lakukan Inputan atau Transfer');
         }
+
+       
        
         return view('pages.modal.index', compact('modal','modal_today','today','jumlah_modal_today','modal_tf'));
     }
@@ -60,6 +67,9 @@ class ModalController extends Controller
         $modal->id_pegawai = Auth::user()->id;
         $modal->riwayat_modal = $request->jumlah_modal;
         $modal->save();
+
+        $user = User::where('role','Owner')->first();
+        Mail::to($user->email)->send(new MailModal($modal));
 
         Alert::success('Berhasil', 'Data Modal Berhasil Ditambahkan');
         return redirect()->back();
@@ -112,6 +122,9 @@ class ModalController extends Controller
         $item->pengajuan_tambah = $request->jumlah_modal;
         $item->status_modal = 'Pending';
         $item->save();
+
+        $user = User::where('role','Owner')->first();
+        Mail::to($user->email)->send(new MailModalTambah($item));
 
         Alert::success('Berhasil', 'Data Modal Berhasil Diajukan, Mohon Tunggu');
         return redirect()->back();

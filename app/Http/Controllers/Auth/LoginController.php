@@ -26,7 +26,18 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = RouteServiceProvider::HOME;
+
+    protected function authenticated($request, $user)
+    {
+       $tes = $user->role;
+       if($tes == "Owner"){
+            return redirect('/');
+       }else{
+            return redirect('/transaksi/create');
+       }
+    }
+
+    // protected $redirectTo = RouteServiceProvider::HOME;
 
     /**
      * Create a new controller instance.

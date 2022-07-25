@@ -12,10 +12,7 @@
                     <p class="mt-2">Pilih Tanggal Awal dan Pilih Tanggal Akhir</p>
                     <hr>
                     <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button">
-                        <span class="fas fa-arrow-down me-1"></span>Download Seluruh Transaksi(.pdf)
-                    </button>
-                    <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button">
-                        <span class="fas fa-arrow-down me-1"></span>Download Seluruh Transaksi(.excel)
+                        <span class="fas fa-arrow-down me-1"></span>Download Transaksi Bulan {{ $transaksi[0]->month }}(.excel)
                     </button>
                 </div>
             </div>
@@ -95,6 +92,10 @@
                                             <a href="{{ route('bulanan-transaksi', $item->id_transaksi) }}"
                                                 class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
                                                 data-bs-placement="top" title="Detail"><span class="text-700 fas fa-eye"></span>
+                                            </a>
+                                            <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank"
+                                                class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
+                                                data-bs-placement="top" title="Print"><span class="text-700 fas fa-print"></span>
                                             </a>
                                         </td>
                                     </tr>

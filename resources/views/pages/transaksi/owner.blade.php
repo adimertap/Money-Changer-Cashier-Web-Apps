@@ -3,20 +3,41 @@
 @section('content')
 <main>
     <div class="row g-3 mb-3 mt-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
                     <div class="row flex-between-center g-0">
-                        <div class="col-8 d-lg-block flex-between-center">
+                        <div class="col-6 d-lg-block flex-between-center">
                             <h5 class="text-primary mb-1">Welcome, {{ Auth::user()->nama_panggilan }}!</h5>
-                            <p>Rekapan Transaksi Perusahaan Hari Ini</p>
+                            <p>Rekapan Transaksi Hari Ini</p>
                         </div>
-                        <div class="col-auto h-100"></div>
+                        <div class="col-auto h-100">
+                            <a href="{{ route('exportexcel', $today) }}" class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button">
+                                <span class="fas fa-arrow-down me-1"> </span>Download (.excel)
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="row flex-between-center">
+                        <div class="col d-md-flex d-lg-block flex-between-center">
+                            <h6 class="mb-md-0 mb-lg-2">Jumlah Transaksi Hari Ini</h6>
+                            <span class="badge rounded-pill badge-soft-success">Today</span>
+                        </div>
+                        <div class="col-auto">
+                            <h4 class="fs-3 fw-normal text-700">
+                                <p class="small mb-2">{{ $count }} Transaksi</p>
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
                     <div class="row flex-between-center">
@@ -26,7 +47,7 @@
                         </div>
                         <div class="col-auto">
                             <h4 class="fs-3 fw-normal text-700">
-                                <p class="small mb-2">{{ $count }} Transaksi</p>
+                                <p class="small mb-2">Rp. {{ number_format($total_transaksi) }}</p>
                             </h4>
                         </div>
                     </div>
@@ -73,11 +94,7 @@
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="{{ route('cetak', $item->id_transaksi) }}" class="btn p-0 ms-1"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Download"><span class="text-700 fas fa-download"></span>
-                                    </a>
-                                    <a href="{{ route('cetak', $item->id_transaksi) }}" class="btn p-0 ms-1"
+                                    <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0 ms-1"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Print"><span class="text-700 fas fa-print"></span>
                                     </a>

@@ -174,7 +174,7 @@
                         <div class="col-md-12 mb-3">
                             <label class="form-label" for="jumlah_modal">Jumlah Modal</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
-                            <input class="form-control @error('jumlah_modal') is-invalid @enderror" id=" jumlah_modal"
+                            <input class="form-control tambah_jumlah_modal" id="tambah_jumlah_modal"
                                 name="jumlah_modal" type="text" placeholder="Input Jumlah Modal"
                                 value="{{ old('jumlah_modal') }}" required />
                             <p class="text-primary"> IDR:
@@ -403,8 +403,8 @@
             $('#id_modal').val(id)
             $('#deleteModal').modal('show');
         });
-
-        $('.jumlah_modal_edit').each(function () {
+        
+        $('.tambah_jumlah_modal').each(function () {
             $(this).on('input', function () {
                 var harga = $(this).val()
                 var harga_fix = new Intl.NumberFormat('id', {
@@ -413,7 +413,7 @@
                     minimumFractionDigits: 0,
                 }).format(harga)
 
-                var jumlah = $(this).parent().parent().find('.detaileditmodal')
+                var jumlah = $(this).parent().parent().find('.detailtambahmodal')
                 $(jumlah).html(harga_fix);
             })
         });

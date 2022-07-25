@@ -335,7 +335,12 @@
                         url: '/transaksi',
                         data: data,
                         success: function (response) {
-                            window.location.href = '/transaksi/create'
+                            window.open(
+                                '/cetak/' + id_transaksi,
+                                '_blank'
+                            );
+                            window.location.reload();
+
                             const Toast = Swal.mixin({
                                 toast: true,
                                 position: 'top-end',
