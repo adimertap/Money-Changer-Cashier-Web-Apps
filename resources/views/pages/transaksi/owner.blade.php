@@ -26,7 +26,7 @@
                         </div>
                         <div class="col-auto">
                             <h4 class="fs-3 fw-normal text-700">
-                                <p class="small mb-2">5 Transaksi</p>
+                                <p class="small mb-2">{{ $count }} Transaksi</p>
                             </h4>
                         </div>
                     </div>
@@ -34,23 +34,6 @@
             </div>
         </div>
     </div>
-
-    {{-- ALERT --}}
-    @if(session('messageberhasil'))
-    <div class="alert alert-success border-2 d-flex align-items-center" role="alert" id="alertsukses">
-        <div class="bg-success me-3 icon-item"><span class="fas fa-check-circle text-white fs-3"></span></div>
-        <p class="mb-0 flex-1">{{ session('messageberhasil') }}</p><button class="btn-close" type="button"
-            data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    @endif
-    @if(session('messagehapus'))
-    <div class="alert alert-danger border-2 d-flex align-items-center" role="alert" id="alertgagal">
-        <div class="bg-danger me-3 icon-item"><span class="fas fa-times-circle text-white fs-3"></span></div>
-        <p class="mb-0 flex-1">{{ session('messagehapus') }}</p><button class="btn-close" type="button"
-            data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    @endif
-
     <div class="card mb-3">
         <div class="card-header">
             <div class="row flex-between-end">
@@ -73,6 +56,7 @@
                                 <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal</th>
                                 <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
                                 <th class="sort text-center fs--1" data-sort="total">Total Transaksi</th>
+                                <th class="sort text-center fs--1" data-sort="print">Print</th>
                                 <th class="sort text-center fs--1" data-sort="status">Status</th>
                                 <th class="text-center">Actions</th>
                             </tr>
@@ -80,7 +64,7 @@
                         <tbody class="list">
                             @forelse ($transaksi as $item)
                             <tr role="row" class="odd">
-                                <th scope="row" class="no">{{ $loop->iteration}}.</th>
+                                <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                 <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
                                 <td class="text-center tanggal_transaksi fs--1">{{ $item->tanggal_transaksi }}</td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
@@ -88,12 +72,26 @@
                                 <td class="text-center status text-center fs--1">
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
                                 </td>
+                                <td class="text-center">
+                                    <a href="{{ route('cetak', $item->id_transaksi) }}" class="btn p-0 ms-1"
+                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="Download"><span class="text-700 fas fa-download"></span>
+                                    </a>
+                                    <a href="{{ route('cetak', $item->id_transaksi) }}" class="btn p-0 ms-1"
+                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="Print"><span class="text-700 fas fa-print"></span>
+                                    </a>
+                                </td>
                                 <td class="text-center fs--1">
-                                    <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0 ms-2"
+                                    <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0 ms-1"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Detail"><span class="text-700 fas fa-eye"></span>
                                     </a>
-                                    <button class="btn p-0 ms-2 deleteModalBtn" value="{{ $item->id_transaksi }}"
+                                    <a href="{{ route('transaksi.edit', $item->id_transaksi) }}" class="btn p-0 ms-1"
+                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="Edit"><span class="text-700 fas fa-edit"></span>
+                                    </a>
+                                    <button class="btn p-0 ms-1 deleteModalBtn" value="{{ $item->id_transaksi }}"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Delete"><span class="text-700 fas fa-trash-alt"></span>
                                     </button>

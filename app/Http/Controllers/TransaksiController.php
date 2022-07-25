@@ -23,12 +23,11 @@ class TransaksiController extends Controller
         if(Auth::user()->role == 'Pegawai'){
             $transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->get();
             $count = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
-
+            
             return view('pages.transaksi.index', compact('transaksi','count'));
         }else{
             $transaksi = Transaksi::with('Pegawai')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->get();
-            $count = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
-
+            $count = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
             return view('pages.transaksi.owner', compact('transaksi', 'count'));
         }
 
@@ -44,9 +43,21 @@ class TransaksiController extends Controller
     public function create()
     {
         $currency = MasterCurrency::get();
-        $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
+        $tes = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
+        if($tes->status_modal == 'Pending'){
+            Alert::warning('Modal Diproses, Mohon Menunggu', 'Pengajuan Modal Anda Hari Ini Belum Diproses oleh Owner');
+            return redirect()->route('modal.index');
+        }elseif($tes->status_modal == 'Tolak'){
+            Alert::warning('Modal Ditolak', 'Pengajuan Modal Anda Hari Ini Ditolak oleh Owner, Edit Data Modal');
+            return redirect()->route('modal.index');
+        }else{
+            $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
+        }
         $today = Carbon::now()->format('d M Y H:i:s');
         $today_format = Carbon::now()->format('Y-m-d');
+
+        $jumlah_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
+        $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
 
         $id = Transaksi::getId();
         foreach($id as $value);
@@ -57,7 +68,7 @@ class TransaksiController extends Controller
 
         $kode_transaksi = 'RV'.$blt.$id.'-'.$idbaru;
 
-        return view('pages.transaksi.create', compact('currency','modal','today','kode_transaksi','today_format','idbaru'));
+        return view('pages.transaksi.create', compact('currency','modal','today','kode_transaksi','today_format','idbaru','jumlah_transaksi','total_transaksi'));
     }
 
     /**
@@ -82,7 +93,7 @@ class TransaksiController extends Controller
         $modal->save();
 
         $transaksi->detailTransaksi()->insert($request->detail);
-        Alert::success('Success Title', 'Data Transaksi Berhasil Ditambahkan');
+        Alert::success('Berhasil', 'Data Transaksi Berhasil Ditambahkan');
         return $request;
     }
 
@@ -108,7 +119,18 @@ class TransaksiController extends Controller
      */
     public function edit($id)
     {
-        //
+        $transaksi = Transaksi::with('detailTransaksi.Currency')->find($id);
+       
+
+        $currency = MasterCurrency::get();
+        $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
+        $today = Carbon::now()->format('d M Y H:i:s');
+        $today_format = Carbon::now()->format('Y-m-d');
+
+        $jumlah_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
+        $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
+
+        return view('pages.transaksi.edit', compact('transaksi','currency','modal','today','today_format','jumlah_transaksi','total_transaksi'));
     }
 
     /**
@@ -120,7 +142,19 @@ class TransaksiController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $transaksi = Transaksi::find($id);
+        $transaksi->total = $request->total;
+        $transaksi->id_pegawai = Auth::user()->id;
+        $transaksi->save();
+
+        $modal = ModalTransaksi::find($request->id_modal);
+        $modal->riwayat_modal = $request->jumlah_modal;
+        $modal->save();
+
+        $transaksi->detailTransaksi()->delete();
+        $transaksi->detailTransaksi()->insert($request->detail);
+        Alert::success('Berhasil', 'Data Transaksi Berhasil Diedit');
+        return $request;
     }
 
     /**
@@ -145,7 +179,7 @@ class TransaksiController extends Controller
 
         $transaksi->delete();
       
-        Alert::success('Success Title', 'Data Transaksi Berhasil Terhapus');
+        Alert::success('Berhasil', 'Data Transaksi Berhasil Terhapus');
         return redirect()->back();
 
     }

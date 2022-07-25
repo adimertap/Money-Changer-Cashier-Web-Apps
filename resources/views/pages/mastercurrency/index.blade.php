@@ -35,23 +35,6 @@
             </div>
         </div>
     </div>
-
-    {{-- ALERT --}}
-    @if(session('messageberhasil'))
-    <div class="alert alert-success border-2 d-flex align-items-center" role="alert" id="alertsukses">
-        <div class="bg-success me-3 icon-item"><span class="fas fa-check-circle text-white fs-3"></span></div>
-        <p class="mb-0 flex-1">{{ session('messageberhasil') }}</p><button class="btn-close" type="button"
-            data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    @endif
-    @if(session('messagehapus'))
-    <div class="alert alert-danger border-2 d-flex align-items-center" role="alert" id="alertgagal">
-        <div class="bg-danger me-3 icon-item"><span class="fas fa-times-circle text-white fs-3"></span></div>
-        <p class="mb-0 flex-1">{{ session('messagehapus') }}</p><button class="btn-close" type="button"
-            data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    @endif
-
     <div class="card mb-3">
         <div class="card-header">
             <div class="row flex-between-end">
@@ -81,7 +64,7 @@
                                 <td class="nama_currency">{{ $item->nama_currency }}</td>
                                 <td class="country">{{ $item->country }}</td>
                                 <td class="text-center">
-                                    <button class="btn p-0 ms-2 editModalBtn" value="{{ $item->id_modal }}"
+                                    <button class="btn p-0 ms-2 editCurrencyBtn" value="{{ $item->id_currency }}"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Edit"><span class="text-700 fas fa-edit"></span>
                                     </button>
@@ -98,23 +81,6 @@
                             @endforelse
                         </tbody>
                     </table>
-                </div>
-                <div class="row align-items-center mt-3">
-                    <div class="pagination d-none"></div>
-                    <div class="col">
-                        <p class="mb-0 fs--1">
-                            <span class="d-none d-sm-inline-block" data-list-info="data-list-info"></span>
-                            <span class="d-none d-sm-inline-block"> &mdash; </span>
-                            <a class="fw-semi-bold" href="#!" data-list-view="*">View all<span
-                                    class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a><a
-                                class="fw-semi-bold d-none" href="#!" data-list-view="less">View Less<span
-                                    class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
-                        </p>
-                    </div>
-                    <div class="col-auto d-flex"><button class="btn btn-sm btn-primary" type="button"
-                            data-list-pagination="prev"><span>Previous</span></button><button
-                            class="btn btn-sm btn-primary px-4 ms-2" type="button"
-                            data-list-pagination="next"><span>Next</span></button></div>
                 </div>
             </div>
         </div>
@@ -140,7 +106,7 @@
                         <p class="text-word-break fs--1">Lengkapi Form Currency berikut ini</p>
                         <div class="col-md-12 mb-3">
                             <label class="form-label" for="nama_currency">Nama Currency</label>
-                            <input class="form-control @error('nama_currency') is-invalid @enderror" id=" nama_currency"
+                            <input class="form-control @error('nama_currency') is-invalid @enderror"
                                 name="nama_currency" type="text" placeholder="Input Nama Currency"
                                 value="{{ old('nama_currency') }}" required />
                             @error('nama_currency')
@@ -152,7 +118,7 @@
                         <div class="col-md-12 mb-3">
                             <label class="form-label" for="country">Country</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
-                            <input class="form-control @error('country') is-invalid @enderror" id=" country"
+                            <input class="form-control @error('country') is-invalid @enderror"
                                 name="country" type="text" placeholder="Input Country Currency"
                                 value="{{ old('country') }}" required />
                             @error('country')
@@ -173,7 +139,7 @@
 </div>
 
 
-<div class="modal fade" id="deleteModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
+<div class="modal fade" id="deleteCurrency" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
     aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content border-0">
@@ -210,6 +176,46 @@
     </div>
 </div>
 
+<div class="modal fade" id="editCurrency" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+        <div class="modal-content position-relative">
+            <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url('/owner/update-currency') }}" method="POST">
+                @csrf
+                <div class="modal-body p-0">
+                    <div class="rounded-top-lg py-3 ps-4 pe-6 bg-light">
+                        <h4 class="mb-1">Edit Currency</h4>
+                    </div>
+                    <div class="p-4 pb-0">
+                        <input type="hidden" name="edit_currency_id" id="edit_currency_id">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label" for="nama_currency">Nama Currency</label><span class="mr-4 mb-3"
+                                style="color: red">*</span>
+                            <input class="form-control nama_currency" id="fnama"
+                                name="nama_currency" type="text" placeholder="Input Nama Currency"
+                                value="{{ old('nama_currency') }}" required />
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label" for="country">Country</label><span class="mr-4 mb-3"
+                                style="color: red">*</span>
+                            <input class="form-control country" id="fcountry"
+                                name="country" type="text" placeholder="Input Country Currency"
+                                value="{{ old('country') }}" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" type="submit">Edit Data </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 <script>
     $(document).ready(function () {
@@ -218,7 +224,29 @@
 
             var id = $(this).val();
             $('#id_currency').val(id)
-            $('#deleteModal').modal('show');
+            $('#deleteCurrency').modal('show');
+        })
+
+        var table = $('#datatable').DataTable();
+
+        table.on('click', '.editCurrencyBtn', function () {
+            var id = $(this).val();
+            $('#edit_currency_id').val(id)
+
+            $tr = $(this).closest('tr');
+            if ($($tr).hasClass('clid')) {
+                $tr = $tr.prev('.parent')
+            }
+
+            var data = table.row($tr).data();
+            console.log(data)
+
+            $('#fnama').val(data[1])
+            $('#fcountry').val(data[2])
+          
+            $('#editForm').attr('action', '/owner/master-currency/' + id)
+            $('#editCurrency').modal('show');
+
         })
 
 

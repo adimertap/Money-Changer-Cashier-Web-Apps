@@ -22,7 +22,7 @@ class MasterCurrencyController extends Controller
         $item->nama_currency = $request->nama_currency;
         $item->country = $request->country;
         $item->save();
-        Alert::success('Success Title', 'Data Currency Berhasil Ditambahkan');
+        Alert::success('Berhasil', 'Data Currency Berhasil Ditambahkan');
         return redirect()->back();
     }
 
@@ -31,12 +31,18 @@ class MasterCurrencyController extends Controller
         $item = MasterCurrency::find($request->currency_delete_id);
         $item->delete();
         
-        Alert::success('Success Title', 'Data Currency Berhasil Terhapus');
-        return redirect()->route('master-currency');
+        Alert::success('Berhasil', 'Data Currency Berhasil Terhapus');
+        return redirect()->back();
     }
 
-    public function update(Request $request)
+    public function updatedata(Request $request)
     {
-        # code...
+        $item = MasterCurrency::find($request->edit_currency_id);
+        $item->nama_currency = $request->nama_currency;
+        $item->country = $request->country;
+        $item->update();
+
+        Alert::success('Berhasil', 'Data Currency Berhasil Diedit');
+        return redirect()->back();
     }
 }

@@ -72,6 +72,7 @@
                                 <th class="sort text-center" data-sort="tanggal_transaksi">Tanggal</th>
                                 <th class="sort text-center" data-sort="kode_transaksi">Kode Transaksi</th>
                                 <th class="sort text-center" data-sort="total">Total Transaksi</th>
+                                <th class="sort text-center" data-sort="print">Print</th>
                                 <th class="sort text-center" data-sort="status">Status</th>
                                 <th class="text-center">Actions</th>
                             </tr>
@@ -85,6 +86,16 @@
                                 <td class="total text-center">Rp. {{ number_format($item->total) }}</td>
                                 <td class="status text-center">
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ route('cetak', $item->id_transaksi) }}" class="btn p-0 ms-2"
+                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="Detail"><span class="text-700 fas fa-download"></span>
+                                    </a>
+                                    <a href="{{ route('cetak', $item->id_transaksi) }}" class="btn p-0 ms-2"
+                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="Detail"><span class="text-700 fas fa-print"></span>
+                                    </a>
                                 </td>
                                 <td class="text-center">
                                     <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0 ms-2"

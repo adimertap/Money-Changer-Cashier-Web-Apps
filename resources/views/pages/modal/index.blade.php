@@ -57,23 +57,6 @@
             </div>
         </div>
     </div>
-
-    {{-- ALERT --}}
-    @if(session('messageberhasil'))
-    <div class="alert alert-success border-2 d-flex align-items-center" role="alert" id="alertsukses">
-        <div class="bg-success me-3 icon-item"><span class="fas fa-check-circle text-white fs-3"></span></div>
-        <p class="mb-0 flex-1">{{ session('messageberhasil') }}</p><button class="btn-close" type="button"
-            data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    @endif
-    @if(session('messagehapus'))
-    <div class="alert alert-danger border-2 d-flex align-items-center" role="alert" id="alertgagal">
-        <div class="bg-danger me-3 icon-item"><span class="fas fa-times-circle text-white fs-3"></span></div>
-        <p class="mb-0 flex-1">{{ session('messagehapus') }}</p><button class="btn-close" type="button"
-            data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    @endif
-
     <div class="card mb-3">
         <div class="card-header">
             <div class="row flex-between-end">
@@ -102,7 +85,7 @@
                                 <th class="sort text-center" data-sort="jumlah_modal">Jumlah Awal Modal</th>
                                 <th class="sort text-center" data-sort="sisa_modal">Sisa Modal</th>
                                 <th class="sort text-center" data-sort="status_modal">Status Pengajuan</th>
-                                <th class="sort text-center" data-sort="tambah_modal">Tambah</th>
+                                <th class="sort text-center" data-sort="tambah_modal">Tambah/Edit</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
@@ -125,23 +108,35 @@
                                 </td>
                                 <td class="text-center">
                                     @if ($item->riwayat_modal != 0 && $item->tanggal_modal != $today)
-                                    <button class="btn p-0 ms-2" type="button" data-bs-toggle="modal" value="{{ $item->id_modal }}"
-                                        data-bs-target="#modaltransfer-{{ $item->id_modal }}"><span class="text-700 fas fa-sync-alt"></span></button>
-                                 
-                                    
+                                        <button class="btn p-0 ms-2 transferModalBtn" value="{{ $item->id_modal }}"
+                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Transfer Modal"><span class="text-700 fas fa-sync-alt"></span>
+                                        </button>
                                     @endif
-                                    @if ($item->tanggal_modal == $today)
-                                    <button class="btn p-0 ms-2" type="button" data-bs-toggle="modal" value="{{ $item->id_modal }}"
-                                        data-bs-target="#modaledit-{{ $item->id_modal }}"><span class="text-700 fas fa-edit"></span></button>
+                                    @if ($item->tanggal_modal == $today && $item->status_modal == 'Terima')
+                                        <button class="btn p-0 ms-2 ajukanModalBtn" value="{{ $item->id_modal }}"
+                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Ajukan Penambahan"><span class="text-700 fas fa-plus-circle"></span>
+                                        </button>
+                                        {{-- <button class="btn p-0 ms-2" type="button" data-bs-toggle="modal" value="{{ $item->id_modal }}"
+                                        data-bs-target="#modaltambah-{{ $item->id_modal }}"><span class="text-700 fas fa-plus-circle"></span></button> --}}
                                     @endif
                                     
+                                    @if ($item->status_modal == 'Tolak')
+                                        <button class="btn p-0 ms-2 editModalBtn" value="{{ $item->id_modal }}"
+                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Edit"><span class="text-700 fas fa-edit"></span>
+                                        </button>
+                                    @elseif ($item->status_modal == 'Pending')
+                                        <span class="badge rounded-pill badge-soft-primary">Pending</span>
+                                    @endif
                                 </td>
                                 <td class="text-center">
                                         @if ($item->status_modal == 'Pending')
-                                        <button class="btn p-0 ms-2 deleteModalBtn" value="{{ $item->id_modal }}"
-                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                            title="Delete"><span class="text-700 fas fa-trash-alt"></span>
-                                        </button>
+                                            <button class="btn p-0 ms-2 deleteModalBtn" value="{{ $item->id_modal }}"
+                                                type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="Delete"><span class="text-700 fas fa-trash-alt"></span>
+                                            </button>
                                         @elseif ($item->status_modal == 'Terima')
                                             <span class="badge rounded-pill badge-soft-success">Diterima</span>
                                         @else
@@ -155,23 +150,6 @@
                             @endforelse
                         </tbody>
                     </table>
-                </div>
-                <div class="row align-items-center mt-3">
-                    <div class="pagination d-none"></div>
-                    <div class="col">
-                        <p class="mb-0 fs--1">
-                            <span class="d-none d-sm-inline-block" data-list-info="data-list-info"></span>
-                            <span class="d-none d-sm-inline-block"> &mdash; </span>
-                            <a class="fw-semi-bold" href="#!" data-list-view="*">View all<span
-                                    class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a><a
-                                class="fw-semi-bold d-none" href="#!" data-list-view="less">View Less<span
-                                    class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
-                        </p>
-                    </div>
-                    <div class="col-auto d-flex"><button class="btn btn-sm btn-primary" type="button"
-                            data-list-pagination="prev"><span>Previous</span></button><button
-                            class="btn btn-sm btn-primary px-4 ms-2" type="button"
-                            data-list-pagination="next"><span>Next</span></button></div>
                 </div>
             </div>
         </div>
@@ -220,23 +198,69 @@
     </div>
 </div>
 
-@forelse ($modal as $item)
-<div class="modal fade" id="modaledit-{{ $item->id_modal }}" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="editModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0">
+            <div class="position-absolute top-0 end-0 mt-3 me-3 z-index-1"><button
+                    class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal"
+                    aria-label="Close"></button></div>
+            <form action="{{ url('/modal') }}" method="POST" id="editForm">
+                @method('PUT')
+                @csrf
+                <div class="modal-body p-0">
+                    <div class="bg-primary rounded-top-lg py-3 ps-4 pe-6">
+                        <h4 class="mb-1 text-white">Edit Data Modal</h4>
+                    </div>
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="d-flex">
+                                    <div class="flex-1">
+                                        <input type="hidden" name="modal_edit_id" id="modal_edit_id">
+                                        <div class="col-md-12 mb-3">
+                                            <label class="form-label" for="jumlah_modal">Jumlah Modal</label><span class="mr-4 mb-3"
+                                                style="color: red">*</span>
+                                            <input class="form-control jumlah_modal_update" id="jumlah_modal_update"
+                                                name="jumlah_modal" type="number" placeholder="Input Jumlah Modal"
+                                                value="{{ old('jumlah_modal') }}" required />
+                                            <p class="text-primary"> IDR:
+                                                <span id="detailupdatemodal" class="detailupdatemodal">
+
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary btn-sm" type="submit">Yes! Edit </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalpengajuan" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
         <div class="modal-content position-relative">
             <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
                 <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
                     data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('modal.update', $item->id_modal) }}" method="POST">
-                @method('PUT')
+            <form action="{{ url('/tambah-modal') }}" method="POST">
                 @csrf
                 <div class="modal-body p-0">
                     <div class="rounded-top-lg py-3 ps-4 pe-6 bg-light">
-                        <h4 class="mb-1">Tambah Modal</h4>
+                        <h4 class="mb-1">Ajukan Penambahan Modal</h4>
                     </div>
                     <div class="p-4 pb-0">
                         <p class="text-word-break fs--1 mb-3">Tambah Pengajuan Modal</p>
+                        <input type="hidden" name="ajukan_modal_id" id="ajukan_modal_id">
                         <div class="col-md-12 mb-3">
                             <label class="form-label" for="jumlah_modal">Jumlah Modal</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
@@ -247,13 +271,6 @@
                                 <span id="detaileditmodal" class="detaileditmodal">
                                 </span>
                             </p>
-    
-                            @error('jumlah_modal')
-                            <div class="invalid-feedback">
-                                <strong>{{ $message }}</strong>
-                            </div>
-                            @enderror
-                            
                         </div>
                     </div>
                 </div>
@@ -265,21 +282,17 @@
         </div>
     </div>
 </div>
-@empty
-    
-@endforelse
 
-@forelse ($modal as $tes)
-<div class="modal fade" id="modaltransfer-{{ $tes->id_modal }}" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="modal fade" id="modaltransfer" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
         <div class="modal-content position-relative">
             <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
                 <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
                     data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('modal-transfer') }}" method="POST">
+            <form action="{{ url('/transfer-modal') }}" method="POST">
                 @csrf
-               
                 <div class="modal-body p-0">
                     <div class="bg-primary rounded-top-lg py-3 ps-4 pe-6">
                         <h4 class="mb-1 text-white">Transfer Sisa Modal</h4>
@@ -290,8 +303,8 @@
                                 <div class="d-flex">
                                     <div class="flex-1">
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
-                                        <input type="hidden" name="modal_transfer_id" value="{{ $tes->id_modal }}">
-                                        <p class="text-word-break fs--1">Apakah Anda Yakin Melakukan Transfer Modal ini Sebesar Rp. {{ number_format($tes->riwayat_modal) }}?
+                                        <input type="hidden" name="modal_transfer_id" id="modal_transfer_id">
+                                        <p class="text-word-break fs--1">Apakah Anda Yakin Melakukan Transfer Modal Ini?
                                         </p>
                                     </div>
                                 </div>
@@ -307,11 +320,6 @@
         </div>
     </div>
 </div>
-@empty
-    
-@endforelse
-
-
 
 <div class="modal fade" id="deleteModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
     aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -352,13 +360,49 @@
 
 <script>
     $(document).ready(function () {
+        var table = $('#datatable').DataTable();
+        table.on('click', '.editModalBtn', function () {
+            var id = $(this).val();
+            $('#modal_edit_id').val(id)
+
+            $tr = $(this).closest('tr');
+            if ($($tr).hasClass('clid')) {
+                $tr = $tr.prev('.parent')
+            }
+
+            var data = table.row($tr).data();
+            var jumlah = data[3].split('Rp.')[1].replace(',', '').replace(',', '').trim()
+
+            $('#jumlah_modal_update').val(jumlah)
+            $('#detailupdatemodal').html(data[3])
+            $('#editForm').attr('action', '/modal/' + id)
+            $('#editModal').modal('show');
+
+        })
+
+        $('.transferModalBtn').click(function (e) {
+            e.preventDefault();
+
+            var id = $(this).val();
+            $('#modal_transfer_id').val(id)
+            $('#modaltransfer').modal('show');
+        });
+        
+        $('.ajukanModalBtn').click(function (e) {
+            e.preventDefault();
+
+            var id = $(this).val();
+            $('#ajukan_modal_id').val(id)
+            $('#modalpengajuan').modal('show');
+        });
+
         $('.deleteModalBtn').click(function (e) {
             e.preventDefault();
 
             var id = $(this).val();
             $('#id_modal').val(id)
             $('#deleteModal').modal('show');
-        })
+        });
 
         $('.jumlah_modal_edit').each(function () {
             $(this).on('input', function () {
@@ -372,10 +416,24 @@
                 var jumlah = $(this).parent().parent().find('.detaileditmodal')
                 $(jumlah).html(harga_fix);
             })
-        })
+        });
+
+        $('.jumlah_modal_update').each(function () {
+            $(this).on('input', function () {
+                var harga = $(this).val()
+                var harga_fix = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                }).format(harga)
+
+                var jumlah = $(this).parent().parent().find('.detailupdatemodal')
+                $(jumlah).html(harga_fix);
+            })
+        });
 
 
-    })
+    });
 
 </script>
 

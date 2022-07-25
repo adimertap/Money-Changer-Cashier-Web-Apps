@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\ModalTransaksi;
+use App\Models\RiwayatModal;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,8 +28,10 @@ class ModalController extends Controller
         $modal_tf = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
         $jumlah_modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
         $today = Carbon::now()->format('Y-m-d');
+        if(count($modal_today) == 0){
+            Alert::warning('Modal Belum Diinput', 'Anda Belum Menginputkan Modal Hari Ini, Lakukan Inputan atau Transfer');
+        }
        
-
         return view('pages.modal.index', compact('modal','modal_today','today','jumlah_modal_today','modal_tf'));
     }
 
@@ -56,9 +59,9 @@ class ModalController extends Controller
         $modal->status_modal = 'Pending';
         $modal->id_pegawai = Auth::user()->id;
         $modal->riwayat_modal = $request->jumlah_modal;
-
         $modal->save();
-        Alert::success('Success Title', 'Data Modal Berhasil Ditambahkan');
+
+        Alert::success('Berhasil', 'Data Modal Berhasil Ditambahkan');
         return redirect()->back();
     }
 
@@ -93,14 +96,28 @@ class ModalController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $modal = ModalTransaksi::find($id);
-        $modal->pengajuan_tambah = $request->jumlah_modal;
-        $modal->status_modal = "Pending";
+        $modal = ModalTransaksi::where('id_modal', $request->modal_edit_id)->first();
+        $modal->jumlah_modal = $request->jumlah_modal;
+        $modal->riwayat_modal = $request->jumlah_modal;
+        $modal->status_modal = 'Pending';
         $modal->update();
 
-        Alert::success('Success Title', 'Data Pengajuan Penambahan Modal Berhasil Diajukan');
+        Alert::success('Berhasil', 'Data Modal Berhasil Diedit');
         return redirect()->back();
     }
+
+    public function tambah(Request $request)
+    {
+        $item = ModalTransaksi::find($request->ajukan_modal_id);
+        $item->pengajuan_tambah = $request->jumlah_modal;
+        $item->status_modal = 'Pending';
+        $item->save();
+
+        Alert::success('Berhasil', 'Data Modal Berhasil Diajukan, Mohon Tunggu');
+        return redirect()->back();
+    }
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -113,7 +130,7 @@ class ModalController extends Controller
         $modal = ModalTransaksi::find($request->modal_delete_id);
         $modal->delete();
 
-        Alert::success('Success Title', 'Data Modal Berhasil Terhapus');
+        Alert::success('Berhasil', 'Data Modal Berhasil Terhapus');
         return redirect()->back();
     }
 
@@ -121,15 +138,25 @@ class ModalController extends Controller
     {
         $modal = ModalTransaksi::find($request->modal_transfer_id);
         $modal_tuju = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
-
-        $perhitungan = $modal->riwayat_modal + $modal_tuju->riwayat_modal;
-        $modal_tuju->riwayat_modal = $perhitungan;
-        $modal_tuju->save();
-
+        if(empty($modal_tuju)){
+            $modal_baru = new ModalTransaksi();
+            $modal_baru->tanggal_modal = Carbon::now();
+            $modal_baru->jumlah_modal = $modal->riwayat_modal;
+            $modal_baru->status_modal = 'Pending';
+            $modal_baru->id_pegawai = Auth::user()->id;
+            $modal_baru->riwayat_modal = $modal->riwayat_modal;
+            $modal_baru->save();
+        }else{
+            $perhitungan = $modal->riwayat_modal + $modal_tuju->riwayat_modal;
+            $modal_tuju->riwayat_modal = $perhitungan;
+            $modal_tuju->save();
+        }
         $modal->riwayat_modal = 0;
         $modal->save();
 
-        Alert::success('Success Title', 'Data Modal Berhasil Ditransfer');
+        
+      
+        Alert::success('Berhasil', 'Data Modal Berhasil Ditransfer');
         return redirect()->back();
 
     }

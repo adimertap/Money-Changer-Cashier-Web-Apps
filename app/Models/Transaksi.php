@@ -21,12 +21,12 @@ class Transaksi extends Model
         'id_modal',
         'tanggal_transaksi',
         'kode_transaksi',
-        'total'
+        'total',
     ];
 
     protected $hidden = [
-        'created_at',
         'updated_at',
+        'created_at',
         'deleted_at'
     ];
 

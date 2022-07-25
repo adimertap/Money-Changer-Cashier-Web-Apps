@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ApprovalModalController;
+use App\Http\Controllers\JurnalBulananController;
+use App\Http\Controllers\JurnalHarianController;
 use App\Http\Controllers\MasterCurrencyController;
 use App\Http\Controllers\MasterPegawaiController;
 use App\Http\Controllers\ModalController;
@@ -27,12 +29,18 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::prefix('owner')->middleware(['Owner'])->group(function(){
+        // MASTER DATA
         Route::resource('master-pegawai', MasterPegawaiController::class);
         Route::post('/delete-pegawai', [\App\Http\Controllers\MasterPegawaiController::class, 'hapus'])->name('master-pegawai-delete');
-
         Route::get('/master-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'index'])->name('master-currency');
         Route::post('/tambah-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'store'])->name('master-currency-store');
-        Route::post('/delete-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'hapus'])->name('master-currency-delete');
+        Route::post('/delete-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'hapus']);
+        Route::post('/update-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'updatedata']);
+
+        // JURNAL
+        Route::resource('jurnal-harian', JurnalHarianController::class);
+        Route::resource('jurnal-bulanan', JurnalBulananController::class);
+        Route::get('/jurnal-bulanan/detail/{id}', [\App\Http\Controllers\JurnalBulananController::class, 'DetailTransaksi'])->name('bulanan-transaksi');
     });
 
     // TRANSAKSI
@@ -43,8 +51,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('modal', ModalController::class);
     Route::post('/delete-modal', [\App\Http\Controllers\ModalController::class, 'hapus'])->name('modal-delete');
     Route::post('/transfer-modal', [\App\Http\Controllers\ModalController::class, 'transfer'])->name('modal-transfer');
+    Route::post('/tambah-modal', [\App\Http\Controllers\ModalController::class, 'tambah']);
   
     // APPROVAL
     Route::resource('approval-modal', ApprovalModalController::class)->middleware(['Owner']);
+
+    // CETAK DOWNLOAD
+    Route::get('/cetak/{id}', [\App\Http\Controllers\CetakController::class, 'cetak'])->name('cetak');
 
 });

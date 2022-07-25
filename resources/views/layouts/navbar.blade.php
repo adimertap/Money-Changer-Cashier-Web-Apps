@@ -88,15 +88,15 @@
                         </div>
                     </a>
                     @if (Auth::user()->role == 'Owner')
-                    <a class="nav-link" href="../app/calendar.html" role="button" data-bs-toggle="" aria-expanded="false">
+                    <a class="nav-link" href="{{ route('jurnal-harian.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center">
                             <span class="nav-link-icon">
                                 <i class="fas fa-clipboard-list"></i>
                             </span>
-                            <span class="nav-link-text ps-1">Jurnal Harian</span>
+                            <span class="nav-link-text ps-1">Seluruh Transaksi</span>
                         </div>
                     </a>
-                    <a class="nav-link" href="../app/calendar.html" role="button" data-bs-toggle="" aria-expanded="false">
+                    <a class="nav-link" href="{{ route('jurnal-bulanan.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center">
                             <span class="nav-link-icon">
                                 <i class="fas fa-book"></i>

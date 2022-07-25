@@ -57,7 +57,7 @@
     </main>
   
   
-    <script src="sweetalert2.all.min.js"></script>
+    {{-- <script src="sweetalert2.all.min.js"></script> --}}
     <script src="/../falcon/vendors/choices/choices.min.js"></script>
     <script src="/../falcon/vendors/popper/popper.min.js"></script>
     <script src="/../falcon/vendors/bootstrap/bootstrap.min.js"></script>
