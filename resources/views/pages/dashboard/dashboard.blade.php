@@ -112,9 +112,22 @@
                         <div
                             class="col-6 col-md-4 border-200 border-bottom border-end border-md-end-0 pb-4 pt-4 pt-md-0 ps-md-3">
                             <h6 class="pb-1 text-700">Sisa Modal Hari Ini </h6>
-                            <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($sisa_modal->riwayat_modal) }}</p>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">
+                                @if ($sisa_modal == null)
+                                    
+                                @else
+                                Rp. {{ number_format($sisa_modal->riwayat_modal) }}
+                                @endif
+                            </p>
+                                
                             <div class="d-flex align-items-center">
-                                <h6 class="fs--1 text-500 mb-0">Dari Rp. {{ number_format($sisa_modal->jumlah_modal) }} </h6>
+                                <h6 class="fs--1 text-500 mb-0">
+                                    @if ($sisa_modal == null)
+                                    Hari Ini Belum Terdapat Modal
+                                    @else
+                                    Dari Rp. {{ number_format($sisa_modal->jumlah_modal) }} 
+                                    @endif
+                                </h6>
                             </div>
                         </div>
                         <div
@@ -162,12 +175,15 @@
                         <div class="col">
                             <div class="row gx-0 border-bottom pb-card">
                                 <div class="col">
+                                  
                                     <h6 class="text-800 mb-1">New Order:#{{ $item->kode_transaksi }}</h6>
                                     @forelse ($item->detailTransaksi as $tes)
                                         <p class="fs--1 text-600 mb-0">{{ $tes->Currency->nama_currency }} Harga Rp. {{ number_format($tes->jumlah_currency) }} Jumlah {{ $tes->jumlah_tukar }}</p>
                                     @empty
                                         
                                     @endforelse
+                                   
+                                
                                  
                                 </div>
                                 <div class="col-auto text-end">
@@ -179,7 +195,9 @@
                         </div>
                     </div>
                     @empty
-                        
+                    
+
+
                     @endforelse
 
                 </div>

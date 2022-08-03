@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ExcelHarian;
+use App\Exports\ExcelHarianOwner;
 use App\Models\DetailTransaksi;
 use App\Models\MasterCurrency;
 use App\Models\ModalTransaksi;
 use App\Models\Transaksi;
+use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,20 +29,80 @@ class TransaksiController extends Controller
             $count = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
             $today =  Carbon::now()->format('Y-m-d');
             $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
+            $currency = MasterCurrency::get();
 
-            return view('pages.transaksi.index', compact('transaksi','count','today','total_transaksi'));
+            return view('pages.transaksi.index', compact('transaksi','count','today','total_transaksi','currency'));
         }else{
             $transaksi = Transaksi::with('Pegawai')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->get();
             $count = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
             $today =  Carbon::now()->format('Y-m-d');
             $total_transaksi = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
+            $currency = MasterCurrency::get();
+            $pegawai = User::where('role','!=','Owner')->get();
 
-            return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi'));
+            return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi','currency','pegawai'));
+        }       
+    }
+
+    public function Export_dokumen(Request $request)
+    {
+        if(Auth::user()->role == 'Pegawai'){
+            $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi','tb_transaksi.id_transaksi','tb_detail_transaksi.id_transaksi')
+            ->join('tb_currency','tb_detail_transaksi.currency_id','tb_currency.id_currency')->where('id_pegawai', Auth::user()->id);
+            if($request->id_currency){
+                $transaksi->where('currency_id', $request->id_currency);
+            }
+            $transaksi = $transaksi->where('tanggal_transaksi', Carbon::today())->get();
+            $total = $transaksi->sum('total');
+            $jumlah = $transaksi->count();
+            $today = Carbon::now()->format('Y-m-d');
+            // return $transaksi;
+    
+            if(count($transaksi) == 0){
+                Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');
+                return redirect()->back();
+            }else{
+                if($request->radio_input == 'pdf'){
+                    $pdf = Pdf::loadview('export.pdf-harian',['transaksi'=>$transaksi, 'total' =>$total,'jumlah' => $jumlah, 'today'=> $today]);
+                    return $pdf->download('report-harian.pdf');
+                    Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
+                }else{
+                    return new ExcelHarian($transaksi);
+                }
+            }
+        }else{
+            $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi','tb_transaksi.id_transaksi','tb_detail_transaksi.id_transaksi')
+            ->join('tb_currency','tb_detail_transaksi.currency_id','tb_currency.id_currency')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'));
+            if($request->id_currency){
+                $transaksi->where('currency_id', $request->id_currency);
+            }
+            if($request->id_pegawai){
+                $transaksi->where('id_pegawai', $request->id_pegawai);
+            }
+            $transaksi = $transaksi->get();
+            $total = $transaksi->sum('total');
+            $jumlah = $transaksi->count();
+            $today = Carbon::now()->format('Y-m-d');
+    
+            if(count($transaksi) == 0){
+                Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');
+                return redirect()->back();
+            }else{
+                if($request->radio_input == 'pdf'){
+                    $pdf = Pdf::loadview('export.pdf-harian-owner',['transaksi'=>$transaksi, 'total' =>$total,'jumlah' => $jumlah, 'today' => $today]);
+                    return $pdf->download('report-harian.pdf');
+                    Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
+                }else{
+                    return new ExcelHarianOwner($transaksi);
+                }
+            }
         }
 
         
-       
     }
+
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -49,15 +113,21 @@ class TransaksiController extends Controller
     {
         $currency = MasterCurrency::get();
         $tes = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
-        if($tes->status_modal == 'Pending'){
-            Alert::warning('Modal Diproses, Mohon Menunggu', 'Pengajuan Modal Anda Hari Ini Belum Diproses oleh Owner');
-            return redirect()->route('modal.index');
-        }elseif($tes->status_modal == 'Tolak'){
-            Alert::warning('Modal Ditolak', 'Pengajuan Modal Anda Hari Ini Ditolak oleh Owner, Edit Data Modal');
+        if(empty($tes)){
+            Alert::warning('Belum Mengajukan Modal', 'Anda Belum Mengajukan Modal');
             return redirect()->route('modal.index');
         }else{
-            $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
+            if($tes->status_modal == 'Pending'){
+                Alert::warning('Modal Diproses, Mohon Menunggu', 'Pengajuan Modal Anda Hari Ini Belum Diproses oleh Owner');
+                return redirect()->route('modal.index');
+            }elseif($tes->status_modal == 'Tolak'){
+                Alert::warning('Modal Ditolak', 'Pengajuan Modal Anda Hari Ini Ditolak oleh Owner, Edit Data Modal');
+                return redirect()->route('modal.index');
+            }else{
+                $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
+            }
         }
+
         $today = Carbon::now()->format('d M Y H:i:s');
         $today_format = Carbon::now()->format('Y-m-d');
 
@@ -111,6 +181,7 @@ class TransaksiController extends Controller
     public function show($id)
     {
         $transaksi = Transaksi::with('Pegawai','detailTransaksi.Currency')->find($id);
+        // return $transaksi;
         $detail = DetailTransaksi::where('id_transaksi', $id)->get();
 
         return view('pages.transaksi.detail', compact('transaksi','detail'));

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Mail\MailModal;
 use App\Mail\MailModalTambah;
+use App\Mail\MailTransfer;
 use App\Models\ModalTransaksi;
 use App\Models\RiwayatModal;
 use App\Models\User;
@@ -25,7 +26,7 @@ class ModalController extends Controller
     public function index()
     {
         if(Auth::user()->role == 'Owner'){
-            $modal = ModalTransaksi::get();
+            $modal = ModalTransaksi::orderBy('created_at', 'DESC')->get();
         }else{
             $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->orWhere('riwayat_modal','>', '0')->get();
         }
@@ -36,9 +37,6 @@ class ModalController extends Controller
         if(count($modal_today) == 0){
             Alert::warning('Modal Belum Diinput', 'Anda Belum Menginputkan Modal Hari Ini, Lakukan Inputan atau Transfer');
         }
-
-       
-       
         return view('pages.modal.index', compact('modal','modal_today','today','jumlah_modal_today','modal_tf'));
     }
 
@@ -68,8 +66,13 @@ class ModalController extends Controller
         $modal->riwayat_modal = $request->jumlah_modal;
         $modal->save();
 
-        $user = User::where('role','Owner')->first();
-        Mail::to($user->email)->send(new MailModal($modal));
+        $user = User::where('role','Owner')->get();
+        foreach ($user as $tes) {
+            Mail::to($tes->email)->send(new MailModal($modal));
+        }
+
+        // $user = User::where('role','Owner')->first();
+        // Mail::to($user->email)->send(new MailModal($modal));
 
         Alert::success('Berhasil', 'Data Modal Berhasil Ditambahkan');
         return redirect()->back();
@@ -123,8 +126,10 @@ class ModalController extends Controller
         $item->status_modal = 'Pending';
         $item->save();
 
-        $user = User::where('role','Owner')->first();
-        Mail::to($user->email)->send(new MailModalTambah($item));
+        $user = User::where('role','Owner')->get();
+        foreach ($user as $tes) {
+            Mail::to($tes->email)->send(new MailModalTambah($item));
+        }
 
         Alert::success('Berhasil', 'Data Modal Berhasil Diajukan, Mohon Tunggu');
         return redirect()->back();
@@ -167,9 +172,12 @@ class ModalController extends Controller
         $modal->riwayat_modal = 0;
         $modal->save();
 
-        
+        $user = User::where('role','Owner')->get();
+        foreach ($user as $tes) {
+            Mail::to($tes->email)->send(new MailTransfer($modal));
+        }
       
-        Alert::success('Berhasil', 'Data Modal Berhasil Ditransfer');
+        Alert::success('Berhasil', 'Data Transfer Modal Berhasil Diajukan, Mohon Menunggu Approval');
         return redirect()->back();
 
     }

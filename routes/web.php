@@ -41,6 +41,9 @@ Route::group(['middleware' => 'auth'], function () {
         Route::resource('jurnal-harian', JurnalHarianController::class);
         Route::resource('jurnal-bulanan', JurnalBulananController::class);
         Route::get('/jurnal-bulanan/detail/{id}', [\App\Http\Controllers\JurnalBulananController::class, 'DetailTransaksi'])->name('bulanan-transaksi');
+
+         // EXCEL DAN PDF
+         Route::get('/download-dokumen', [\App\Http\Controllers\JurnalHarianController::class, 'Export_dokumen'])->name('export-dokumen');
     });
 
     // TRANSAKSI
@@ -59,4 +62,7 @@ Route::group(['middleware' => 'auth'], function () {
     // CETAK DOWNLOAD
     Route::get('/cetak/{id}', [\App\Http\Controllers\CetakController::class, 'cetak'])->name('cetak');
     Route::get('/exportexcel/{today}', [\App\Http\Controllers\CetakController::class, 'exportexcel'])->name('exportexcel');
+    
+    Route::get('/download-harian', [\App\Http\Controllers\TransaksiController::class, 'Export_dokumen'])->name('export-dokumen-harian');
+   
 });

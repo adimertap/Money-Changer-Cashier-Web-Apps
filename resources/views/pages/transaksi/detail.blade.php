@@ -8,13 +8,6 @@
             <div class="row">
                 <div class="col">
                     <h5 class="mb-2">Transaksi Kode: <span class="text-primary">#{{ $transaksi->kode_transaksi }}</span>
-                        <div class="col-auto mt-3"><button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0"
-                                type="button">
-                                <span class="fas fa-arrow-down me-1"> </span>Download
-                                (.pdf)</button>
-                                <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button">
-                                <span class="fas fa-print me-1"> </span>Print Invoice</button>
-                            </div>
                 </div>
                 <div class="col-auto d-none d-sm-block">
                     <h6 class="text-uppercase text-600">Transaksi Detail<span class="fas fa-user ms-2"></span>

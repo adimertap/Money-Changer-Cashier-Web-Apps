@@ -13,7 +13,7 @@ class DetailTransaksi extends Model
 
     protected $fillable = [
         'id_transaksi',
-        'id_currency',
+        'currency_id',
         'jumlah_currency',
         'jumlah_tukar',
         'total_tukar',
@@ -33,6 +33,6 @@ class DetailTransaksi extends Model
 
     public function Currency()
     {
-        return $this->belongsTo(MasterCurrency::class, 'id_currency','id_currency');
+        return $this->belongsTo(MasterCurrency::class, 'currency_id','id_currency');
     }
 }

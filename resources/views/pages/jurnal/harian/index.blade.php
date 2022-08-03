@@ -31,8 +31,9 @@
                     <h5>Filter Data Sesuai Tanggal Inputan</h5>
                     <p class="mt-2">Pilih Tanggal Awal dan Pilih Tanggal Akhir</p>
                     <hr>
-                    <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button">
-                        <span class="fas fa-arrow-down me-1"> </span>Download (.excel)
+                    <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button" data-bs-toggle="modal"
+                        data-bs-target="#modalfilter"><span class="fas fa-arrow-down me-1"> </span>Download Laporan
+                        (.excel)/(.pdf)
                     </button>
                 </div>
                 <div class="col-lg-6">
@@ -43,11 +44,14 @@
                             <div class="row input-daterange">
                                 <div class="col-md-4">
                                     <label class="small">Start Date</label>
-                                    <input class="form-control datetimepicker" id="from_date" type="date" name="from_date" placeholder="From Date" data-options='{"disableMobile":true}' />
+                                    <input class="form-control datetimepicker" id="from_date" type="date"
+                                        name="from_date" placeholder="From Date"
+                                        data-options='{"disableMobile":true}' />
                                 </div>
                                 <div class="col-md-4">
                                     <label class="small">End Date</label>
-                                    <input class="form-control datetimepicker" id="to_date" type="date" name="to_date" placeholder="To Date" data-options='{"disableMobile":true}' />
+                                    <input class="form-control datetimepicker" id="to_date" type="date" name="to_date"
+                                        placeholder="To Date" data-options='{"disableMobile":true}' />
                                 </div>
                                 <div class="col-md-4">
                                     <button type="button" name="filter" onclick="filter_tanggal(event)"
@@ -55,12 +59,12 @@
                                 </div>
                             </div>
                         </form>
-                    </div> 
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div class="card mb-3">
         <div class="card-body">
             <div id="tableExample"
@@ -91,13 +95,14 @@
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
                                 </td>
                                 <td class="text-center fs--1">
-                                    <a href="{{ route('jurnal-harian.show', $item->id_transaksi) }}" class="btn p-0 ms-2"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Detail"><span class="text-700 fas fa-eye"></span>
+                                    <a href="{{ route('jurnal-harian.show', $item->id_transaksi) }}"
+                                        class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
+                                        data-bs-placement="top" title="Detail"><span class="text-700 fas fa-eye"></span>
                                     </a>
-                                    <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0 ms-2"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Print"><span class="text-700 fas fa-print"></span>
+                                    <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank"
+                                        class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
+                                        data-bs-placement="top" title="Print"><span
+                                            class="text-700 fas fa-print"></span>
                                     </a>
                                 </td>
                             </tr>
@@ -111,6 +116,82 @@
         </div>
     </div>
 </main>
+<div class="modal fade" id="modalfilter" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+        <div class="modal-content position-relative">
+            <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('export-dokumen') }}" id="form2">
+                <div class="modal-body p-0">
+                    <div class="rounded-top-lg py-3 ps-4 pe-6 bg-light">
+                        <h4 class="mb-1">Filter Data untuk Export</h4>
+                    </div>
+                    <div class="p-4 pb-0">
+                        <p class="text-word-break fs--1 mb-3">Filter Data Berdasarkan Inputan</p>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" id="flexRadioDefault1" type="radio" value="excel" name="radio_input" checked/>
+                                    <label class="form-check-label" for="flexRadioDefault1">Export Excel</label>
+                                </div>
+
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" id="flexRadioDefault2" type="radio" value="pdf" name="radio_input"  />
+                                    <label class="form-check-label" for="flexRadioDefault2">Export PDF</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row input-daterange">
+                            <div class="col-md-6">
+                                <label class="small">Start Date</label>
+                                <input class="form-control datetimepicker" id="from_date_export" type="date"
+                                    name="from_date_export" placeholder="From Date"
+                                    data-options='{"disableMobile":true}' />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small">End Date</label>
+                                <input class="form-control datetimepicker" id="to_date_export" type="date"
+                                    name="to_date_export" placeholder="To Date" data-options='{"disableMobile":true}' />
+                            </div>
+                        </div>
+                        <div class="row mb-3 mt-3">
+                            <div class="col-12">
+                                <label for="currency">Filter by Currency</label>
+                                <select class="form-select js-choice" id="id_currency" name="id_currency"
+                                    data-options='{"removeItemButton":true,"placeholder":true}'>
+                                    <option value="">Pilih Currency</option>
+                                    @foreach ($currency as $item)
+                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3 mt-3">
+                            <div class="col-12">
+                                <label for="currency">Filter by Pegawai</label>
+                                <select class="form-select js-choice" id="pegawai" name="id_pegawai"
+                                    data-options='{"removeItemButton":true,"placeholder":true}'>
+                                    <option value="">Pilih Pegawai</option>
+                                    @foreach ($pegawai as $item)
+                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" type="submit">Filter dan Export Data </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 
 <script>

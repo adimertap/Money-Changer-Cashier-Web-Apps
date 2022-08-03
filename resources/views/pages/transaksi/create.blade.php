@@ -302,7 +302,7 @@
                     var total_tukar = total_tukar_trim.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
 
                     dataform2.push({
-                        id_currency: id_currency,
+                        currency_id: id_currency,
                         id_transaksi: id_transaksi,
                         jumlah_currency: jumlah_currency,
                         jumlah_tukar: jumlah_tukar,
@@ -386,7 +386,18 @@
             style: 'currency',
             currency: 'IDR',
             minimumFractionDigits: 0,
-        }).format(jumlah_currency)
+        }).format(jumlah_currency);
+
+
+        var detail_asu = $('#konfirmasi').children()
+            for (let index = 0; index < detail_asu.length; index++) {
+                var children = $(detail_asu[index]).children()
+
+                var td_currency_asu = children[1]
+                var span_asu = $(td_currency_asu).children()[0]
+                var id_asu = $(span_asu).attr('id')
+            }
+
 
         var total_tukar_rp = new Intl.NumberFormat('id', {
             style: 'currency',
@@ -400,7 +411,14 @@
                 title: 'Oops...',
                 text: 'Currency Tidak Boleh Kosong!',
             })
-        } else if (jumlah_currency == "" | jumlah_currency == 0) {
+        } else if(id_asu == id_currency){
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Currency Tersebut Sudah Ada, Hapus Dahulu jika ingin menambahkan!',
+            })
+
+        }else if (jumlah_currency == "" | jumlah_currency == 0) {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
@@ -473,6 +491,12 @@
                     minimumFractionDigits: 0,
                 }).format(grand_total_fix)
                 $('#grand_total').html(grand_total_idr)
+
+                
+               
+                var table = $('#dataTableKonfirmasi').DataTable()
+                var row = $(`#${id_currency.trim()}`).parent().parent()
+                table.row(row).remove().draw();
 
                 // DRAW DATATABLE
                 $('#dataTableKonfirmasi').DataTable().row.add([
