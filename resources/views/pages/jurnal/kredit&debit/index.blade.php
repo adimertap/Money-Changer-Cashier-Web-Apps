@@ -56,7 +56,7 @@
                                     <td>-</td>
                                     <td>-</td>
                                     <td>-</td>
-                                    <td>Rp. {{ number_format($item->jumlah_modal) }}
+                                    <td class="text-center text-center fs--1">Rp. {{ number_format($item->jumlah_modal) }}
                                 @endif
                             </tr>
                             @empty
