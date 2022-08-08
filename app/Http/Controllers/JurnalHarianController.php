@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ExcelHarianView;
 use App\Exports\ExcelTransaksi;
 use App\Models\User;
 use App\Models\Transaksi;
@@ -10,6 +11,7 @@ use App\Models\MasterCurrency;
 use App\Models\DetailTransaksi;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
+use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class JurnalHarianController extends Controller
@@ -21,14 +23,15 @@ class JurnalHarianController extends Controller
      */
     public function index(Request $request)
     {
+        // return $request;
         $transaksi = Transaksi::with([
             'Pegawai',
         ]);        
         if($request->from){
-            $transaksi->where('tanggal_transaksi', '>=', $request->tanggal_mulai);
+            $transaksi->where('tanggal_transaksi', '>=', $request->from);
         }
         if($request->to){
-            $transaksi->where('tanggal_transaksi', '<=', $request->tanggal_selesai);
+            $transaksi->where('tanggal_transaksi', '<=', $request->to);
         }
         $transaksi = $transaksi->get();
         
@@ -79,10 +82,25 @@ class JurnalHarianController extends Controller
         }else{
             if($request->radio_input == 'pdf'){
                 $pdf = Pdf::loadview('export.pdf',['transaksi'=>$transaksi, 'total' =>$total,'jumlah' => $jumlah]);
-                return $pdf->download('laporan-transaksi.pdf');
+                
+                if($request->from_date_export && $request->to_date_export && $request->id_pegawai){
+                    return $pdf->download('laporan-transaksi '.$request->from_date_export.' Sampai '.$request->to_date_export.' '.$transaksi[0]->Pegawai->name. ' .pdf');
+                }
+                if($request->from_date_export && $request->to_date_export && $request->id_pegawai && $request->id_currency){
+                    return $pdf->download('laporan-transaksi '.$request->from_date_export.' Sampai '.$request->to_date_export.' '.$transaksi[0]->Pegawai->name.' '.$transaksi[0]->nama_currency. ' .pdf');
+                }
+                if($request->id_pegawai){
+                    return $pdf->download('laporan-transaksi '.$transaksi[0]->Pegawai->name.' .pdf');
+                }
+                if($request->from_date_export && $request->to_date_export){
+                    return $pdf->download('laporan-transaksi '.$request->from_date_export.' Sampai '.$request->to_date_export.' .pdf');
+                }
+
+                return $pdf->download('laporan-transaksi-keseluruhan.pdf');
                 Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
             }else{
                 return new ExcelTransaksi($transaksi);
+                // return Excel::download(new ExcelHarianView($transaksi), 'testing.xlsx');
             }
         }
 

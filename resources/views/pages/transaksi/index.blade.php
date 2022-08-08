@@ -80,7 +80,7 @@
                         <tr role="row" class="odd">
                             <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                             <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
-                            <td class="text-center tanggal_transaksi fs--1">{{ $item->tanggal_transaksi }}</td>
+                            <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
                             <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
                             <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total) }}</td>
                             <td class="text-center status text-center fs--1">
@@ -101,9 +101,9 @@
                                     type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><span
                                         class="text-700 fas fa-edit"></span>
                                 </a>
-                                <button class="btn p-0 ms-1 deleteModalBtn" value="{{ $item->id_transaksi }}"
-                                    type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><span
-                                        class="text-700 fas fa-trash-alt"></span>
+                                <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}"
+                                    type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                    title="Delete"><span class="text-700 fas fa-trash-alt"></span>
                                 </button>
                             </td>
                         </tr>
@@ -126,22 +126,20 @@
             <div class="position-absolute top-0 end-0 mt-3 me-3 z-index-1"><button
                     class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal"
                     aria-label="Close"></button></div>
-            <form action="{{ url('/transaksi-delete') }}" method="POST">
+            <form action="{{ url('/delete-transaksi') }}" method="POST">
                 @csrf
                 <div class="modal-body p-0">
                     <div class="bg-danger rounded-top-lg py-3 ps-4 pe-6">
-                        <h4 class="mb-1 text-white">Hapus Data Transaksi</h4>
+                        <h4 class="mb-1 text-white">Hapus Data Modal</h4>
                     </div>
                     <div class="p-3">
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="d-flex">
                                     <div class="flex-1">
-                                        <input type="hidden" name="modal_delete_id" id="id_modal">
+                                        <input type="hidden" name="transaksi_id" id="id_transaksi">
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
-                                        <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Modal ini?,
-                                            Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan Total
-                                            Transaksi
+                                        <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi ini? Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan Total Transaksi
                                         </p>
                                     </div>
                                 </div>
@@ -219,7 +217,7 @@
             e.preventDefault();
 
             var id = $(this).val();
-            $('#id_modal').val(id)
+            $('#id_transaksi').val(id)
             $('#deleteModal').modal('show');
         })
 

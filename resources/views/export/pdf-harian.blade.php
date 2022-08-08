@@ -30,12 +30,19 @@
 			</tr>
 		</thead>
 		<tbody>
-			@php $i=1 @endphp
+			@php 
+				$i=1;
+				$total_banget = 0; 
+				foreach ($transaksi as $key => $item) {
+					$total_banget = $total_banget + $item->total_tukar;
+				}
+				
+			@endphp
 			@foreach($transaksi as $p)
 			<tr>
 				<td>{{ $i++ }}</td>
                 <td>{{$p->kode_transaksi}}</td>
-				<td>{{$p->tanggal_transaksi}}</td>
+				<td>{{ date('d-M-Y', strtotime($p->tanggal_transaksi)) }}</td>
 				<td>{{$p->nama_currency}}</td>
 				<td>Rp. {{ number_format($p->jumlah_currency)}}</td>
 				<td>{{$p->jumlah_tukar}}</td>
@@ -46,7 +53,7 @@
         <tr>
             <th colspan="5">Transaksi</th>
             <th colspan="1">{{ $jumlah }} Transaksi</th>
-            <th colspan="1">Rp. {{ number_format($total) }}</th>
+            <th colspan="1">Rp. {{ number_format($total_banget) }}</th>
         </tr>
 	</table>
  

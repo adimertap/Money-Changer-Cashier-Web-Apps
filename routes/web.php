@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApprovalModalController;
 use App\Http\Controllers\JurnalBulananController;
 use App\Http\Controllers\JurnalHarianController;
+use App\Http\Controllers\JurnalKreditDebitController;
 use App\Http\Controllers\MasterCurrencyController;
 use App\Http\Controllers\MasterPegawaiController;
 use App\Http\Controllers\ModalController;
@@ -41,7 +42,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::resource('jurnal-harian', JurnalHarianController::class);
         Route::resource('jurnal-bulanan', JurnalBulananController::class);
         Route::get('/jurnal-bulanan/detail/{id}', [\App\Http\Controllers\JurnalBulananController::class, 'DetailTransaksi'])->name('bulanan-transaksi');
-
+        Route::resource('jurnal-debit-kredit', JurnalKreditDebitController::class);
          // EXCEL DAN PDF
          Route::get('/download-dokumen', [\App\Http\Controllers\JurnalHarianController::class, 'Export_dokumen'])->name('export-dokumen');
     });

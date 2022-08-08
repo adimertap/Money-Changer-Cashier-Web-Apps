@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Jurnal;
 use App\Models\ModalTransaksi;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -42,10 +43,43 @@ class ApprovalModalController extends Controller
         $modal = ModalTransaksi::where('id_modal', $request->modal_id)->first();
         $modal->status_modal = $request->status_modal;
         if($request->status_modal == "Terima"){
+            
+
+            // $check = Jurnal::where('id_modal', $modal->id_modal)->first();
+            // if(empty($check)){
+                $jurnal = new Jurnal();
+                $jurnal->id_modal = $modal->id_modal;
+                $jurnal->tanggal_jurnal = $modal->tanggal_modal;
+                if($modal->jenis_modal == 'Modal Awal' || $modal->jenis_modal == 'Edit Modal'){
+                    $jurnal->jumlah_modal = $modal->jumlah_modal;
+                }elseif($modal->jenis_modal == 'Penambahan Modal'){
+                    $jurnal->jumlah_modal = $modal->pengajuan_tambah;
+                }elseif($modal->jenis_modal == 'Transfer Modal'){
+                    $jurnal->jumlah_modal = $modal->riwayat_modal;
+                }
+                $jurnal->jenis_jurnal = 'Kredit';
+                $jurnal->save();
+
                 $penamabahan_modal = $modal->jumlah_modal + $modal->pengajuan_tambah;
                 $penambahan_riwayat = $modal->riwayat_modal + $modal->pengajuan_tambah;
                 $modal->jumlah_modal = $penamabahan_modal;
                 $modal->riwayat_modal = $penambahan_riwayat;
+            // }else{
+            //     $jurnal = Jurnal::where('id_modal', $modal->id_modal)->first();
+            //     $jurnal->id_modal = $modal->id_modal;
+            //     $jurnal->tanggal_jurnal = $modal->tanggal_modal;
+            //     if($modal->jenis_modal == 'Modal Awal' || $modal->jenis_modal == 'Edit Modal'){
+            //         $jurnal->jumlah_modal = $modal->jumlah_modal;
+            //     }elseif($modal->jenis_modal == 'Penambahan Modal'){
+            //         $jurnal->jumlah_modal = $modal->pengajuan_tambah;
+            //     }elseif($modal->jenis_modal == 'Transfer Modal'){
+            //         $jurnal->jumlah_modal = $modal->riwayat_modal;
+            //     }
+            //     $jurnal->jenis_jurnal = 'Kredit';
+            //     $jurnal->update();
+            // }
+
+
         }
         $modal->keterangan_approval = $request->keterangan_approval;
         $modal->update();

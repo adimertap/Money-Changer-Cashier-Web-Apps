@@ -93,7 +93,7 @@
                             @forelse ($modal as $item)
                             <tr role="row" class="odd">
                                 <th scope="row" class="no">{{ $loop->iteration}}.</th>
-                                <td class="tanggal_modal">{{ $item->tanggal_modal }}</td>
+                                <td class="tanggal_modal">{{ date('d-M-Y', strtotime($item->tanggal_modal)) }}</td>
                                 <td class="pegawai">{{ $item->Pegawai->name }}</td>
                                 <td class="jumlah_modal text-center">Rp. {{ number_format($item->jumlah_modal) }}</td>
                                 <td class="sisa_modal text-center">Rp. {{ number_format($item->riwayat_modal) }}</td>

@@ -55,7 +55,7 @@ class MasterPegawaiController extends Controller
 
         event(new Registered($pegawai));
 
-        Alert::success('Success Title', 'Data Pegawai Berhasil Terhapus');
+        Alert::success('Success Title', 'Data Pegawai Berhasil Ditambahkan');
         return redirect()->route('master-pegawai.index');
     }
 

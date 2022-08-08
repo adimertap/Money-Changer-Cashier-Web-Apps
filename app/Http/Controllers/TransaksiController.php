@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Exports\ExcelHarian;
 use App\Exports\ExcelHarianOwner;
+use App\Exports\ExcelHarianView;
 use App\Models\DetailTransaksi;
+use App\Models\Jurnal;
 use App\Models\MasterCurrency;
 use App\Models\ModalTransaksi;
 use App\Models\Transaksi;
@@ -13,6 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class TransaksiController extends Controller
@@ -55,7 +58,7 @@ class TransaksiController extends Controller
             $transaksi = $transaksi->where('tanggal_transaksi', Carbon::today())->get();
             $total = $transaksi->sum('total');
             $jumlah = $transaksi->count();
-            $today = Carbon::now()->format('Y-m-d');
+            $today = Carbon::now()->format('d-M-Y');
             // return $transaksi;
     
             if(count($transaksi) == 0){
@@ -64,7 +67,7 @@ class TransaksiController extends Controller
             }else{
                 if($request->radio_input == 'pdf'){
                     $pdf = Pdf::loadview('export.pdf-harian',['transaksi'=>$transaksi, 'total' =>$total,'jumlah' => $jumlah, 'today'=> $today]);
-                    return $pdf->download('report-harian.pdf');
+                    return $pdf->download('report-harian '.$today.' '.Auth::user()->name.' .pdf');
                     Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
                 }else{
                     return new ExcelHarian($transaksi);
@@ -72,7 +75,8 @@ class TransaksiController extends Controller
             }
         }else{
             $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi','tb_transaksi.id_transaksi','tb_detail_transaksi.id_transaksi')
-            ->join('tb_currency','tb_detail_transaksi.currency_id','tb_currency.id_currency')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'));
+            ->join('tb_currency','tb_detail_transaksi.currency_id','tb_currency.id_currency')
+            ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->OrderBy('tb_transaksi.updated_at');
             if($request->id_currency){
                 $transaksi->where('currency_id', $request->id_currency);
             }
@@ -82,15 +86,18 @@ class TransaksiController extends Controller
             $transaksi = $transaksi->get();
             $total = $transaksi->sum('total');
             $jumlah = $transaksi->count();
-            $today = Carbon::now()->format('Y-m-d');
-    
+            $today = Carbon::now()->format('d-M-Y');
+            
             if(count($transaksi) == 0){
                 Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');
                 return redirect()->back();
             }else{
                 if($request->radio_input == 'pdf'){
                     $pdf = Pdf::loadview('export.pdf-harian-owner',['transaksi'=>$transaksi, 'total' =>$total,'jumlah' => $jumlah, 'today' => $today]);
-                    return $pdf->download('report-harian.pdf');
+                    if($request->id_pegawai){
+                        return $pdf->download('report-harian '.$today.' '.$transaksi[0]->Pegawai->name.' .pdf');
+                    }
+                        return $pdf->download('report-harian '.$today.' .pdf');
                     Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
                 }else{
                     return new ExcelHarianOwner($transaksi);
@@ -141,7 +148,7 @@ class TransaksiController extends Controller
         $blt = date('ymd');
         $id = Auth::user()->id;
 
-        $kode_transaksi = 'RV'.$blt.$id.'-'.$idbaru;
+        $kode_transaksi = 'RV'.$blt.'-'.$idbaru;
 
         return view('pages.transaksi.create', compact('currency','modal','today','kode_transaksi','today_format','idbaru','jumlah_transaksi','total_transaksi'));
     }
@@ -168,6 +175,19 @@ class TransaksiController extends Controller
         $modal->save();
 
         $transaksi->detailTransaksi()->insert($request->detail);
+        
+        foreach($request->detail as $key){
+            $jurnal = new Jurnal();
+            $jurnal->id_transaksi = $transaksi->id_transaksi;
+            $jurnal->tanggal_jurnal = $transaksi->tanggal_transaksi;
+            $jurnal->id_currency = $key['currency_id'];
+            $jurnal->kurs = $key['jumlah_currency'];
+            $jurnal->jumlah_tukar = $key['jumlah_tukar'];
+            $jurnal->total_tukar = $key['total_tukar'];
+            $jurnal->jenis_jurnal = 'Debit';
+            $jurnal->save();
+        }
+
         Alert::success('Berhasil', 'Data Transaksi Berhasil Ditambahkan');
         return $request;
     }
@@ -197,7 +217,6 @@ class TransaksiController extends Controller
     {
         $transaksi = Transaksi::with('detailTransaksi.Currency')->find($id);
        
-
         $currency = MasterCurrency::get();
         $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
         $today = Carbon::now()->format('d M Y H:i:s');
@@ -229,6 +248,20 @@ class TransaksiController extends Controller
 
         $transaksi->detailTransaksi()->delete();
         $transaksi->detailTransaksi()->insert($request->detail);
+
+        foreach($request->detail as $key){
+            $jurnal = Jurnal::where('id_transaksi', $transaksi->id_transaksi)->first();
+            $jurnal->id_transaksi = $transaksi->id_transaksi;
+            $jurnal->tanggal_jurnal = $transaksi->tanggal_transaksi;
+            $jurnal->id_currency = $key['currency_id'];
+            $jurnal->kurs = $key['jumlah_currency'];
+            $jurnal->jumlah_tukar = $key['jumlah_tukar'];
+            $jurnal->total_tukar = $key['total_tukar'];
+            $jurnal->jenis_jurnal = 'Debit';
+            $jurnal->save();
+        }
+
+
         Alert::success('Berhasil', 'Data Transaksi Berhasil Diedit');
         return $request;
     }
@@ -247,11 +280,18 @@ class TransaksiController extends Controller
     public function hapus(Request $request)
     {
         $transaksi = Transaksi::find($request->transaksi_id);
-
         $modal = ModalTransaksi::where('id_modal', $transaksi->id_modal)->first();
         $perhitungan = $modal->riwayat_modal + $transaksi->total;
         $modal->riwayat_modal = $perhitungan;
         $modal->save();
+
+        foreach($transaksi as $tes){
+            $jurnal = Jurnal::where('id_transaksi', $tes->id_transaksi)->first();
+            $jurnal->delete();
+
+            $detail = DetailTransaksi::where('id_transaki', $tes->id_transaksi)->first();
+            $detail->delete();
+        }
 
         $transaksi->delete();
       

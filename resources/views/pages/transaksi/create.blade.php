@@ -9,101 +9,23 @@
             </div>
             <div class="position-relative z-index-2">
                 <div class="row">
-                    <div class="col-7">
+                    <div class="col-8">
                         <h3 class="text-primary mb-1">Selamat Datang Kembali, {{ Auth::user()->nama_panggilan }}!</h3>
-                        <p>Tambah Transaksi Hari Ini</p>
+                        <p>Tambah Transaksi Hari Ini {{ $today }}</p>
                         <hr>
+
                     </div>
-                    <div class="col-5">
+                    <div class="col-4">
                         <div class="d-flex py-3">
-                            <div class="pe-3 ">
-                                <p class="text-600 fs--1 fw-medium">Jumlah Transaksi <br> Anda Hari Ini</p>
-                                <h5 class="text-700 mb-0">{{ $jumlah_transaksi }} Transaksi</h4>
-                            </div>
-                            <div class="ps-3">
-                                <p class="text-600 fs--1">Total Transaksi <br> Anda Hari Ini</p>
-                                <h5 class="text-700 mb-0">Rp. {{ number_format($total_transaksi) }}</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3">
-        <div class="col-xl-7 order-xl-1">
-            <div class="card">
-                <div class="card-header bg-light btn-reveal-trigger d-flex flex-between-center">
-                    <h5 class="mb-0">Order Summary</h5>
-                    <a class="btn btn-falcon-default btn-sm" type="button" data-bs-toggle="modal"
-                        data-bs-target="#modaltambah">
-                        <span class="fas fa-plus me-2" data-fa-transform="shrink-2"></span>Tambah
-                        Transaksi</a>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive scrollbar">
-                        <table class="table table-hover table-striped overflow-hidden" id="dataTableKonfirmasi">
-                            <thead>
-                                <tr>
-                                    <th class="small">No.</th>
-                                    <th class="small">Currency</th>
-                                    <th class="small">Harga Currency</th>
-                                    <th class="small">Jumlah</th>
-                                    <th class="small">Total</th>
-                                    <th class="small">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="konfirmasi">
-
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card-footer d-flex justify-content-between bg-light">
-                    <div class="fw-semi-bold">Payable Total</div>
-                    <div class="fw-bold payable_total" id="payable_total">Rp. 0.0</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-5">
-            <form action="{{ route('transaksi.store') }}" id="form" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="row">
-                    <div class="col-6">
-                        <div class="card mb-3">
-                            <div class="bg-holder d-none d-lg-block bg-card"
-                                style="background-image:url(../../falcon/assets/img/icons/spot-illustrations/corner-4.png);opacity: 0.7;">
-                            </div>
-                            <!--/.bg-holder-->
-                            <div class="card-body position-relative">
-                                <h6>New Order Code: #{{ $kode_transaksi }}</h6>
-                                <input type="hidden" name="kode_transaksi" value="{{ $kode_transaksi }}">
-                                <input type="hidden" name="tanggal_transaksi" value="{{ $today_format }}">
-                                <input type="hidden" name="id_modal" value="{{ $modal->id_modal }}">
-                                <input type="hidden" name="id_transaksi" value="{{ $idbaru }}">
-                                <p class="fs--1">{{ $today }}</p>
-                                <div><strong class="me-2">Status: </strong>
-                                    <div class="badge rounded-pill badge-soft-info fs--2">On Progress
-                                        <span class="fas fa-check ms-1" data-fa-transform="shrink-2"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="card overflow-hidden" style="min-width: 12rem">
-                            <div class="bg-holder bg-card"
-                                style="background-image:url(../falcon/assets/img/icons/spot-illustrations/corner-2.png);">
-                            </div>
-                            <div class="card-body position-relative">
+                            <div class="pe-3">
                                 @if ($modal == '')
-                                <h6>Anda Belum Menambahkan Modal Hari Ini</h6>
+                                <h6 class="text-600 fs--1 fw-medium">Anda Belum Menambahkan Modal Hari Ini</h6>
                                 @else
-                                <h6>Modal Anda Hari Ini</h6>
+                                <h6 class="text-600 fs--1 fw-medium">Modal Anda Hari Ini</h6>
                                 @endif
 
-                                <h4 class="text-primary jumlah_modal" id="jumlah_modal" data-countup="jumlah_modal">
+                                <h4 class="text-primary jumlah_modal mb-2" id="jumlah_modal"
+                                    data-countup="jumlah_modal">
                                     @if ($modal == '')
 
                                     @else
@@ -117,7 +39,52 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <form action="{{ route('transaksi.store') }}" id="form" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="row g-3">
+            <div class="col-xl-7 order-xl-1">
+                <div class="card">
+                    <div class="card-header bg-light btn-reveal-trigger d-flex flex-between-center">
+                        <h5 class="mb-0">Order Summary</h5> <br>
+                        <a class="btn btn-falcon-default btn-sm" type="button" data-bs-toggle="modal"
+                            data-bs-target="#modaltambah">
+                            <span class="fas fa-plus me-2" data-fa-transform="shrink-2"></span>Tambah
+                            Transaksi</a>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="text-primary">Nomor Order: #{{ $kode_transaksi }}</h6>
+                        <input type="hidden" name="kode_transaksi" value="{{ $kode_transaksi }}">
+                        <input type="hidden" name="tanggal_transaksi" value="{{ $today_format }}">
+                        <input type="hidden" name="id_modal" value="{{ $modal->id_modal }}">
+                        <input type="hidden" name="id_transaksi" value="{{ $idbaru }}">
+                        <div class="table-responsive scrollbar">
+                            <table class="table table-hover table-striped overflow-hidden" id="dataTableKonfirmasi">
+                                <thead>
+                                    <tr>
+                                        <th class="small">No.</th>
+                                        <th class="small">Currency</th>
+                                        <th class="small">Harga Currency</th>
+                                        <th class="small">Jumlah</th>
+                                        <th class="small">Total</th>
+                                        <th class="small">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="konfirmasi">
 
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between bg-light">
+                        <div class="fw-semi-bold">Payable Total</div>
+                        <div class="fw-bold payable_total" id="payable_total">Rp. 0.0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5">
                 <div class="card">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">Confirm Transaksi</h5>
@@ -157,8 +124,8 @@
                         </div>
                     </div>
                 </div>
-            </form>
-        </div>
+    </form>
+    </div>
     </div>
 </main>
 
@@ -335,12 +302,15 @@
                         url: '/transaksi',
                         data: data,
                         success: function (response) {
+                            window.location.href = '/transaksi'
+
                             window.open(
                                 '/cetak/' + id_transaksi,
                                 '_blank'
                             );
-                            window.location.reload();
-
+                           
+                            // window.location.reload();
+                            
                             const Toast = Swal.mixin({
                                 toast: true,
                                 position: 'top-end',
@@ -390,13 +360,13 @@
 
 
         var detail_asu = $('#konfirmasi').children()
-            for (let index = 0; index < detail_asu.length; index++) {
-                var children = $(detail_asu[index]).children()
+        for (let index = 0; index < detail_asu.length; index++) {
+            var children = $(detail_asu[index]).children()
 
-                var td_currency_asu = children[1]
-                var span_asu = $(td_currency_asu).children()[0]
-                var id_asu = $(span_asu).attr('id')
-            }
+            var td_currency_asu = children[1]
+            var span_asu = $(td_currency_asu).children()[0]
+            var id_asu = $(span_asu).attr('id')
+        }
 
 
         var total_tukar_rp = new Intl.NumberFormat('id', {
@@ -411,14 +381,14 @@
                 title: 'Oops...',
                 text: 'Currency Tidak Boleh Kosong!',
             })
-        } else if(id_asu == id_currency){
+        } else if (id_asu == id_currency) {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
                 text: 'Currency Tersebut Sudah Ada, Hapus Dahulu jika ingin menambahkan!',
             })
 
-        }else if (jumlah_currency == "" | jumlah_currency == 0) {
+        } else if (jumlah_currency == "" | jumlah_currency == 0) {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
@@ -492,8 +462,8 @@
                 }).format(grand_total_fix)
                 $('#grand_total').html(grand_total_idr)
 
-                
-               
+
+
                 var table = $('#dataTableKonfirmasi').DataTable()
                 var row = $(`#${id_currency.trim()}`).parent().parent()
                 table.row(row).remove().draw();

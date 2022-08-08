@@ -77,7 +77,7 @@
                             <tr role="row" class="odd">
                                 <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                 <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
-                                <td class="text-center tanggal_transaksi fs--1">{{ $item->tanggal_transaksi }}</td>
+                                <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
                                 <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total) }}</td>
                                 <td class="text-center status text-center fs--1">

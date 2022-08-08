@@ -22,6 +22,8 @@ class JurnalBulananController extends Controller
         ->groupBy('month','year')
         ->get();
 
+        // return $transaksi;
+
         return view('pages.jurnal.bulan.index', compact('transaksi'));
     }
 

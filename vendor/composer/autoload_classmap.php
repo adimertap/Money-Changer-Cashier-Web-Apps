@@ -8,6 +8,9 @@ $baseDir = dirname($vendorDir);
 return array(
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
     'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
+    'App\\Exports\\ExcelHarian' => $baseDir . '/app/Exports/ExcelHarian.php',
+    'App\\Exports\\ExcelHarianOwner' => $baseDir . '/app/Exports/ExcelHarianOwner.php',
+    'App\\Exports\\ExcelTransaksi' => $baseDir . '/app/Exports/ExcelTransaksi.php',
     'App\\Exports\\TransaksiHarianExport' => $baseDir . '/app/Exports/TransaksiHarianExport.php',
     'App\\Http\\Controllers\\ApprovalModalController' => $baseDir . '/app/Http/Controllers/ApprovalModalController.php',
     'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => $baseDir . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
@@ -3224,6 +3227,7 @@ return array(
     'Monolog\\Formatter\\FluentdFormatter' => $vendorDir . '/monolog/monolog/src/Monolog/Formatter/FluentdFormatter.php',
     'Monolog\\Formatter\\FormatterInterface' => $vendorDir . '/monolog/monolog/src/Monolog/Formatter/FormatterInterface.php',
     'Monolog\\Formatter\\GelfMessageFormatter' => $vendorDir . '/monolog/monolog/src/Monolog/Formatter/GelfMessageFormatter.php',
+    'Monolog\\Formatter\\GoogleCloudLoggingFormatter' => $vendorDir . '/monolog/monolog/src/Monolog/Formatter/GoogleCloudLoggingFormatter.php',
     'Monolog\\Formatter\\HtmlFormatter' => $vendorDir . '/monolog/monolog/src/Monolog/Formatter/HtmlFormatter.php',
     'Monolog\\Formatter\\JsonFormatter' => $vendorDir . '/monolog/monolog/src/Monolog/Formatter/JsonFormatter.php',
     'Monolog\\Formatter\\LineFormatter' => $vendorDir . '/monolog/monolog/src/Monolog/Formatter/LineFormatter.php',

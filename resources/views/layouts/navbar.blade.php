@@ -104,6 +104,14 @@
                             <span class="nav-link-text ps-1">Jurnal Bulanan</span>
                         </div>
                     </a>
+                    <a class="nav-link" href="{{ route('jurnal-debit-kredit.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <div class="d-flex align-items-center">
+                            <span class="nav-link-icon">
+                                <i class="fas fa-book"></i>
+                            </span>
+                            <span class="nav-link-text ps-1">Jurnal Debit Kredit</span>
+                        </div>
+                    </a>
                 </li>
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">

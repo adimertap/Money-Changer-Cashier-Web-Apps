@@ -101,12 +101,12 @@
                 <h6 class="text-danger fw-bold m-0 ">PT. Riasta Valasindo</h6>
                 <h6 class="m-0 text-600">Authorized Money Changer</h6>
                 <p class="fs--2 text-black m-0 text-600">Legian Street No. 39</p>
-                <p class="fs--2 text-black m-0 text-600">Phone: 0361-7409732</p>
+                <p class="fs--2 text-black m-0 text-600">Phone: (+62) 85-173-254-848</p>
             </div>
         </div>
         <div class="row align-items-center">
             <div class="col">
-                <h6 class="text-500 fs--2">{{ $transaksi->tanggal_transaksi }}</h6>
+                <h6 class="text-500 fs--2">{{ date('d-M-Y', strtotime($transaksi->tanggal_transaksi)) }}</h6>
                 <h6 class="m-0 fs--2 text-600">Buying</h6>
                 <p class="fs--2 text-black m-0 text-600">{{ $transaksi->Pegawai->nama_panggilan }}</p>
             </div>
@@ -119,7 +119,7 @@
         <hr class="mt-2 mb-2">
         @forelse ($transaksi->detailTransaksi as $item)
         <div class="row align-items-center mt-2">
-            <div class="col-sm-1">
+            <div class="col-1">
                 <h6 class="text-500 fs--2">{{ $loop->iteration }}.</h6>
             </div>
             <div class="col-4">
@@ -129,7 +129,7 @@
             <div class="col-1 mt-3">
                 <p class="fs--2 text-danger fw-bold m-0 text-600">{{ $item->jumlah_tukar }}</p>
             </div>
-            <div class="col-5 text-end mt-3 ms-2">
+            <div class="col-4 text-end mt-3 ms-4">
                 <h6 class="m-0 fs--2 text-600">{{ number_format($item->total_tukar) }}</h6>
             </div>
         </div>
@@ -144,7 +144,7 @@
                 <h6 class="m-0 fs--2 text-600">Total Rp.</h6>
             </div>
             <div class="col-6 text-end">
-                <p class="fs--2 text-danger fw-bold m-0" id="total">{{ number_format($transaksi->total) }}</p>
+                <p class="fs--2 fw-bold m-0 text-600 me-2" id="total">{{ number_format($transaksi->total) }}</p>
             </div>
             <h6 class="text-600 m-0 fs--2 text-center mt-4">#Customer Signature</h6>
         </div>
@@ -156,9 +156,9 @@
         <p class="text-600 fs--2 text-center m-0 justify">
             THANK YOU FOR TRANSACTING WITH PT. RIASTA VALASINDO.
             PLEASE CHECK YOUR CASH AND TRANSACTION BEFORE LEAVING. 
-            FOR ANY QUERY OR COMPLAINT. PLEASE CONTACT <br>
-            +62-813-389-394-54 OR EMAIL: <br>
-            info@ptriastavalasindo.com
+            FOR ANY QUERY OR COMPLAINT. PLEASE CONTACT BY WHATSAPP MESSAGE
+            (+62) 85-173-254-848, OR
+            EMAIL:<br> customer-service@ptriastavalasindo.com
 
         </p>
         {{-- @php
