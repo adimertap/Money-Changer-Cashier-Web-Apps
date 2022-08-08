@@ -599,18 +599,18 @@
             'dev_requirement' => true,
         ),
         'myclabs/php-enum' => array(
-            'pretty_version' => '1.8.3',
-            'version' => '1.8.3.0',
-            'reference' => 'b942d263c641ddb5190929ff840c68f78713e937',
+            'pretty_version' => '1.8.4',
+            'version' => '1.8.4.0',
+            'reference' => 'a867478eae49c9f59ece437ae7f9506bfaa27483',
             'type' => 'library',
             'install_path' => __DIR__ . '/../myclabs/php-enum',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
         'nesbot/carbon' => array(
-            'pretty_version' => '2.60.0',
-            'version' => '2.60.0.0',
-            'reference' => '00a259ae02b003c563158b54fb6743252b638ea6',
+            'pretty_version' => '2.61.0',
+            'version' => '2.61.0.0',
+            'reference' => 'bdf4f4fe3a3eac4de84dbec0738082a862c68ba6',
             'type' => 'library',
             'install_path' => __DIR__ . '/../nesbot/carbon',
             'aliases' => array(),
@@ -892,8 +892,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0|2.0',
-                1 => '1.0.0 || 2.0.0 || 3.0.0',
+                0 => '1.0.0 || 2.0.0 || 3.0.0',
+                1 => '1.0|2.0',
             ),
         ),
         'psr/simple-cache' => array(
