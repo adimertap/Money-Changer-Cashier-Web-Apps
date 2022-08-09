@@ -268,8 +268,7 @@
                                 name="jumlah_modal" type="number" placeholder="Input Jumlah Modal"
                                 value="{{ old('jumlah_modal') }}" required />
                             <p class="text-primary"> IDR:
-                                <span id="detaileditmodal" class="detaileditmodal">
-                                </span>
+                                <span id="detaileditmodal" class="detaileditmodal"></span>
                             </p>
                         </div>
                     </div>
@@ -428,6 +427,20 @@
                 }).format(harga)
 
                 var jumlah = $(this).parent().parent().find('.detailupdatemodal')
+                $(jumlah).html(harga_fix);
+            })
+        });
+
+        $('.jumlah_modal_edit').each(function () {
+            $(this).on('input', function () {
+                var harga = $(this).val()
+                var harga_fix = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                }).format(harga)
+
+                var jumlah = $(this).parent().parent().find('.detaileditmodal')
                 $(jumlah).html(harga_fix);
             })
         });
