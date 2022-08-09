@@ -42,11 +42,11 @@ Route::group(['middleware' => 'auth'], function () {
         Route::resource('jurnal-harian', JurnalHarianController::class);
         Route::resource('jurnal-bulanan', JurnalBulananController::class);
         Route::get('/jurnal-bulanan/detail/{id}', [\App\Http\Controllers\JurnalBulananController::class, 'DetailTransaksi'])->name('bulanan-transaksi');
-        Route::resource('jurnal-debit-kredit', JurnalKreditDebitController::class);
+        
          // EXCEL DAN PDF
          Route::get('/download-dokumen', [\App\Http\Controllers\JurnalHarianController::class, 'Export_dokumen'])->name('export-dokumen');
     });
-
+    Route::resource('jurnal-debit-kredit', JurnalKreditDebitController::class);
     // TRANSAKSI
     Route::resource('transaksi', TransaksiController::class);
     Route::post('/delete-transaksi', [\App\Http\Controllers\TransaksiController::class, 'hapus'])->name('transaksi-delete');

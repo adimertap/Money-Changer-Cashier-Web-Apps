@@ -104,6 +104,7 @@
                             <span class="nav-link-text ps-1">Jurnal Bulanan</span>
                         </div>
                     </a>
+                    @endif
                     <a class="nav-link" href="{{ route('jurnal-debit-kredit.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                         <div class="d-flex align-items-center">
                             <span class="nav-link-icon">
@@ -112,7 +113,9 @@
                             <span class="nav-link-text ps-1">Jurnal Debit Kredit</span>
                         </div>
                     </a>
+                    
                 </li>
+                @if (Auth::user()->role == 'Owner')
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Approval</div>
@@ -130,6 +133,7 @@
                     </a>
                 </li>
                 @endif
+               
                
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">

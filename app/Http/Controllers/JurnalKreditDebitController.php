@@ -20,7 +20,13 @@ class JurnalKreditDebitController extends Controller
      */
     public function index()
     {
-        $jurnal = Jurnal::orderBy('updated_at','DESC')->get();
+        if(Auth::user()->role == 'Owner'){
+            $jurnal = Jurnal::orderBy('updated_at','DESC')->get();
+        }else{
+            $jurnal = Jurnal::where('id_pegawai', Auth::user()->id)->orderBy('updated_at','DESC')->get();
+        }
+        
+       
         $currency = MasterCurrency::get();
 
         return view('pages.jurnal.kredit&debit.index', compact('jurnal','currency'));
@@ -44,10 +50,15 @@ class JurnalKreditDebitController extends Controller
         if($request->filter_jenis){
             $jurnal->where('jenis_jurnal', $request->filter_jenis);
         }
-        $jurnal = $jurnal->get();
+        if(Auth::user()->role =='Owner'){
+            $jurnal = $jurnal->get();
+        }else{
+            $jurnal = $jurnal->where('id_pegawai', Auth::user()->id)->get();
+        }
+       
 
         $currency = Jurnal::join('tb_currency','tb_jurnal.id_currency','tb_currency.id_currency')
-        ->selectRaw('nama_currency as nama, SUM(total_tukar) as total')
+        ->selectRaw('nama_currency as nama, SUM(jumlah_tukar) as total')
         ->groupBy('nama_currency');
         if($request->from_date_export){
             $currency->where('tanggal_jurnal', '>=', $request->from_date_export);
@@ -58,7 +69,12 @@ class JurnalKreditDebitController extends Controller
         if($request->filter_jenis){
             $currency->where('jenis_jurnal', $request->filter_jenis);
         }
-        $currency = $currency->get();
+        if(Auth::user()->role =='Owner'){
+            $currency = $currency->get();
+        }else{
+            $currency = $currency->where('id_pegawai', Auth::user()->id)->get();
+        }
+       
         
         
         if(count($jurnal) == 0){

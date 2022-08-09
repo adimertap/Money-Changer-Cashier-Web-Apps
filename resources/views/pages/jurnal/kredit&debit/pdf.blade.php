@@ -88,7 +88,7 @@
         <tr>
             <th>{{ $i++ }}.</th>
             <td>{{ $item->nama }}</td>
-            <td>Rp. {{ number_format($item->total) }}
+            <td>{{ $item->total }}</td>
         </tr>
         @endforeach 
     </tbody>
