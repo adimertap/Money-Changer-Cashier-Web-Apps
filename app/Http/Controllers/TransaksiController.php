@@ -285,14 +285,14 @@ class TransaksiController extends Controller
         $modal->riwayat_modal = $perhitungan;
         $modal->save();
 
-        foreach($transaksi as $tes){
-            $jurnal = Jurnal::where('id_transaksi', $tes->id_transaksi)->first();
-            $jurnal->delete();
-
-            $detail = DetailTransaksi::where('id_transaki', $tes->id_transaksi)->first();
-            $detail->delete();
+        $jurnal = Jurnal::where('id_transaksi', $transaksi->id_transaksi)->get();
+        foreach($jurnal as $tes){
+            $tes->delete();
         }
-
+        $detail = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get();
+        foreach($detail as $s){
+            $s->delete();
+        }
         $transaksi->delete();
       
         Alert::success('Berhasil', 'Data Transaksi Berhasil Terhapus');

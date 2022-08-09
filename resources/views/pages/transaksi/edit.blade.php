@@ -274,7 +274,7 @@
                     var total_tukar = total_tukar_trim.split('IDR&nbsp;')[1].replace(',', '').replace(',', '').trim()
 
                     dataform2.push({
-                        id_currency: id_currency,
+                        currency_id: id_currency,
                         id_transaksi: id_transaksi,
                         jumlah_currency: jumlah_currency,
                         jumlah_tukar: jumlah_tukar,
