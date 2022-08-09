@@ -169,11 +169,6 @@ class TransaksiController extends Controller
         $transaksi->id_pegawai = Auth::user()->id;
         $transaksi->save();
 
-        $modal = ModalTransaksi::find($request->id_modal);
-        $perhitungan = $modal->riwayat_modal - $request->total;
-        $modal->riwayat_modal = $perhitungan;
-        $modal->save();
-
         $transaksi->detailTransaksi()->insert($request->detail);
         
         foreach($request->detail as $key){
@@ -187,6 +182,11 @@ class TransaksiController extends Controller
             $jurnal->jenis_jurnal = 'Debit';
             $jurnal->save();
         }
+
+        $modal = ModalTransaksi::find($request->id_modal);
+        $perhitungan = $modal->riwayat_modal - $request->total;
+        $modal->riwayat_modal = $perhitungan;
+        $modal->save();
 
         Alert::success('Berhasil', 'Data Transaksi Berhasil Ditambahkan');
         return $request;
@@ -242,10 +242,6 @@ class TransaksiController extends Controller
         $transaksi->id_pegawai = Auth::user()->id;
         $transaksi->save();
 
-        $modal = ModalTransaksi::find($request->id_modal);
-        $modal->riwayat_modal = $request->jumlah_modal;
-        $modal->save();
-
         $transaksi->detailTransaksi()->delete();
         $transaksi->detailTransaksi()->insert($request->detail);
 
@@ -260,6 +256,9 @@ class TransaksiController extends Controller
             $jurnal->jenis_jurnal = 'Debit';
             $jurnal->save();
         }
+        $modal = ModalTransaksi::find($request->id_modal);
+        $modal->riwayat_modal = $request->jumlah_modal;
+        $modal->save();
 
 
         Alert::success('Berhasil', 'Data Transaksi Berhasil Diedit');
@@ -280,11 +279,6 @@ class TransaksiController extends Controller
     public function hapus(Request $request)
     {
         $transaksi = Transaksi::find($request->transaksi_id);
-        $modal = ModalTransaksi::where('id_modal', $transaksi->id_modal)->first();
-        $perhitungan = $modal->riwayat_modal + $transaksi->total;
-        $modal->riwayat_modal = $perhitungan;
-        $modal->save();
-
         $jurnal = Jurnal::where('id_transaksi', $transaksi->id_transaksi)->get();
         foreach($jurnal as $tes){
             $tes->delete();
@@ -293,6 +287,10 @@ class TransaksiController extends Controller
         foreach($detail as $s){
             $s->delete();
         }
+        $modal = ModalTransaksi::where('id_modal', $transaksi->id_modal)->first();
+        $perhitungan = $modal->riwayat_modal + $transaksi->total;
+        $modal->riwayat_modal = $perhitungan;
+        $modal->save();
         $transaksi->delete();
       
         Alert::success('Berhasil', 'Data Transaksi Berhasil Terhapus');
