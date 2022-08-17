@@ -30,6 +30,6 @@ class ModalTransaksi extends Model
 
     public function Pegawai()
     {
-        return $this->belongsTo(User::class, 'id_pegawai', 'id');
+        return $this->belongsTo(User::class, 'id_pegawai', 'id')->withTrashed();
     }
 }

@@ -31,8 +31,8 @@
                 <td>Jual</td>
                 <td>{{ $item->Currency->nama_currency }}</td>
                 <td>{{ $item->jumlah_tukar }}</td>
-                <td>Rp. {{ number_format($item->kurs) }}</td>
-                <td>Rp. {{ number_format($item->total_tukar) }}</td>
+                <td>Rp. {{ number_format($item->kurs, 0, ',', '.') }}</td>
+                <td>Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>
                 <td>-</td>
             @else
                 <td>Modal</td>
@@ -40,7 +40,7 @@
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
-                <td>Rp. {{ number_format($item->jumlah_modal) }}</td>
+                <td>Rp. {{ number_format($item->jumlah_modal, 0, ',', '.') }}</td>
             @endif
         </tr>
         @endforeach 
@@ -48,8 +48,8 @@
     <tr>
         <th colspan="1"></th>
         <th colspan="5">Total Debit dan Kredit</th>
-        <th colspan="1">Rp. {{ number_format($total_debit) }}</th>
-        <th colspan="1">Rp. {{ number_format($total_kredit) }}</th>
+        <th colspan="1">Rp. {{ number_format($total_debit, 0, ',', '.') }}</th>
+        <th colspan="1">Rp. {{ number_format($total_kredit, 0, ',', '.') }}</th>
     </tr>
 </table>
 
@@ -58,25 +58,32 @@
         <tr>
             <th>No.</th>
             <th>Currency</th>
-            <th>Total</th>
+            <th>Jumlah</th>
+            <th>Kurs</th>
+            <th>Grand</th>
         </tr>
     </thead>
     <tbody>
         @php 
             $i=1;
-            
+
         @endphp
         @foreach ($kurs as $item)
         <tr>
             <th>{{ $i++ }}.</th>
             <td>{{ $item->nama }}</td>
             <td>{{ $item->total }}</td>
+            <td>Rp. {{ number_format($item->jumlah_kurs, 0, ',','.') }}</td>
+            <td>Rp. {{ number_format($item->total * $item->jumlah_kurs, 0, ',','.') }}</td>
         </tr>
         @endforeach 
     </tbody>
-    <tr></tr>
     <tr>
-        <th colspan="2">Sisa Modal</th>
-        <th colspan="1">Rp. {{ number_format($grand) }}</th>
+        <th colspan="4">Total Debit Tercatat</th>
+        <th colspan="1">Rp. {{ number_format($total_debit, 0, ',', '.') }}</th>
+    </tr>
+    <tr>
+        <th colspan="4">Sisa Modal</th>
+        <th colspan="1">Rp. {{ number_format($grand, 0, ',', '.') }}</th>
     </tr>
 </table>

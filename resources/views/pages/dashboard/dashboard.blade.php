@@ -23,7 +23,7 @@
                                 </div>
                                 <div class="ps-3">
                                     <p class="text-600 fs--1">Total Transaksi Hari Ini</p>
-                                    <h4 class="text-800 mb-0">Rp. {{ number_format($total_hari_ini) }}</h4>
+                                    <h4 class="text-800 mb-0">Rp. {{ number_format($total_hari_ini, 0, ',', '.') }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -104,7 +104,7 @@
                         </div>
                         <div class="col-6 col-md-4 border-200 border-md-200 border-bottom border-md-end pb-4 ps-3">
                             <h6 class="pb-1 text-700">Total Transaksi Hari Ini</h6>
-                            <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total_hari_ini) }}</p>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total_hari_ini, 0, ',', '.') }}</p>
                             <div class="d-flex align-items-center">
                                 <h6 class="fs--1 text-500 mb-0">Hari Ini</h6>
                             </div>
@@ -116,7 +116,7 @@
                                 @if ($sisa_modal == null)
                                     
                                 @else
-                                Rp. {{ number_format($sisa_modal->riwayat_modal) }}
+                                Rp. {{ number_format($sisa_modal->riwayat_modal, 0, ',', '.') }}
                                 @endif
                             </p>
                                 
@@ -125,7 +125,7 @@
                                     @if ($sisa_modal == null)
                                     Hari Ini Belum Terdapat Modal
                                     @else
-                                    Dari Rp. {{ number_format($sisa_modal->jumlah_modal) }} 
+                                    Dari Rp. {{ number_format($sisa_modal->jumlah_modal, 0, ',', '.') }} 
                                     @endif
                                 </h6>
                             </div>
@@ -133,7 +133,7 @@
                         <div
                             class="col-6 col-md-4 border-200 border-md-200 border-bottom border-md-bottom-0 border-md-end pt-4 pb-md-0 ps-3 ps-md-0">
                             <h6 class="pb-1 text-700">Transaksi Bulan Ini</h6>
-                            <p class="font-sans-serif lh-1 mb-1 fs-2">{{ $jumlah_bulan_ini }}</p>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">{{ $jumlah_bulan_ini, 0, ',', '.' }}</p>
                             <div class="d-flex align-items-center">
                                 <h6 class="fs--1 text-500 mb-0">Transaksi</h6>
                                 </h6>
@@ -141,14 +141,14 @@
                         </div>
                         <div class="col-6 col-md-4 border-200 border-md-bottom-0 border-end pt-4 pb-md-0 ps-md-3">
                             <h6 class="pb-1 text-700">Total Transaksi Bulan Ini </h6>
-                            <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total_bulan_ini) }}</p>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total_bulan_ini, 0, ',', '.') }}</p>
                             <div class="d-flex align-items-center">
                                 <h6 class="fs--1 text-500 mb-0">Bulan {{ $bulan_ini }}</h6>
                             </div>
                         </div>
                         <div class="col-6 col-md-4 pb-0 pt-4 ps-3">
                             <h6 class="pb-1 text-700">Total Modal Terpakai Bulan Ini</h6>
-                            <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total_modal_bulan_ini) }}</p>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total_modal_bulan_ini, 0, ',', '.') }}</p>
                             <div class="d-flex align-items-center">
                                 <h6 class="fs--1 text-500 mb-0">Bulan {{ $bulan_ini }}</h6>
                             </div>
@@ -178,7 +178,7 @@
                                   
                                     <h6 class="text-800 mb-1">New Order:#{{ $item->kode_transaksi }}</h6>
                                     @forelse ($item->detailTransaksi as $tes)
-                                        <p class="fs--1 text-600 mb-0">{{ $tes->Currency->nama_currency }} Harga Rp. {{ number_format($tes->jumlah_currency) }} Jumlah {{ $tes->jumlah_tukar }}</p>
+                                        <p class="fs--1 text-600 mb-0">{{ $tes->Currency->nama_currency }} Harga Rp. {{ number_format($tes->jumlah_currency, 0, ',', '.') }} Jumlah {{ $tes->jumlah_tukar }}</p>
                                     @empty
                                         
                                     @endforelse
@@ -189,7 +189,7 @@
                                 <div class="col-auto text-end">
                                     <p class="fs--2 text-500 mb-0">Pukul {{ date('H:i:s', strtotime($item->created_at)) }}</p>
                                     <p class="fs--2 text-500 mb-0">Pegawai {{ $item->Pegawai->nama_panggilan }}</p>
-                                    <p class="fs--1 text-primary mb-0">Total Rp. {{ number_format($item->total) }}</p>
+                                    <p class="fs--1 text-primary mb-0">Total Rp. {{ number_format($item->total, 0, ',', '.') }}</p>
                                 </div>
                             </div>
                         </div>

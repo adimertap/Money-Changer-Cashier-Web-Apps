@@ -48,7 +48,7 @@
                                         <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                         <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
                                         <td class="text-center jumlah_transaksi fs--1">{{ $item->jumlah_transaksi }}</td>
-                                        <td class="text-center grand_total text-center fs--1">Rp. {{ number_format($item->grand_total) }}</td>
+                                        <td class="text-center grand_total text-center fs--1">Rp. {{ number_format($item->grand_total, 0, ',', '.') }}</td>
                                         <td class="text-center fs--1">
                                             <a href="{{ route('jurnal-bulanan.edit', $item->tanggal_transaksi) }}"
                                                 class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
@@ -87,7 +87,7 @@
                                         <td class="text-center pegawai fs--1">{{ $item->Pegawai->name }}</td>
                                         <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
                                         <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
-                                        <td class="text-center total fs--1">Rp. {{ number_format($item->total) }}</td>
+                                        <td class="text-center total fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
                                         <td class="text-center fs--1">
                                             <a href="{{ route('bulanan-transaksi', $item->id_transaksi) }}"
                                                 class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"

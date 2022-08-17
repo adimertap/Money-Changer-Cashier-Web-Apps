@@ -49,10 +49,10 @@
                                 <th scope="row" class="no">{{ $loop->iteration}}.</th>
                                 <td class="tanggal_modal">{{ date('d-M-Y', strtotime($item->tanggal_modal)) }}</td>
                                 <td class="pegawai">{{ $item->Pegawai->name }}</td>
-                                <td class="jumlah_modal">Rp. {{ number_format($item->jumlah_modal) }}</td>
+                                <td class="jumlah_modal">Rp. {{ number_format($item->jumlah_modal, 0, ',', '.') }}</td>
                                 <td class="pengajuan_tambah">
                                     @if ($item->pengajuan_tambah != null)
-                                    Rp. {{ number_format($item->pengajuan_tambah) }}
+                                    Rp. {{ number_format($item->pengajuan_tambah, 0, ',', '.') }}
                                     @else
                                     -
                                     @endif

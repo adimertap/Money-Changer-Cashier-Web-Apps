@@ -43,9 +43,9 @@
                 <tr role="row" class="odd align-middle">
                     <th scope="row" class="align-middle">{{ $loop->iteration}}.</th>
                     <td class="align-middle text-center">{{ $item->Currency->nama_currency }}</td>
-                    <td class="align-middle text-center">Rp. {{ number_format($item->jumlah_currency) }}</td>
+                    <td class="align-middle text-center">Rp. {{ number_format($item->jumlah_currency, 0, ',', '.') }}</td>
                     <td class="align-middle text-center">{{ $item->jumlah_tukar }}</td>
-                    <td class="align-middle text-end">Rp. {{ number_format($item->total_tukar) }}</td>
+                    <td class="align-middle text-end">Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>
                 </tr>
                 @empty
 
@@ -59,7 +59,7 @@
                 <tbody>
                 <tr class="border-bottom">
                   <th class="text-900">Total:</th>
-                  <td class="fw-semi-bold">Rp. {{ number_format($transaksi->total) }}</td>
+                  <td class="fw-semi-bold">Rp. {{ number_format($transaksi->total, 0, ',', '.') }}</td>
                 </tr>
               </tbody></table>
             </div>

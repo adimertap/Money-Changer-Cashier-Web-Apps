@@ -28,11 +28,11 @@ class DetailTransaksi extends Model
 
     public function Transaksi()
     {
-        return $this->belongsTo(Transaksi::class, 'id_transaksi','id_transaksi');
+        return $this->belongsTo(Transaksi::class, 'id_transaksi','id_transaksi')->withTrashed();
     }
 
     public function Currency()
     {
-        return $this->belongsTo(MasterCurrency::class, 'currency_id','id_currency');
+        return $this->belongsTo(MasterCurrency::class, 'currency_id','id_currency')->withTrashed();
     }
 }

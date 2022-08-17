@@ -44,9 +44,9 @@
                                     @if (empty($jumlah_modal_today))
                                     <p class="small mb-2">Menunggu Approval</p>
                                     @else
-                                    Rp. {{ number_format($jumlah_modal_today['riwayat_modal']) }}
+                                    Rp. {{ number_format($jumlah_modal_today['riwayat_modal'], 0, ',', '.') }}
                                 </span></h4>
-                                <span class="badge rounded-pill badge-soft-success">Dari Rp. {{ number_format($jumlah_modal_today['jumlah_modal']) }}</span>
+                                <span class="badge rounded-pill badge-soft-success">Dari Rp. {{ number_format($jumlah_modal_today['jumlah_modal'], 0, ',', '.') }}</span>
                                     @endif
                                    
                                 @endif
@@ -95,8 +95,8 @@
                                 <th scope="row" class="no">{{ $loop->iteration}}.</th>
                                 <td class="tanggal_modal">{{ date('d-M-Y', strtotime($item->tanggal_modal)) }}</td>
                                 <td class="pegawai">{{ $item->Pegawai->name }}</td>
-                                <td class="jumlah_modal text-center">Rp. {{ number_format($item->jumlah_modal) }}</td>
-                                <td class="sisa_modal text-center">Rp. {{ number_format($item->riwayat_modal) }}</td>
+                                <td class="jumlah_modal text-center">Rp. {{ number_format($item->jumlah_modal, 0, ',', '.') }}</td>
+                                <td class="sisa_modal text-center">Rp. {{ number_format($item->riwayat_modal, 0, ',', '.') }}</td>
                                 <td class="status_modal text-center">
                                     @if ($item->status_modal == 'Pending')
                                         <span class="badge rounded-pill badge-soft-primary">Pending, Menunggu Approval</span>

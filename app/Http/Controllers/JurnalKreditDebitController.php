@@ -58,8 +58,8 @@ class JurnalKreditDebitController extends Controller
        
 
         $currency = Jurnal::join('tb_currency','tb_jurnal.id_currency','tb_currency.id_currency')
-        ->selectRaw('nama_currency as nama, SUM(jumlah_tukar) as total')
-        ->groupBy('nama_currency');
+        ->selectRaw('nama_currency as nama, SUM(jumlah_tukar) as total, kurs as jumlah_kurs')
+        ->groupBy('nama_currency','kurs');
         if($request->from_date_export){
             $currency->where('tanggal_jurnal', '>=', $request->from_date_export);
         }
@@ -75,7 +75,6 @@ class JurnalKreditDebitController extends Controller
             $currency = $currency->where('id_pegawai', Auth::user()->id)->get();
         }
        
-        
         
         if(count($jurnal) == 0){
             Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');

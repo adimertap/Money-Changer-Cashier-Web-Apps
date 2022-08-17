@@ -124,13 +124,13 @@
             </div>
             <div class="col-4">
                 <p class="fs--2 text-danger fw-bold m-0">{{ $item->Currency->nama_currency }}</p>
-                <h6 class="m-0 fs--2 text-600">{{ number_format($item->jumlah_currency) }}</h6>
+                <h6 class="m-0 fs--2 text-600">{{ number_format($item->jumlah_currency, 0, ',', '.') }}</h6>
             </div>
             <div class="col-1 mt-3">
                 <p class="fs--2 text-danger fw-bold m-0 text-600">{{ $item->jumlah_tukar }}</p>
             </div>
             <div class="col-4 text-end mt-3 ms-4">
-                <h6 class="m-0 fs--2 text-600">{{ number_format($item->total_tukar) }}</h6>
+                <h6 class="m-0 fs--2 text-600">{{ number_format($item->total_tukar, 0, ',', '.') }}</h6>
             </div>
         </div>
         <hr class="mt-2 mb-2" style="height:1px;border-width:0;color:gray;background-color:gray">
@@ -144,7 +144,7 @@
                 <h6 class="m-0 fs--2 text-600">Total Rp.</h6>
             </div>
             <div class="col-6 text-end">
-                <p class="fs--2 fw-bold m-0 text-600 me-2" id="total">{{ number_format($transaksi->total) }}</p>
+                <p class="fs--2 fw-bold m-0 text-600 me-2" id="total">{{ number_format($transaksi->total, 0, ',', '.') }}</p>
             </div>
             <h6 class="text-600 m-0 fs--2 text-center mt-4">#Customer Signature</h6>
         </div>
