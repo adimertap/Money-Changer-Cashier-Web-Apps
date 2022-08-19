@@ -115,7 +115,7 @@
                                 <div class="fs-2 fw-semi-bold">All Total: <span class="text-primary">
                                         <span class="grand_total" id="grand_total">Rp. 0.0</span>
                                 </div>
-                                <button class="btn btn-success mt-3 px-4" onclick="submitdata(event)"
+                                <button class="btn btn-success mt-3 px-4" onclick="submitdata(event)" id="button_submit"
                                     type="button">Confirm &amp; Pay
                                 </button>
                                 <p class="fs--1 mt-3 mb-0">By clicking <strong>Confirm &amp; Pay </strong>button,
@@ -295,7 +295,7 @@
                     }
 
                     console.log(data)
-
+                    $('#button_submit').prop('disabled', true);
 
                     $.ajax({
                         method: 'post',
@@ -330,10 +330,11 @@
                         },
                         error: function (response) {
                             console.log(response)
+                            $('#button_submit').prop('disabled', false);
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Oops...',
-                                text: 'Error! Transaksi Tidak dapat disimpan',
+                                text: 'Error! Transaksi Tidak dapat disimpan, Hubungi Developer',
                             })
                         }
                     });

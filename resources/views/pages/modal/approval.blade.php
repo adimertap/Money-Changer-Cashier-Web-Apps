@@ -56,33 +56,34 @@
                                     @else
                                     -
                                     @endif
-                                    
+
                                 </td>
                                 <td class="status_modal text-center">
                                     @if ($item->status_modal == 'Pending')
-                                        <span class="badge rounded-pill badge-soft-primary">Pending, Menunggu Approval</span>
+                                    <span class="badge rounded-pill badge-soft-primary">Pending, Menunggu
+                                        Approval</span>
                                     @elseif ($item->status_modal == 'Terima')
-                                        <span class="badge rounded-pill badge-soft-success">Diterima</span>
+                                    <span class="badge rounded-pill badge-soft-success">Diterima</span>
                                     @else
-                                        <span class="badge rounded-pill badge-soft-danger">Ditolak</span>
-                                    @endif    
+                                    <span class="badge rounded-pill badge-soft-danger">Ditolak</span>
+                                    @endif
                                 </td>
                                 <td class="text-center">
                                     @if ($item->status_modal == 'Pending')
-                                    <button class="btn btn-success btn-sm p-2 me-1 mb-1 terimaModalBtn" value="{{ $item->id_modal }}"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Terima Data">Terima</span>
+                                    <button class="btn btn-success btn-sm p-2 me-1 mb-1 terimaModalBtn"
+                                        value="{{ $item->id_modal }}" type="button" data-bs-toggle="tooltip"
+                                        data-bs-placement="top" title="Terima Data">Terima</span>
                                     </button>
-                                    <button class="tn btn-danger btn-sm p-2 me-1 mb-1 tolakModalBtn" value="{{ $item->id_modal }}"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Tolak Data">Tolak</span>
+                                    <button class="tn btn-danger btn-sm p-2 me-1 mb-1 tolakModalBtn"
+                                        value="{{ $item->id_modal }}" type="button" data-bs-toggle="tooltip"
+                                        data-bs-placement="top" title="Tolak Data">Tolak</span>
                                     </button>
                                     @elseif ($item->status_modal == 'Terima')
-                                        <span class="badge rounded-pill badge-soft-success">Diterima</span>
+                                    <span class="badge rounded-pill badge-soft-success">Diterima</span>
                                     @else
-                                        <span class="badge rounded-pill badge-soft-danger">Ditolak</span>
-                                    @endif    
-                                  
+                                    <span class="badge rounded-pill badge-soft-danger">Ditolak</span>
+                                    @endif
+
                                 </td>
                             </tr>
                             @empty
@@ -120,7 +121,7 @@
             <div class="position-absolute top-0 end-0 mt-3 me-3 z-index-1"><button
                     class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal"
                     aria-label="Close"></button></div>
-            <form action="{{ route('approval-modal.store') }}" method="POST">
+            <form action="{{ route('approval-modal.store') }}" id="form_terima" method="POST">
                 @csrf
                 <div class="modal-body p-0">
                     <div class="bg-success rounded-top-lg py-3 ps-4 pe-6">
@@ -134,7 +135,8 @@
                                         <input type="hidden" name="modal_id" id="id_modal">
                                         <input type="hidden" name="status_modal" id="status" value="{{ "Terima" }}">
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
-                                        <p class="text-word-break fs--1">Apakah Anda Yakin Melakukan Approve Terhadap Data Modal ini?
+                                        <p class="text-word-break fs--1">Apakah Anda Yakin Melakukan Approve Terhadap
+                                            Data Modal ini?
                                         </p>
                                     </div>
                                 </div>
@@ -144,7 +146,8 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary btn-sm" type="button" data-bs-dismiss="modal">Close</button>
-                    <button class="btn btn-success btn-sm" type="submit">Ya! Approve </button>
+                    <button class="btn btn-success btn-sm" onclick="terima(event)" id="submit_terima" type="button">Ya!
+                        Approve </button>
                 </div>
             </form>
         </div>
@@ -158,7 +161,7 @@
             <div class="position-absolute top-0 end-0 mt-3 me-3 z-index-1"><button
                     class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal"
                     aria-label="Close"></button></div>
-            <form action="{{ route('approval-modal.store') }}" method="POST">
+            <form action="{{ route('approval-modal.store') }}" id="form_tolak" method="POST">
                 @csrf
                 <div class="modal-body p-0">
                     <div class="bg-danger rounded-top-lg py-3 ps-4 pe-6">
@@ -172,12 +175,15 @@
                                         <input type="hidden" name="modal_id" id="id_modal2">
                                         <input type="hidden" name="status_modal" id="status" value="{{ "Tolak" }}">
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
-                                        <p class="text-word-break fs--1">Apakah Anda Yakin Melakukan Tolak Terhadap Data Modal ini? Berikan Keterangan!
+                                        <p class="text-word-break fs--1">Apakah Anda Yakin Melakukan Tolak Terhadap Data
+                                            Modal ini? Berikan Keterangan!
                                             <div class="col-12">
-                                                <label class="form-label" for="keterangan_approval">Keterangan Penolakan</label><span
-                                                class="mr-4 mb-3" style="color: red">*</span>
-                                                <textarea class="form-control" id=" keterangan_approval" name="keterangan_approval" type="text"
-                                                    placeholder="Input Keterangan Penolakan" value="{{ old('keterangan_approval') }}"></textarea>
+                                                <label class="form-label" for="keterangan_approval">Keterangan
+                                                    Penolakan</label><span class="mr-4 mb-3" style="color: red">*</span>
+                                                <textarea class="form-control" id=" keterangan_approval"
+                                                    name="keterangan_approval" type="text"
+                                                    placeholder="Input Keterangan Penolakan"
+                                                    value="{{ old('keterangan_approval') }}"></textarea>
                                             </div>
                                         </p>
                                     </div>
@@ -188,7 +194,7 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary btn-sm" type="button" data-bs-dismiss="modal">Close</button>
-                    <button class="btn btn-danger btn-sm" type="submit">Ya! Tolak </button>
+                    <button class="btn btn-danger btn-sm" onclick="tolak(event)" id="submit_tolak" type="button">Ya! Tolak </button>
                 </div>
             </form>
         </div>
@@ -196,6 +202,112 @@
 </div>
 
 <script>
+    function terima(event) {
+        event.preventDefault()
+        var form = $('#form_terima')
+        var _token = form.find('input[name="_token"]').val()
+        var modal_id = form.find('input[name="modal_id"]').val()
+        var status_modal = form.find('input[name="status_modal"]').val();
+
+        var data = {
+            _token : _token,
+            modal_id : modal_id,
+            status_modal : status_modal,
+        }
+        $('#submit_terima').prop('disabled', true);
+
+        $.ajax({
+            method: 'post',
+            url: '/approval-modal',
+            data: data,
+            success: function (response) {
+                window.location.href = '/approval-modal'
+
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                })
+
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Data Masih Diproses Mohon Tunggu'
+                })
+            },
+            error: function (response) {
+                console.log(response)
+                $('#submit_terima').prop('disabled', false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error! Approval Tidak dapat disimpan, Hubungi Developer',
+                })
+            }
+        });
+
+    }
+
+    function tolak(event) {
+        event.preventDefault()
+        var form = $('#form_tolak')
+        var _token = form.find('input[name="_token"]').val()
+        var modal_id = form.find('input[name="modal_id"]').val()
+        var status_modal = form.find('input[name="status_modal"]').val();
+        var keterangan_approval = form.find('textarea[name="keterangan_approval"]').val();
+
+       
+
+        var data = {
+            _token : _token,
+            modal_id : modal_id,
+            status_modal : status_modal,
+            keterangan_approval: keterangan_approval
+        }
+        $('#submit_tolak').prop('disabled', true);
+
+        $.ajax({
+            method: 'post',
+            url: '/approval-modal',
+            data: data,
+            success: function (response) {
+                window.location.href = '/approval-modal'
+
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                })
+
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Data Masih Diproses Mohon Tunggu'
+                })
+            },
+            error: function (response) {
+                console.log(response)
+                $('#submit_tolak').prop('disabled', false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error! Approval Tidak dapat disimpan, Hubungi Developer',
+                })
+            }
+        });
+
+    }
+
     $(document).ready(function () {
         $('.terimaModalBtn').click(function (e) {
             e.preventDefault();
