@@ -96,7 +96,8 @@
                                 <td class="tanggal_modal">{{ date('d-M-Y', strtotime($item->tanggal_modal)) }}</td>
                                 <td class="pegawai">{{ $item->Pegawai->name }}</td>
                                 <td class="jumlah_modal text-center">Rp. {{ number_format($item->jumlah_modal, 0, ',', '.') }}</td>
-                                <td class="sisa_modal text-center">Rp. {{ number_format($item->riwayat_modal, 0, ',', '.') }}</td>
+                                <td class="sisa_modal text-center"><span id="{{ $item->pengajuan_tambah }}">Rp. {{ number_format($item->riwayat_modal, 0, ',', '.') }}</span></td>
+                                {{-- <input type="hidden" class="pengajuan_tambah" value="{{ $item->pengajuan_tambah }}"> --}}
                                 <td class="status_modal text-center">
                                     @if ($item->status_modal == 'Pending')
                                         <span class="badge rounded-pill badge-soft-primary">Pending, Menunggu Approval</span>
@@ -226,6 +227,11 @@
                                                 value="{{ old('jumlah_modal') }}" required />
                                             <p class="text-primary"> IDR:
                                                 <span id="detailupdatemodal" class="detailupdatemodal">
+
+                                                </span>
+                                            </p>
+                                            <p class="text-primary"> Pengajuan Sebelumnya :
+                                                <span id="pengajuan_sebelumnya" class="pengajuan_sebelumnya">
 
                                                 </span>
                                             </p>
@@ -372,8 +378,17 @@
             var data = table.row($tr).data();
             var jumlah = data[3].split('Rp.')[1].replace(',', '').replace(',', '').trim()
 
+            var tes = data[4]
+            var pengajuan = $(tes).attr('id')
+            var pengajuan_fix = new Intl.NumberFormat('id', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+            }).format(pengajuan)
+
             $('#jumlah_modal_update').val(jumlah)
             $('#detailupdatemodal').html(data[3])
+            $('#pengajuan_sebelumnya').html(pengajuan_fix)
             $('#editForm').attr('action', '/modal/' + id)
             $('#editModal').modal('show');
 

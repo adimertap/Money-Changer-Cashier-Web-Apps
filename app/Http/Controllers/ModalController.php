@@ -111,8 +111,13 @@ class ModalController extends Controller
     public function update(Request $request, $id)
     {
         $modal = ModalTransaksi::where('id_modal', $request->modal_edit_id)->first();
-        $modal->jumlah_modal = $request->jumlah_modal;
-        $modal->riwayat_modal = $request->jumlah_modal;
+        if($modal->status_modal == 'Tolak' && $modal->jenis_modal == 'Penambahan Modal'){
+            $modal->pengajuan_tambah = $request->jumlah_modal;
+        }else{
+            $modal->jumlah_modal = $request->jumlah_modal;
+            $modal->riwayat_modal = $request->jumlah_modal;
+        }
+
         $modal->status_modal = 'Pending';
         $modal->jenis_modal = 'Edit Modal';
         $modal->update();
@@ -130,6 +135,9 @@ class ModalController extends Controller
         $item->save();
 
         $user = User::where('role','Owner')->get();
+
+        // Mail::to('adimertap@gmail.com')->send(new MailModalTambah($item));
+
         foreach ($user as $tes) {
             Mail::to($tes->email)->send(new MailModalTambah($item));
         }
@@ -183,6 +191,8 @@ class ModalController extends Controller
         $modal->save();
 
         $user = User::where('role','Owner')->get();
+
+        // Mail::to('adimertap@gmail.com')->send(new MailTransfer($modal));
         foreach ($user as $tes) {
             Mail::to($tes->email)->send(new MailTransfer($modal));
         }
