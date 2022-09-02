@@ -225,16 +225,16 @@
                                             <input class="form-control jumlah_modal_update" id="jumlah_modal_update"
                                                 name="jumlah_modal" type="number" placeholder="Input Jumlah Modal"
                                                 value="{{ old('jumlah_modal') }}" required />
-                                            <p class="text-primary"> IDR:
+                                            <p class="text-primary"> Pengajuan Sebelumnya:
                                                 <span id="detailupdatemodal" class="detailupdatemodal">
 
                                                 </span>
                                             </p>
-                                            <p class="text-primary"> Pengajuan Sebelumnya :
+                                            {{-- <p class="text-primary"> Pengajuan Sebelumnya :
                                                 <span id="pengajuan_sebelumnya" class="pengajuan_sebelumnya">
 
                                                 </span>
-                                            </p>
+                                            </p> --}}
                                         </div>
                                     </div>
                                 </div>
@@ -387,8 +387,8 @@
             }).format(pengajuan)
 
             $('#jumlah_modal_update').val(jumlah)
-            $('#detailupdatemodal').html(data[3])
-            $('#pengajuan_sebelumnya').html(pengajuan_fix)
+            $('#detailupdatemodal').html(pengajuan_fix)
+            // $('#pengajuan_sebelumnya').html(pengajuan_fix)
             $('#editForm').attr('action', '/modal/' + id)
             $('#editModal').modal('show');
 

@@ -111,8 +111,12 @@ class ModalController extends Controller
     public function update(Request $request, $id)
     {
         $modal = ModalTransaksi::where('id_modal', $request->modal_edit_id)->first();
-        if($modal->status_modal == 'Tolak' && $modal->jenis_modal == 'Penambahan Modal'){
+        if($modal->status_modal == 'Tolak' && $modal->jenis_modal == 'Edit Modal' || $modal->status_modal == 'Tolak' && $modal->jenis_modal == 'Penambahan Modal'){
             $modal->pengajuan_tambah = $request->jumlah_modal;
+            $tambah = $request->jumlah_modal;
+
+            $modal->jumlah_modal = $modal->jumlah_modal + $tambah;
+            $modal->riwayat_modal = $modal->riwayat_modal + $tambah;
         }else{
             $modal->jumlah_modal = $request->jumlah_modal;
             $modal->riwayat_modal = $request->jumlah_modal;
@@ -130,6 +134,11 @@ class ModalController extends Controller
     {
         $item = ModalTransaksi::find($request->ajukan_modal_id);
         $item->pengajuan_tambah = $request->jumlah_modal;
+
+        $tambah = $request->jumlah_modal;
+        $item->jumlah_modal = $item->jumlah_modal + $tambah;
+        $item->riwayat_modal = $item->riwayat_modal + $tambah;
+
         $item->status_modal = 'Pending';
         $item->jenis_modal = 'Penambahan Modal';
         $item->save();
