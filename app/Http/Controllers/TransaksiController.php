@@ -248,7 +248,7 @@ class TransaksiController extends Controller
 
         foreach($request->detail as $key){
             $jurnal = Jurnal::where('id_transaksi', $transaksi->id_transaksi)->where('id_currency', $key['currency_id'])->first();
-            if(empyt($jurnal)){
+            if(empty($jurnal)){
                 $jurnal = new Jurnal();
                 $jurnal->id_transaksi = $transaksi->id_transaksi;
                 $jurnal->tanggal_jurnal = $transaksi->tanggal_transaksi;
