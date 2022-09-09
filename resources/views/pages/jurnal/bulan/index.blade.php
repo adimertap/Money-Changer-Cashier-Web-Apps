@@ -38,7 +38,7 @@
                                 <td class="text-center year fs--1">{{ $item->year }}</td>
                                 <td class="text-center month fs--1">{{ $item->month }}</td>
                                 <td class="text-center jumlah_transaksi fs--1">{{ $item->jumlah_transaksi }}</td>
-                                <td class="grand_total fs--1">Rp. {{ number_format($item->grand_total) }}</td>
+                                <td class="grand_total fs--1">Rp. {{ number_format($item->grand_total, 0, ',', '.') }}</td>
                                 <td class="text-center fs--1">
                                     <a href="{{ route('jurnal-bulanan.show', $item->month) }}" class="btn p-0 ms-2"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"

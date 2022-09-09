@@ -33,7 +33,7 @@ class Jurnal extends Model
 
     public function Transaksi()
     {
-        return $this->belongsTo(User::class, 'id_transaksi', 'id_transaksi');
+        return $this->belongsTo(User::class, 'id_transaksi', 'id_transaksi')->withTrashed();
     }
 
     public function Modal()
@@ -43,6 +43,6 @@ class Jurnal extends Model
 
     public function Currency()
     {
-        return $this->belongsTo(MasterCurrency::class, 'id_currency', 'id_currency');
+        return $this->belongsTo(MasterCurrency::class, 'id_currency', 'id_currency')->withTrashed();
     }
 }

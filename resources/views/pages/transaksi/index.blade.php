@@ -82,7 +82,7 @@
                             <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
                             <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
                             <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
-                            <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total) }}</td>
+                            <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
                             <td class="text-center status text-center fs--1">
                                 <span class="badge rounded-pill badge-soft-success">Lunas</span>
                             </td>

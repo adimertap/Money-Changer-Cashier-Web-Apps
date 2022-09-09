@@ -36,7 +36,7 @@
                             <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                             <td class="text-center pegawai fs--1">{{ $item->Pegawai->name }}</td>
                             <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
-                            <td class="text-center total fs--1">Rp. {{ number_format($item->total) }}</td>
+                            <td class="text-center total fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
                             <td class="text-center fs--1">
                                 <a href="{{ route('bulanan-transaksi', $item->id_transaksi) }}"
                                     class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"

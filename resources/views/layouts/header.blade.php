@@ -29,7 +29,7 @@
                 aria-labelledby="navbarDropdownUser">
                 <div class="bg-white dark__bg-1000 rounded-2 py-2">
                     <div class="dropdown-divider"></div>
-                    <a onclick="event.preventDefault(); document.getElementById('logout-form').submit()">
+                    <a onclick="event.preventDefault(); document.getElementById('logout-form').submit()" style="cursor: pointer">
                         <div class="dropdown-item">Logout
                         <form id="logout-form" action="{{route('logout')}}" method="post" style="display: none">
                             <input type="hidden" name="_token" value="{{ csrf_token() }}">

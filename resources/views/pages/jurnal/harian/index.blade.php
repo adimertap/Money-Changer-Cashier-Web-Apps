@@ -14,7 +14,7 @@
                 </div>
                 <div class="col-6 col-md-6 border-200 border-md-200 border-bottom border-md-end pb-4 ps-3">
                     <h6 class="pb-1 text-700">Total Transaksi Keseluruhan</h6>
-                    <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total) }}</p>
+                    <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total, 0, ',', '.') }}</p>
                     <div class="d-flex align-items-center">
                         <h6 class="fs--1 text-500 mb-0"></h6>
                     </div>
@@ -89,7 +89,7 @@
                                 <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
                                 <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
-                                <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total) }}
+                                <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}
                                 </td>
                                 <td class="text-center status text-center fs--1">
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
