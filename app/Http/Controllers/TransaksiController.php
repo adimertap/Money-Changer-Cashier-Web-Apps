@@ -28,7 +28,7 @@ class TransaksiController extends Controller
     public function index()
     {
         if(Auth::user()->role == 'Pegawai'){
-            $transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->get();
+            $transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->orderBy('updated_at')->get();
             $count = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
             $today =  Carbon::now()->format('Y-m-d');
             $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
@@ -36,7 +36,7 @@ class TransaksiController extends Controller
 
             return view('pages.transaksi.index', compact('transaksi','count','today','total_transaksi','currency'));
         }else{
-            $transaksi = Transaksi::with('Pegawai')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->get();
+            $transaksi = Transaksi::with('Pegawai')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->orderBy('updated_at')->get();
             $count = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
             $today =  Carbon::now()->format('Y-m-d');
             $total_transaksi = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
