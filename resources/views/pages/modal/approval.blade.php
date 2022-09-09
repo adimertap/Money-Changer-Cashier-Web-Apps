@@ -37,7 +37,7 @@
                                 <th class="sort text-center" data-sort="no">No.</th>
                                 <th class="sort text-center" data-sort="tanggal_modal">Tanggal</th>
                                 <th class="sort text-center" data-sort="pegawai">Pegawai</th>
-                                <th class="sort text-center" data-sort="jumlah_modal">Modal</th>
+                                <th class="sort text-center" data-sort="jumlah_modal">Total Modal</th>
                                 <th class="sort text-center" data-sort="pengajuan_tambah">Tambahan</th>
                                 <th class="sort text-center" data-sort="status_modal">Status Modal</th>
                                 <th class="text-center">Actions</th>
@@ -49,7 +49,7 @@
                                 <th scope="row" class="no">{{ $loop->iteration}}.</th>
                                 <td class="tanggal_modal">{{ date('d-M-Y', strtotime($item->tanggal_modal)) }}</td>
                                 <td class="pegawai">{{ $item->Pegawai->name }}</td>
-                                <td class="jumlah_modal">Rp. {{ number_format($item->jumlah_modal, 0, ',', '.') }}</td>
+                                <td class="jumlah_modal">Rp. {{ number_format($item->riwayat_modal, 0, ',', '.') }}</td>
                                 <td class="pengajuan_tambah">
                                     @if ($item->pengajuan_tambah != null)
                                     Rp. {{ number_format($item->pengajuan_tambah, 0, ',', '.') }}
