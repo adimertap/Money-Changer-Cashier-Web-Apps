@@ -75,7 +75,7 @@
                             <tr>
                                 <th class="sort text-center fs--1" data-sort="no">No.</th>
                                 <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
-                                <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal</th>
+                                <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal & Waktu</th>
                                 <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
                                 <th class="sort text-center fs--1" data-sort="total">Total Transaksi</th>
                                 <th class="sort text-center fs--1" data-sort="status">Status</th>
@@ -87,7 +87,7 @@
                             <tr role="row" class="odd">
                                 <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                 <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
-                                <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
+                                <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s', strtotime($item->created_at)) }} </td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
                                 <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}
                                 </td>

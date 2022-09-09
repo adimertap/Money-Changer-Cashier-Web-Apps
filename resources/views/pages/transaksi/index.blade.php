@@ -67,7 +67,7 @@
                         <tr>
                             <th class="sort text-center fs--1" data-sort="no">No.</th>
                             <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
-                            <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal</th>
+                            <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal & Waktu</th>
                             <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
                             <th class="sort text-center fs--1" data-sort="total">Total Transaksi</th>
                             <th class="sort text-center fs--1" data-sort="print">Print</th>
