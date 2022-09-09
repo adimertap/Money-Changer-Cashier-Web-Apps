@@ -65,15 +65,13 @@ class ModalController extends Controller
         $modal->status_modal = 'Pending';
         $modal->id_pegawai = Auth::user()->id;
         $modal->riwayat_modal = $request->jumlah_modal;
-        $modal->jenis_modal = 'MOdal Awal';
+        $modal->jenis_modal = 'Modal Awal';
         $modal->save();
 
         $user = User::where('role','Owner')->get();
         foreach ($user as $tes) {
             Mail::to($tes->email)->send(new MailModal($modal));
         }
-
-       
 
         Alert::success('Berhasil', 'Data Modal Berhasil Ditambahkan');
         return redirect()->back();
@@ -115,10 +113,10 @@ class ModalController extends Controller
             $modal->pengajuan_tambah = $request->jumlah_modal;
             $tambah = $request->jumlah_modal;
 
-            $modal->jumlah_modal = $modal->jumlah_modal + $tambah;
+            // $modal->jumlah_modal = $modal->jumlah_modal + $tambah;
             $modal->riwayat_modal = $modal->riwayat_modal + $tambah;
         }else{
-            $modal->jumlah_modal = $request->jumlah_modal;
+            // $modal->jumlah_modal = $request->jumlah_modal;
             $modal->riwayat_modal = $request->jumlah_modal;
         }
 
@@ -136,7 +134,7 @@ class ModalController extends Controller
         $item->pengajuan_tambah = $request->jumlah_modal;
 
         $tambah = $request->jumlah_modal;
-        $item->jumlah_modal = $item->jumlah_modal + $tambah;
+        // $item->jumlah_modal = $item->jumlah_modal + $tambah;
         $item->riwayat_modal = $item->riwayat_modal + $tambah;
 
         $item->status_modal = 'Pending';
@@ -208,9 +206,6 @@ class ModalController extends Controller
             Mail::to($tes->email)->send(new MailTransfer($modal));
         }
 
-       
-
-      
         Alert::success('Berhasil', 'Data Transfer Modal Berhasil Diajukan, Mohon Menunggu Approval');
         return redirect()->back();
 
