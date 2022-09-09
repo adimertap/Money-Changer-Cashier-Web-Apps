@@ -56,7 +56,7 @@ class ApprovalModalController extends Controller
                     $jurnal->jumlah_modal = $modal->riwayat_modal;
                 }
                 $jurnal->jenis_jurnal = 'Kredit';
-                $jurnal->id_pegawai = Auth::user()->id;
+                $jurnal->id_pegawai = $modal->id_pegawai;
                 $jurnal->save();
 
                 // $penamabahan_modal = $modal->jumlah_modal + $modal->pengajuan_tambah;
