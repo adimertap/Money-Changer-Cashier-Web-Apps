@@ -247,16 +247,31 @@ class TransaksiController extends Controller
         $transaksi->detailTransaksi()->insert($request->detail);
 
         foreach($request->detail as $key){
-            $jurnal = Jurnal::where('id_transaksi', $transaksi->id_transaksi)->first();
-            $jurnal->id_transaksi = $transaksi->id_transaksi;
-            $jurnal->tanggal_jurnal = $transaksi->tanggal_transaksi;
-            $jurnal->id_currency = $key['currency_id'];
-            $jurnal->kurs = $key['jumlah_currency'];
-            $jurnal->jumlah_tukar = $key['jumlah_tukar'];
-            $jurnal->total_tukar = $key['total_tukar'];
-            $jurnal->jenis_jurnal = 'Debit';
-            $jurnal->id_pegawai = Auth::user()->id;
-            $jurnal->save();
+            $jurnal = Jurnal::where('id_transaksi', $transaksi->id_transaksi)->where('id_currency', $key['currency_id'])->first();
+            if(empyt($jurnal)){
+                $jurnal = new Jurnal();
+                $jurnal->id_transaksi = $transaksi->id_transaksi;
+                $jurnal->tanggal_jurnal = $transaksi->tanggal_transaksi;
+                $jurnal->id_currency = $key['currency_id'];
+                $jurnal->kurs = $key['jumlah_currency'];
+                $jurnal->jumlah_tukar = $key['jumlah_tukar'];
+                $jurnal->total_tukar = $key['total_tukar'];
+                $jurnal->jenis_jurnal = 'Debit';
+                $jurnal->id_pegawai = Auth::user()->id;
+                $jurnal->save();
+            }else{
+                $jurnal->id_transaksi = $transaksi->id_transaksi;
+                $jurnal->tanggal_jurnal = $transaksi->tanggal_transaksi;
+                $jurnal->id_currency = $key['currency_id'];
+                $jurnal->kurs = $key['jumlah_currency'];
+                $jurnal->jumlah_tukar = $key['jumlah_tukar'];
+                $jurnal->total_tukar = $key['total_tukar'];
+                $jurnal->jenis_jurnal = 'Debit';
+                $jurnal->id_pegawai = Auth::user()->id;
+                $jurnal->save();
+            }
+
+            
         }
         $modal = ModalTransaksi::find($request->id_modal);
         $modal->riwayat_modal = $request->jumlah_modal;
