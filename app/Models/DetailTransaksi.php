@@ -33,6 +33,6 @@ class DetailTransaksi extends Model
 
     public function Currency()
     {
-        return $this->belongsTo(MasterCurrency::class, 'currency_id','id_currency');
+        return $this->belongsTo(MasterCurrency::class, 'currency_id','id_currency')->withTrashed();
     }
 }
