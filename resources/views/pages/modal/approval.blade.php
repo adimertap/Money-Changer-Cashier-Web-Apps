@@ -37,7 +37,7 @@
                                 <th class="sort text-center" data-sort="no">No.</th>
                                 <th class="sort text-center" data-sort="tanggal_modal">Tanggal</th>
                                 <th class="sort text-center" data-sort="pegawai">Pegawai</th>
-                                <th class="sort text-center" data-sort="jumlah_modal">Modal Awal</th>
+                                <th class="sort text-center" data-sort="jumlah_modal">Modal</th>
                                 <th class="sort text-center" data-sort="pengajuan_tambah">Tambahan</th>
                                 <th class="sort text-center" data-sort="status_modal">Status Modal</th>
                                 <th class="text-center">Actions</th>

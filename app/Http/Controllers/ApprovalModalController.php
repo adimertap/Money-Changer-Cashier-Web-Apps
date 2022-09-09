@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Jurnal;
 use App\Models\ModalTransaksi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class ApprovalModalController extends Controller

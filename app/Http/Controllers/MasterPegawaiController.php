@@ -41,22 +41,29 @@ class MasterPegawaiController extends Controller
      */
     public function store(Request $request)
     {
-        $pegawai = new User;
-        $pegawai->name = $request->name;
-        $pegawai->nama_panggilan = $request->nama_panggilan;
-        $pegawai->jenis_kelamin = $request->jenis_kelamin;
-        $pegawai->phone_number = $request->phone_number;
-        $pegawai->alamat = $request->alamat;
-        $pegawai->role = $request->role;
-        $pegawai->email = $request->email;
-        $pegawai->password = bcrypt($request->password);
-        $pegawai->email_verified_at = Carbon::now();
-        $pegawai->save();
+        $tes = User::where('email', $request->email)->first();
+        if(empty($tes)){
+            $pegawai = new User;
+            $pegawai->name = $request->name;
+            $pegawai->nama_panggilan = $request->nama_panggilan;
+            $pegawai->jenis_kelamin = $request->jenis_kelamin;
+            $pegawai->phone_number = $request->phone_number;
+            $pegawai->alamat = $request->alamat;
+            $pegawai->role = $request->role;
+            $pegawai->email = $request->email;
+            $pegawai->password = bcrypt($request->password);
+            $pegawai->email_verified_at = Carbon::now();
+            $pegawai->save();
+            event(new Registered($pegawai));
 
-        event(new Registered($pegawai));
+            Alert::success('Success Title', 'Data Pegawai Berhasil Ditambahkan');
+            return redirect()->route('master-pegawai.index');
+        }else{
+            Alert::warning('Warning', 'Email Telah Ada! Gunakan Email Lainnya');
+            return redirect()->back();
+        }
 
-        Alert::success('Success Title', 'Data Pegawai Berhasil Ditambahkan');
-        return redirect()->route('master-pegawai.index');
+        
     }
 
     /**
