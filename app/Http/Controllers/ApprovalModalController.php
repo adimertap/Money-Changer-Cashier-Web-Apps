@@ -44,7 +44,6 @@ class ApprovalModalController extends Controller
         $modal = ModalTransaksi::where('id_modal', $request->modal_id)->first();
         $modal->status_modal = $request->status_modal;
         if($request->status_modal == "Terima"){
-            
                 $jurnal = new Jurnal();
                 $jurnal->id_modal = $modal->id_modal;
                 $jurnal->tanggal_jurnal = $modal->tanggal_modal;

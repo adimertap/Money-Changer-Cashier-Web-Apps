@@ -191,8 +191,10 @@ class ModalController extends Controller
             $modal_baru->save();
         }else{
             $perhitungan = $modal->riwayat_modal + $modal_tuju->riwayat_modal;
+            $perhitungan_awal = $modal->riwayat_modal + $modal_tuju->jumlah_modal;
             $modal_tuju->jenis_modal = 'Transfer Modal';
             $modal_tuju->riwayat_modal = $perhitungan;
+            $modal_tuju->jumlah_modal = $perhitungan_awal;
             $modal_tuju->save();
         }
         $modal->jenis_modal = 'Transfer Modal';
