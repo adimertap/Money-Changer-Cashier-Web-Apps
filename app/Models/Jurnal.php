@@ -21,7 +21,8 @@ class Jurnal extends Model
         'jumlah_tukar',
         'jumlah_modal',
         'total_tukar',
-        'jenis_jurnal'
+        'jenis_jurnal',
+        'id_pegawai'
     ];
 
     protected $hidden = [
@@ -33,7 +34,12 @@ class Jurnal extends Model
 
     public function Transaksi()
     {
-        return $this->belongsTo(User::class, 'id_transaksi', 'id_transaksi')->withTrashed();
+        return $this->belongsTo(Transaksi::class, 'id_transaksi', 'id_transaksi')->withTrashed();
+    }
+
+    public function Pegawai()
+    {
+        return $this->belongsTo(User::class, 'id_pegawai', 'id')->withTrashed();
     }
 
     public function Modal()

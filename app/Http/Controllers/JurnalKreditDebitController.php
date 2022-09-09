@@ -25,7 +25,6 @@ class JurnalKreditDebitController extends Controller
         }else{
             $jurnal = Jurnal::where('id_pegawai', Auth::user()->id)->orderBy('updated_at','DESC')->get();
         }
-        
        
         $currency = MasterCurrency::get();
 

@@ -180,6 +180,7 @@ class TransaksiController extends Controller
             $jurnal->jumlah_tukar = $key['jumlah_tukar'];
             $jurnal->total_tukar = $key['total_tukar'];
             $jurnal->jenis_jurnal = 'Debit';
+            $jurnal->id_pegawai = Auth::user()->id;
             $jurnal->save();
         }
 
@@ -254,6 +255,7 @@ class TransaksiController extends Controller
             $jurnal->jumlah_tukar = $key['jumlah_tukar'];
             $jurnal->total_tukar = $key['total_tukar'];
             $jurnal->jenis_jurnal = 'Debit';
+            $jurnal->id_pegawai = Auth::user()->id;
             $jurnal->save();
         }
         $modal = ModalTransaksi::find($request->id_modal);
