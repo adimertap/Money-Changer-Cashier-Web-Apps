@@ -18,7 +18,8 @@ class ModalTransaksi extends Model
         'status_modal',
         'keterangan_approval',
         'riwayat_modal',
-        'pengajuan_tambah'
+        'pengajuan_tambah',
+        'total_modal_backup'
     ];
 
     protected $hidden = [

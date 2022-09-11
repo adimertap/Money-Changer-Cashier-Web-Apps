@@ -67,6 +67,7 @@ class ApprovalModalController extends Controller
         }elseif($request->status_modal == 'Tolak'){
             // $modal->jumlah_modal = $modal->jumlah_modal - $modal->pengajuan_tambah;
             $modal->riwayat_modal = $modal->riwayat_modal - $modal->pengajuan_tambah;
+            $modal->total_modal_backup = $modal->total_modal_backup - $modal->pengajuan_tambah;
         }
         $modal->keterangan_approval = $request->keterangan_approval;
         $modal->update();

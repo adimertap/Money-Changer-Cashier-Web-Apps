@@ -46,7 +46,7 @@
                                     @else
                                     Rp. {{ number_format($jumlah_modal_today['riwayat_modal'], 0, ',', '.') }}
                                 </span></h4>
-                                <span class="badge rounded-pill badge-soft-success">Dari Rp. {{ number_format($jumlah_modal_today['jumlah_modal'], 0, ',', '.') }}</span>
+                                <span class="badge rounded-pill badge-soft-success">Dari Rp. {{ number_format($jumlah_modal_today['total_modal_backup'], 0, ',', '.') }}</span>
                                     @endif
                                    
                                 @endif

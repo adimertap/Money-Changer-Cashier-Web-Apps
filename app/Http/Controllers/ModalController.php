@@ -27,9 +27,9 @@ class ModalController extends Controller
     public function index()
     {
         if(Auth::user()->role == 'Owner'){
-            $modal = ModalTransaksi::orderBy('updated_at', 'DESC')->get();
+            $modal = ModalTransaksi::orderBy('created_at', 'DESC')->get();
         }else{
-            $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->orWhere('riwayat_modal','>', '0')->orderBy('updated_at', 'DESC')->get();
+            $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->orWhere('riwayat_modal','>', '0')->orderBy('created_at', 'DESC')->get();
         }
         $modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->get();
         $modal_tf = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
@@ -65,6 +65,7 @@ class ModalController extends Controller
         $modal->status_modal = 'Pending';
         $modal->id_pegawai = Auth::user()->id;
         $modal->riwayat_modal = $request->jumlah_modal;
+        $modal->total_modal_backup = $request->jumlah_modal;
         $modal->jenis_modal = 'Modal Awal';
         $modal->save();
 
@@ -115,9 +116,11 @@ class ModalController extends Controller
 
             // $modal->jumlah_modal = $modal->jumlah_modal + $tambah;
             $modal->riwayat_modal = $modal->riwayat_modal + $tambah;
+            $modal->total_modal_backup = $modal->total_modal_backup + $tambah;
         }else{
-            // $modal->jumlah_modal = $request->jumlah_modal;
+            $modal->jumlah_modal = $request->jumlah_modal;
             $modal->riwayat_modal = $request->jumlah_modal;
+            $modal->total_modal_backup = $request->jumlah_modal;
         }
 
         $modal->status_modal = 'Pending';
@@ -136,6 +139,7 @@ class ModalController extends Controller
         $tambah = $request->jumlah_modal;
         // $item->jumlah_modal = $item->jumlah_modal + $tambah;
         $item->riwayat_modal = $item->riwayat_modal + $tambah;
+        $item->total_modal_backup = $item->total_modal_backup + $tambah;
 
         $item->status_modal = 'Pending';
         $item->jenis_modal = 'Penambahan Modal';
@@ -185,14 +189,17 @@ class ModalController extends Controller
             $modal_baru->status_modal = 'Pending';
             $modal_baru->id_pegawai = Auth::user()->id;
             $modal_baru->riwayat_modal = $modal->riwayat_modal;
+            $modal_baru->total_modal_backup = $modal->riwayat_modal;
             $modal_baru->jenis_modal = 'Transfer Modal';
             $modal_baru->save();
         }else{
             $perhitungan = $modal->riwayat_modal + $modal_tuju->riwayat_modal;
-            $perhitungan_awal = $modal->riwayat_modal + $modal_tuju->jumlah_modal;
+            // $perhitungan_awal = $modal->riwayat_modal + $modal_tuju->jumlah_modal;
+            $perhitungan_total = $modal->total_modal_backup + $modal_tuju->total_modal_backup;
             $modal_tuju->jenis_modal = 'Transfer Modal';
             $modal_tuju->riwayat_modal = $perhitungan;
-            $modal_tuju->jumlah_modal = $perhitungan_awal;
+            // $modal_tuju->jumlah_modal = $perhitungan_awal;
+            $modal_tuju->total_modal_backup = $perhitungan_total;
             $modal_tuju->save();
         }
         $modal->jenis_modal = 'Transfer Modal';

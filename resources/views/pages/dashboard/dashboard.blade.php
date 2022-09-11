@@ -125,7 +125,7 @@
                                     @if ($sisa_modal == null)
                                     Hari Ini Belum Terdapat Modal
                                     @else
-                                    Dari Rp. {{ number_format($sisa_modal->jumlah_modal, 0, ',', '.') }} 
+                                    Dari Rp. {{ number_format($sisa_modal->total_modal_backup, 0, ',', '.') }} 
                                     @endif
                                 </h6>
                             </div>
