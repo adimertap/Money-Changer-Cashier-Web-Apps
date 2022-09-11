@@ -30,12 +30,14 @@
                             <tr>
                                 <th class="sort text-center fs--1" data-sort="no">No.</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal">Tanggal</th>
+                                <th class="sort text-center fs--1" data-sort="tanggal">Kode</th>
                                 <th class="sort text-center fs--1" data-sort="jenis">Jenis</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Currency</th>
                                 <th class="sort text-center fs--1" data-sort="kode_transaksi">Jumlah Tukar</th>
                                 <th class="sort text-center fs--1" data-sort="total">Kurs</th>
                                 <th class="sort text-center fs--1" data-sort="status">Debit</th>
                                 <th class="sort text-center fs--1" data-sort="status">Kredit</th>
+                                <th class="sort text-center fs--1" data-sort="action">Action</th>
                             </tr>
                         </thead>
                         <tbody class="list">
@@ -44,6 +46,7 @@
                                 <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                 <td class="text-start tanggal fs--1">{{ date('d-M-Y H:i:s', strtotime($item->updated_at)) }}</td>
                                 @if ($item->jenis_jurnal == 'Debit')
+                                    <td class="text-center text-center fs--1 jenis">{{ $item->Transaksi->kode_transaksi }}</td>
                                     <td class="text-center text-center fs--1 jenis">Jual</td>
                                     <td class="text-center text-center fs--1">{{ $item->Currency->nama_currency }}</td>
                                     <td class="text-center text-center fs--1">{{ $item->jumlah_tukar }}</td>
@@ -52,12 +55,20 @@
                                     <td>-</td>
                                 @else
                                     <td class="text-center text-center fs--1 jenis">Modal</td>
+                                    <td class="text-center text-center fs--1 jenis">Modal</td>
                                     <td>-</td>
                                     <td>-</td>
                                     <td>-</td>
                                     <td>-</td>
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->jumlah_modal, 0, ',', '.') }}
                                 @endif
+                                <td class="text-center fs--1">
+                                    <button class="btn p-0 deleteJurnalBtn" value="{{ $item->id_jurnal }}"
+                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="Delete"><span class="text-700 fas fa-trash-alt"></span>
+                                    </button>
+                                </td>
+                            
                             </tr>
                             @empty
 
@@ -133,11 +144,59 @@
     </div>
 </div>
 
+<div class="modal fade" id="deleteModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0">
+            <div class="position-absolute top-0 end-0 mt-3 me-3 z-index-1"><button
+                    class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal"
+                    aria-label="Close"></button></div>
+            <form action="{{ url('/delete-jurnal') }}" method="POST">
+                @csrf
+                <div class="modal-body p-0">
+                    <div class="bg-danger rounded-top-lg py-3 ps-4 pe-6">
+                        <h4 class="mb-1 text-white">Hapus Data Transaksi Jurnal</h4>
+                    </div>
+                    <div class="p-3">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="d-flex">
+                                    <div class="flex-1">
+                                        <input type="hidden" name="jurnal_id" id="jurnal_id">
+                                        <h5 class="mb-2 fs-0">Confirmation</h5>
+                                        <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi Jurnal ini?
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-danger btn-sm" type="submit">Yes! Delete </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 <script>
     $(document).ready(function () {
+        $('.deleteJurnalBtn').click(function (e) {
+            e.preventDefault();
+
+            var id = $(this).val();
+            $('#jurnal_id').val(id)
+            $('#deleteModal').modal('show');
+        });
+
         var table = $('#example').DataTable();
     })
+
+
+
 </script>
 
 

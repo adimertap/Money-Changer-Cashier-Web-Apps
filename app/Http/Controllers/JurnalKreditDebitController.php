@@ -151,6 +151,15 @@ class JurnalKreditDebitController extends Controller
      */
     public function destroy($id)
     {
-        //
+        return $id;
+    }
+
+    public function hapus(Request $request)
+    {
+        $jurnal = Jurnal::find($request->jurnal_id);
+        $jurnal->delete();
+
+        Alert::success('Berhasil', 'Data Jurnal Berhasil Terhapus');
+        return redirect()->back();
     }
 }

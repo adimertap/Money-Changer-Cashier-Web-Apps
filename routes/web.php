@@ -47,6 +47,9 @@ Route::group(['middleware' => 'auth'], function () {
          Route::get('/download-dokumen', [\App\Http\Controllers\JurnalHarianController::class, 'Export_dokumen'])->name('export-dokumen');
     });
     Route::resource('jurnal-debit-kredit', JurnalKreditDebitController::class);
+    Route::post('/delete-jurnal', [\App\Http\Controllers\JurnalKreditDebitController::class, 'hapus'])->name('jurnal-delete');
+
+
     // TRANSAKSI
     Route::resource('transaksi', TransaksiController::class);
     Route::post('/delete-transaksi', [\App\Http\Controllers\TransaksiController::class, 'hapus'])->name('transaksi-delete');
