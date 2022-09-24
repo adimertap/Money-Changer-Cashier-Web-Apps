@@ -17,7 +17,7 @@ Initially appeared on
 - Reporting All Transactions, Daily and Monthly.
 - Excel, Pdf Download and Print Notes.
 
-### Development
+## Development
 
 The first step in application design is research, design thinking and business process design. The research is carried out by discussing with clients, the results of the research are business processes that are in accordance with standard operating procedures for cashiers.
 
