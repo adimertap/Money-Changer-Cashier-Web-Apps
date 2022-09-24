@@ -1,3 +1,5 @@
+[![cashier.png](https://i.postimg.cc/Y24P8hyz/cashier.png)](https://postimg.cc/s1rKgDzM)
+
 # Money Changer Cashier web Application
 
 Money Changer web application is an application that supports all money exchange transactions at PT. Riastavalasindo. I am a Full-Stack Web Developer in developing this application starting from business processes, database design and code implementation. 
