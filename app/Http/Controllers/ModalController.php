@@ -27,9 +27,9 @@ class ModalController extends Controller
     public function index()
     {
         if(Auth::user()->role == 'Owner'){
-            $modal = ModalTransaksi::orderBy('created_at', 'DESC')->get();
+            $modal = ModalTransaksi::orderBy('created_at', 'DESC')->get(200);
         }else{
-            $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->orWhere('riwayat_modal','>', '0')->orderBy('created_at', 'DESC')->get();
+            $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->orWhere('riwayat_modal','>', '0')->orderBy('created_at', 'DESC')->get(200);
         }
         $modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->get();
         $modal_tf = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
