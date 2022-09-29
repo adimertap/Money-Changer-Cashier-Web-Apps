@@ -23,7 +23,7 @@ class JurnalKreditDebitController extends Controller
         if(Auth::user()->role == 'Owner'){
             $jurnal = Jurnal::orderBy('updated_at','DESC')->take(200)->get();
         }else{
-            $jurnal = Jurnal::where('id_pegawai', Auth::user()->id)->orderBy('updated_at','DESC')->get(300);
+            $jurnal = Jurnal::where('id_pegawai', Auth::user()->id)->orderBy('updated_at','DESC')->take(300)->get();
         }
        
         $currency = MasterCurrency::get();
