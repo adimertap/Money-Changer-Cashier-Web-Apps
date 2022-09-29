@@ -33,7 +33,7 @@ class JurnalHarianController extends Controller
         if($request->to){
             $transaksi->where('tanggal_transaksi', '<=', $request->to);
         }
-        $transaksi = $transaksi->orderBy('updated_at','DESC')->take(200)->get();
+        $transaksi = $transaksi->orderBy('updated_at','DESC')->get();
         
         $jumlah = Transaksi::count();
         $total = Transaksi::sum('total');

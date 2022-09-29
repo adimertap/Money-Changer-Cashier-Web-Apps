@@ -32,7 +32,7 @@ class TransaksiController extends Controller
             $count = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
             $today =  Carbon::now()->format('Y-m-d');
             $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
-            $currency = MasterCurrency::take(200)->get();
+            $currency = MasterCurrency::get();
 
             return view('pages.transaksi.index', compact('transaksi','count','today','total_transaksi','currency'));
         }else{
@@ -41,7 +41,7 @@ class TransaksiController extends Controller
             $today =  Carbon::now()->format('Y-m-d');
             $total_transaksi = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
             $currency = MasterCurrency::get();
-            $pegawai = User::where('role','!=','Owner')->take(200)->get();
+            $pegawai = User::where('role','!=','Owner')->get();
 
             return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi','currency','pegawai'));
         }       
