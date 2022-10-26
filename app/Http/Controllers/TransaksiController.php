@@ -7,6 +7,8 @@ use App\Exports\ExcelHarianOwner;
 use App\Exports\ExcelHarianView;
 use App\Models\DetailTransaksi;
 use App\Models\Jurnal;
+use App\Models\LogEdit;
+use App\Models\LogEditDetail;
 use App\Models\MasterCurrency;
 use App\Models\ModalTransaksi;
 use App\Models\Transaksi;
@@ -45,6 +47,18 @@ class TransaksiController extends Controller
 
             return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi','currency','pegawai'));
         }       
+    }
+
+    public function getkurs($id_currency)
+    {
+        $kurs = MasterCurrency::where('id_currency', '=', $id_currency)->pluck('nilai_kurs');
+        return json_encode($kurs);
+    }
+
+    public function getkursedit($id_currency)
+    {
+        $kurs = MasterCurrency::where('id_currency', '=', $id_currency)->pluck('nilai_kurs');
+        return json_encode($kurs);
     }
 
     public function Export_dokumen(Request $request)
@@ -118,7 +132,7 @@ class TransaksiController extends Controller
      */
     public function create()
     {
-        $currency = MasterCurrency::get();
+        $currency = MasterCurrency::where('jenis_kurs','Lembar')->get();
         $tes = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
         if(empty($tes)){
             Alert::warning('Belum Mengajukan Modal', 'Anda Belum Mengajukan Modal');
@@ -239,6 +253,27 @@ class TransaksiController extends Controller
     public function update(Request $request, $id)
     {
         $transaksi = Transaksi::find($id);
+        $new_log = new LogEdit();
+        $new_log->id_pegawai = Auth::user()->id;
+        $new_log->id_modal = $transaksi->id_modal;
+        $new_log->tanggal_transaksi = $transaksi->tanggal_transaksi;
+        $new_log->kode_transaksi = $transaksi->kode_transaksi;
+        $new_log->total = $transaksi->total;
+        $new_log->jenis_log = 'Edit';
+        $new_log->keterangan = $request->keterangan;
+        $new_log->save();
+
+        $getDetail = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get(); 
+        foreach($getDetail as $item){
+            $new_det_log = new LogEditDetail();
+            $new_det_log->id_log = $new_log->id_log;
+            $new_det_log->currency_id = $item->currency_id;
+            $new_det_log->jumlah_currency = $item->jumlah_currency;
+            $new_det_log->jumlah_tukar = $item->jumlah_tukar;
+            $new_det_log->total_tukar = $item->total_tukar;
+            $new_det_log->save();
+        }
+
         $transaksi->total = $request->total;
         $transaksi->id_pegawai = Auth::user()->id;
         $transaksi->save();
@@ -270,13 +305,10 @@ class TransaksiController extends Controller
                 $jurnal->id_pegawai = Auth::user()->id;
                 $jurnal->save();
             }
-
-            
         }
         $modal = ModalTransaksi::find($request->id_modal);
         $modal->riwayat_modal = $request->jumlah_modal;
         $modal->save();
-
 
         Alert::success('Berhasil', 'Data Transaksi Berhasil Diedit');
         return $request;
@@ -295,7 +327,30 @@ class TransaksiController extends Controller
 
     public function hapus(Request $request)
     {
+        
         $transaksi = Transaksi::find($request->transaksi_id);
+
+        $log = new LogEdit;
+        $log->id_pegawai = $transaksi->id_pegawai;
+        $log->id_modal = $transaksi->id_modal;
+        $log->jenis_log = 'Delete';
+        $log->keterangan = $request->keterangan;
+        $log->tanggal_transaksi = $transaksi->tanggal_transaksi;
+        $log->kode_transaksi = $transaksi->kode_transaksi;
+        $log->total = $transaksi->total;
+        $log->save();
+
+        $getDetail = DetailTransaksi::where('id_transaksi', $request->transaksi_id)->get(); 
+        foreach($getDetail as $item){
+            $new_det_log = new LogEditDetail();
+            $new_det_log->id_log = $log->id_log;
+            $new_det_log->currency_id = $item->currency_id;
+            $new_det_log->jumlah_currency = $item->jumlah_currency;
+            $new_det_log->jumlah_tukar = $item->jumlah_tukar;
+            $new_det_log->total_tukar = $item->total_tukar;
+            $new_det_log->save();
+        }
+
         $jurnal = Jurnal::where('id_transaksi', $transaksi->id_transaksi)->get();
         foreach($jurnal as $tes){
             $tes->delete();

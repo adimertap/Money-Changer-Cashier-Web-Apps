@@ -69,10 +69,10 @@ class ModalController extends Controller
         $modal->jenis_modal = 'Modal Awal';
         $modal->save();
 
-        $user = User::where('role','Owner')->get();
-        foreach ($user as $tes) {
-            Mail::to($tes->email)->send(new MailModal($modal));
-        }
+        // $user = User::where('role','Owner')->get();
+        // foreach ($user as $tes) {
+        //     Mail::to($tes->email)->send(new MailModal($modal));
+        // }
 
         Alert::success('Berhasil', 'Data Modal Berhasil Ditambahkan');
         return redirect()->back();

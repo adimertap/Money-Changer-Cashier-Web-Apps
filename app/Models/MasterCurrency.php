@@ -16,7 +16,10 @@ class MasterCurrency extends Model
 
     protected $fillable = [
         'nama_currency',
-        'country'
+        'country',
+        'nilai_kurs',
+        'img_flag',
+        'jenis_kurs'
     ];
 
     protected $hidden = [

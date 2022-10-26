@@ -21,6 +21,14 @@
                                 <span class="nav-link-text ps-1">Dashboard</span>
                             </div>
                         </a>
+                        <a class="nav-link" href="{{ url('https://www.rate.ptriastavalasindo.com') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon">
+                                    <i class="fas fa-server"></i>
+                                </span>
+                                <span class="nav-link-text ps-1">Web Exchange</span>
+                            </div>
+                        </a>
                     </li>
              
                 <li class="nav-item">
@@ -118,7 +126,7 @@
                 @if (Auth::user()->role == 'Owner')
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
-                        <div class="col-auto navbar-vertical-label">Approval</div>
+                        <div class="col-auto navbar-vertical-label">Log dan Approval</div>
                         <div class="col ps-0">
                             <hr class="mb-0 navbar-vertical-divider">
                         </div>
@@ -129,6 +137,14 @@
                                 <i class="fas fa-check-circle"></i>
                             </span>
                             <span class="nav-link-text ps-1">Approval Modal</span>
+                        </div>
+                    </a>
+                    <a class="nav-link" href="{{ route('log-edit.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <div class="d-flex align-items-center">
+                            <span class="nav-link-icon">
+                                <i class="fas fa-table"></i>
+                            </span>
+                            <span class="nav-link-text ps-1">Log Edit Transaksi</span>
                         </div>
                     </a>
                 </li>

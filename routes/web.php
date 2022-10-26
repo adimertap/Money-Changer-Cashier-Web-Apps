@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\ApprovalModalController;
+use App\Http\Controllers\CurrencyDetailController;
 use App\Http\Controllers\JurnalBulananController;
 use App\Http\Controllers\JurnalHarianController;
 use App\Http\Controllers\JurnalKreditDebitController;
+use App\Http\Controllers\LogEditController;
 use App\Http\Controllers\MasterCurrencyController;
 use App\Http\Controllers\MasterPegawaiController;
 use App\Http\Controllers\ModalController;
@@ -52,6 +54,8 @@ Route::group(['middleware' => 'auth'], function () {
 
     // TRANSAKSI
     Route::resource('transaksi', TransaksiController::class);
+    Route::get('transaksi/getkurs/{id_currency}', [\App\Http\Controllers\TransaksiController::class, 'getkurs']);
+    Route::get('/edit/getkurs/{id_currency}', [\App\Http\Controllers\TransaksiController::class, 'getkursedit']);
     Route::post('/delete-transaksi', [\App\Http\Controllers\TransaksiController::class, 'hapus'])->name('transaksi-delete');
 
     // MODAL
@@ -59,7 +63,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/delete-modal', [\App\Http\Controllers\ModalController::class, 'hapus'])->name('modal-delete');
     Route::post('/transfer-modal', [\App\Http\Controllers\ModalController::class, 'transfer'])->name('modal-transfer');
     Route::post('/tambah-modal', [\App\Http\Controllers\ModalController::class, 'tambah']);
-  
+    
+    // LOG EDIT
+    Route::resource('log-edit', LogEditController::class);
+
+    // DETAIL CURRENCY
+    Route::resource('currency-detail', CurrencyDetailController::class);
+
     // APPROVAL
     Route::resource('approval-modal', ApprovalModalController::class)->middleware(['Owner']);
 

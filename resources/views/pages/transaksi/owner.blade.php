@@ -111,23 +111,6 @@
                         </tbody>
                     </table>
                 </div>
-                {{-- <div class="row align-items-center mt-3">
-                    <div class="pagination d-none"></div>
-                    <div class="col">
-                        <p class="mb-0 fs--1">
-                            <span class="d-none d-sm-inline-block" data-list-info="data-list-info"></span>
-                            <span class="d-none d-sm-inline-block"> &mdash; </span>
-                            <a class="fw-semi-bold" href="#!" data-list-view="*">View all<span
-                                    class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a><a
-                                class="fw-semi-bold d-none" href="#!" data-list-view="less">View Less<span
-                                    class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
-                        </p>
-                    </div>
-                    <div class="col-auto d-flex"><button class="btn btn-sm btn-primary" type="button"
-                            data-list-pagination="prev"><span>Previous</span></button><button
-                            class="btn btn-sm btn-primary px-4 ms-2" type="button"
-                            data-list-pagination="next"><span>Next</span></button></div>
-                </div> --}}
             </div>
         </div>
     </div>
@@ -154,8 +137,11 @@
                                     <div class="flex-1">
                                         <input type="hidden" name="transaksi_id" id="id_transaksi">
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
-                                        <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi ini? Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan Total Transaksi
-                                        </p>
+                                        <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi ini? Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan Total Transaksi</p>
+                                        <div class="mb-3">
+                                            <label class="col-form-label" for="keterangan">Keterangan Penghapusan:</label>
+                                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3"></textarea>
+                                          </div>
                                     </div>
                                 </div>
                             </div>
@@ -245,9 +231,7 @@
             $('#deleteModal').modal('show');
         })
 
-        var table = $('#example').DataTable([
-            
-        ]);
+        var table = $('#example').DataTable([]);
     })
 
 </script>

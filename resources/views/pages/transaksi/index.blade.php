@@ -141,6 +141,10 @@
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
                                         <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi ini? Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan Total Transaksi
                                         </p>
+                                        <div class="mb-3">
+                                            <label class="col-form-label" for="keterangan">Keterangan Penghapusan:</label>
+                                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3"></textarea>
+                                          </div>
                                     </div>
                                 </div>
                             </div>

@@ -15,8 +15,7 @@
             <div class="card">
                 <div class="card-header bg-light btn-reveal-trigger d-flex flex-between-center">
                     <h5 class="mb-0">Order Summary</h5>
-                    <a class="btn btn-falcon-default btn-sm" type="button" data-bs-toggle="modal"
-                        data-bs-target="#modaltambah">
+                    <a class="btn btn-falcon-default btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modaltambah">
                         <span class="fas fa-plus me-2" data-fa-transform="shrink-2"></span>Tambah
                         Transaksi</a>
                 </div>
@@ -37,8 +36,7 @@
                                 @forelse ($transaksi->detailTransaksi as $item)
                                 <tr id="item-{{ $item->id_detail_transaksi }}" role="row" class="odd">
                                     <td></td>
-                                    <td class="currency_edit"><span
-                                            id="{{ $item->Currency->id_currency }}">{{ $item->Currency->nama_currency }}</span>
+                                    <td class="currency_edit"><span id="{{ $item->Currency->id_currency }}">{{ $item->Currency->nama_currency }}</span>
                                     </td>
                                     <td class="harga_currency_edit">IDR&nbsp;{{ number_format($item->jumlah_currency) }}
                                     </td>
@@ -63,15 +61,13 @@
             </div>
         </div>
         <div class="col-xl-5">
-            <form action="{{ route('transaksi.update', $transaksi->id_transaksi) }}" id="form" method="POST"
-                enctype="multipart/form-data">
+            <form action="{{ route('transaksi.update', $transaksi->id_transaksi) }}" id="form" method="POST" enctype="multipart/form-data">
                 @method('PUT')
                 @csrf
                 <div class="row">
                     <div class="col-6">
                         <div class="card mb-3">
-                            <div class="bg-holder d-none d-lg-block bg-card"
-                                style="background-image:url(../../falcon/assets/img/icons/spot-illustrations/corner-4.png);opacity: 0.7;">
+                            <div class="bg-holder d-none d-lg-block bg-card" style="background-image:url(../../falcon/assets/img/icons/spot-illustrations/corner-4.png);opacity: 0.7;">
                             </div>
                             <div class="card-body position-relative">
                                 <h6>Order Code: #{{ $transaksi->kode_transaksi }}</h6>
@@ -87,8 +83,7 @@
                     </div>
                     <div class="col-6">
                         <div class="card overflow-hidden" style="min-width: 12rem">
-                            <div class="bg-holder bg-card"
-                                style="background-image:url(../../falcon/assets/img/icons/spot-illustrations/corner-2.png);">
+                            <div class="bg-holder bg-card" style="background-image:url(../../falcon/assets/img/icons/spot-illustrations/corner-2.png);">
                             </div>
                             <div class="card-body position-relative">
                                 <h6>Modal Anda Hari Ini</h6>
@@ -109,15 +104,12 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-7 col-xl-12 col-xxl-7 px-md-3 mb-xxl-0 position-relative">
-                                <div class="d-flex"><img class="me-3" src="../../falcon/assets/img/icons/shield.png"
-                                        alt="" width="60" height="60">
+                                <div class="d-flex"><img class="me-3" src="../../falcon/assets/img/icons/shield.png" alt="" width="60" height="60">
                                     <div class="flex-1">
                                         <h5 class="mb-2">Check Kembali</h5>
-                                        <div class="form-check mb-0"><input class="form-check-input" id="check_1"
-                                                type="checkbox"><label class="form-check-label mb-0">Check Kembali Order
+                                        <div class="form-check mb-0"><input class="form-check-input" id="check_1" type="checkbox"><label class="form-check-label mb-0">Check Kembali Order
                                                 Summary<br class="d-none d-md-block d-lg-none"></label></div>
-                                        <div class="form-check mb-0"><input class="form-check-input" id="check_2"
-                                                type="checkbox"><label class="form-check-label mb-0">Check All Total
+                                        <div class="form-check mb-0"><input class="form-check-input" id="check_2" type="checkbox"><label class="form-check-label mb-0">Check All Total
                                                 Payment<br class="d-none d-md-block d-lg-none"></label></div>
                                         <p class="fs--1 mb-0">Pastikan transaksi telah sesuai, centang untuk melanjutkan
                                         </p>
@@ -126,15 +118,14 @@
                                 </div>
                                 <div class="vertical-line d-none d-md-block d-xl-none d-xxl-block"> </div>
                             </div>
-                            <div
-                                class="col-md-5 col-xl-12 col-xxl-5 ps-lg-4 ps-xl-2 ps-xxl-5 text-center text-md-start text-xl-center text-xxl-start">
+                            <div class="col-md-5 col-xl-12 col-xxl-5 ps-lg-4 ps-xl-2 ps-xxl-5 text-center text-md-start text-xl-center text-xxl-start">
                                 <div class="border-dashed-bottom d-block d-md-none d-xl-block d-xxl-none my-4"></div>
                                 <div class="fs-2 fw-semi-bold">All Total: <span class="text-primary">
                                         <span class="grand_total" id="grand_total">IDR&nbsp;
                                             {{ number_format($transaksi->total) }}</span>
                                 </div>
-                                <button class="btn btn-success mt-3 px-4" onclick="submitdata(event, {{ $transaksi->id_transaksi }})"
-                                    type="button">Confirm &amp; Edit
+                                <button class="btn btn-primary mt-3 px-4"
+                                data-bs-toggle="modal" data-bs-target="#error-modal" type="button">Confirm Data
                                 </button>
                                 <p class="fs--1 mt-3 mb-0">By clicking <strong>Confirm &amp; Edit </strong>button,
                                     transaction being process
@@ -147,6 +138,34 @@
     </div>
 </main>
 
+<div class="modal fade" id="error-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+      <div class="modal-content position-relative">
+        <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+          <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="rounded-top-lg py-3 ps-4 pe-6 bg-light">
+            <h5 class="mb-1" id="modalExampleDemoLabel">Keterangan</h3>
+          </div>
+          <div class="p-4 pb-0">
+            <form>
+                <p class="text-word-break fs--1">Lengkapi Form berikut ini</p>
+              <div class="mb-3">
+                <label class="col-form-label" for="keterangan">Keterangan:</label>
+                <textarea class="form-control" id="keterangan" rows="5"></textarea>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-success" type="button" onclick="submitdata(event, {{ $transaksi->id_transaksi }})">Kirim dan Update </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <div class="modal fade" id="modaltambah" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
         <div class="modal-content position-relative">
@@ -154,8 +173,7 @@
                 <div class="position-relative z-index-1 light">
                     <h4 class="mb-0 text-white" id="authentication-modal-label">Detail Transaksi</h4>
                     <p class="fs--1 mb-0 text-white">Tambah detail transaksi untuk melengkapi Order</p>
-                </div><button class="btn-close btn-close-white position-absolute top-0 end-0 mt-2 me-2"
-                    id="btn-close-modal" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div><button class="btn-close btn-close-white position-absolute top-0 end-0 mt-2 me-2" id="btn-close-modal" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('master-currency-store') }}" id="form1" method="POST">
                 @csrf
@@ -165,10 +183,9 @@
                         <div class="border-dashed-bottom mb-2"></div>
                         <div class="row mb-3">
                             <div class="col-12">
-                                <label for="currency">Pilih Currency</label><span class="mr-4 mb-3"
-                                    style="color: red">*</span>
-                                <select class="form-select js-choice" id="currency" size="1" name="id_currency"
-                                    data-options='{"removeItemButton":true,"placeholder":true}'>
+                                <label for="currency">Pilih Kurs</label><span class="mr-4 mb-3" style="color: red">*</span>
+                                <select class="form-select js-choice" id="currency" size="1" name="id_currency" data-options='{"removeItemButton":true,"placeholder":true}'>
+                                    <option value="kosong">Pilih Kurs Terlebih Dahulu</option>
                                     @foreach ($currency as $item)
                                     <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}</option>
                                     @endforeach
@@ -176,25 +193,22 @@
                             </div>
                         </div>
                         <div class="col-md-12 mb-3">
-                            <label class="form-label" for="jumlah_currency">Harga Currency</label><span
-                                class="mr-4 mb-3" style="color: red">*</span>
+                            <label class="form-label" for="jumlah_currency">Nilai Kurs</label><span class="mr-4 mb-3" style="color: red">*</span>
                             <div class="input-group"><span class="input-group-text">Rp. </span>
-                                <input class="form-control jumlah_currency" id=" jumlah_currency" name="jumlah_currency"
-                                    type="number" min="1000" placeholder="Input Harga Currency"
-                                    value="{{ old('jumlah_currency') }}" required />
+                                <input class="form-control jumlah_currency" id="jumlah_currency" name="jumlah_currency" type="number" min="1000" placeholder="Input Harga Currency" value="{{ old('jumlah_currency') }}" readonly />
                             </div>
-                            <p class="text-primary"> IDR:
-                                <span id="detailjumlahcurrency" class="detailjumlahcurrency">
+                            <p class="fs--1"> <b>Ket:</b> Nilai kurs akan otomatis terisi setelah memilih Jenis Kurs</p>
+                        </div>
+                        <input type="hidden" value="{{ $transaksi->id_transaksi }}" id="transaksi_id">
+                        <div class="col-md-12 mb-1">
+                            <label class="form-label" for="jumlah_tukar">Jumlah Penukaran</label><span class="mr-4 mb-3" style="color: red">*</span>
+                            <input class="form-control" id="jumlah_tukar" name="jumlah_tukar" type="number" min="1" placeholder="Input Jumlah Penukaran" value="{{ old('jumlah_tukar') }}" required />
+                        </div>
+                        <p class="text-primary fs--1"> Calculate (IDR):
+                            <span id="detailjumlahcurrency" class="detailjumlahcurrency">
 
-                                </span>
-                            </p>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label" for="jumlah_tukar">Jumlah Penukaran</label><span class="mr-4 mb-3"
-                                style="color: red">*</span>
-                            <input class="form-control" id=" jumlah_tukar" name="jumlah_tukar" type="number" min="1"
-                                placeholder="Input Jumlah Penukaran" value="{{ old('jumlah_tukar') }}" required />
-                        </div>
+                            </span>
+                        </p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -217,6 +231,7 @@
         var form = $('#form')
         var _token = form.find('input[name="_token"]').val()
         var id_modal = form.find('input[name="id_modal"]').val()
+        var keterangan = $('#keterangan').val()
         var dataform2 = []
         var grand_total = $('#grand_total').html()
         if (grand_total.includes("IDR&nbsp;0")) {
@@ -263,8 +278,10 @@
 
                     var td_jumlah_currency = children[2]
                     var jumlah_currency_trim = $(td_jumlah_currency).html()
-                    var jumlah_currency = jumlah_currency_trim.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
+                    var tes = jumlah_currency_trim.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
                         .trim()
+                    var jumlah_currency = parseFloat(tes).toFixed(0)
+                  
 
                     var td_jumlah_tukar = children[3]
                     var jumlah_tukar = $(td_jumlah_tukar).html()
@@ -278,7 +295,7 @@
                         id_transaksi: id_transaksi,
                         jumlah_currency: jumlah_currency,
                         jumlah_tukar: jumlah_tukar,
-                        total_tukar: total_tukar
+                        total_tukar: total_tukar,
                     })
                 }
 
@@ -293,18 +310,16 @@
                         _token: _token,
                         id_modal: id_modal,
                         total: total,
+                        keterangan: keterangan,
                         jumlah_modal: jumlah_modal,
                         detail: dataform2
                     }
-
-                    console.log(data)
-
-
+                    
                     $.ajax({
                         method: 'put',
                         url: '/transaksi/' + id_transaksi,
                         data: data,
-                        success: function (response) {
+                        success: function(response) {
                             window.location.href = '/transaksi'
                             const Toast = Swal.mixin({
                                 toast: true,
@@ -323,8 +338,8 @@
                                 title: 'Data Masih Diproses Mohon Tunggu'
                             })
                         },
-                        error: function (response) {
-                            console.log(response)
+                        error: function(response) {
+                            // console.log(response)
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Oops...',
@@ -340,6 +355,7 @@
     function tambahdata(event, id_sparepart) {
         var form = $('#form1')
         var currency = $('#currency').html()
+        var currency_2 = $('#currency').text()
         var id_currency = $('#currency').val()
         var jumlah_currency = form.find('input[name="jumlah_currency"]').val()
         var jumlah_tukar = form.find('input[name="jumlah_tukar"]').val()
@@ -380,7 +396,7 @@
         } else {
             // PENGURANGAN MODAL
             var jumlah_modal = $('#jumlah_modal').html()
-            console.log(jumlah_modal)
+            // console.log(jumlah_modal)
             var check_modal = jumlah_modal.includes("IDR&nbsp;")
             if (check_modal == true) {
                 var jumlah_modal_trim = jumlah_modal.split('IDR&nbsp;')[1].replace(',', '').replace(',', '').trim()
@@ -411,7 +427,7 @@
                 var check_payable = payable_total.includes("IDR&nbsp;");
                 if (check_payable == true) {
                     var payable_total_trim = payable_total.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
-                    .trim()
+                        .trim()
                     var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
                 } else {
                     var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace(',', '').replace(',', '').trim()
@@ -441,7 +457,27 @@
                     minimumFractionDigits: 0,
                 }).format(grand_total_fix)
                 $('#grand_total').html(grand_total_idr)
+                
+                var detail = $('#konfirmasi').children()
+                for (let index = 0; index < detail.length; index++) {
+                    var children1 = $(detail[index]).children()
 
+                    var td_currency = children1[1]
+                    var span1 = $(td_currency).children()[0]
+                    var id_currency2 = $(span1).attr('id')
+                    var kurs_text = $(span1).text()
+
+                    var tod = $(detail[index]).parent()
+                    var tes1 = $(tod).children()[index]
+                    var tes2 = $(tes1).attr('id')
+                    var fixx = tes2.split('item-')[1]
+                  
+
+                    if(currency_2 === kurs_text){
+                       
+                    }
+                } 
+                
                 // DRAW DATATABLE
                 $('#dataTableKonfirmasi').DataTable().row.add([
                     total_tukar_rp, `<span id=${id_currency}>${currency}</span>`, harga_currency, jumlah_tukar,
@@ -474,6 +510,8 @@
                     icon: 'success',
                     title: 'Berhasil Menambahkan Data Transaksi'
                 })
+                
+                
             }
 
 
@@ -521,7 +559,7 @@
                 // GRAND TOTAL
                 var grand_total = $('#grand_total').html()
                 var grand_total_trim = grand_total.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
-                .trim()
+                    .trim()
                 var grand_total_fix = parseInt(grand_total_trim) - parseInt(jumlah_trim)
                 var grand_total_idr = new Intl.NumberFormat('locale', {
                     style: 'currency',
@@ -537,7 +575,7 @@
 
                 var jumlah_modal_trim = jumlah_modal.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
                     .trim()
-                console.log(jumlah_modal, jumlah_modal_trim)
+                // console.log(jumlah_modal, jumlah_modal_trim)
                 var jumlah_total_fix = parseInt(jumlah_modal_trim) + parseInt(jumlah_trim)
                 var jumlah_total_idr = new Intl.NumberFormat('locale', {
                     style: 'currency',
@@ -551,9 +589,9 @@
 
     }
 
-    $(document).ready(function () {
-        $('.jumlah_currency').each(function () {
-            $(this).on('input', function () {
+    $(document).ready(function() {
+        $('.jumlah_currency').each(function() {
+            $(this).on('input', function() {
                 var harga = $(this).val()
                 var harga_fix = new Intl.NumberFormat('id', {
                     style: 'currency',
@@ -565,6 +603,47 @@
                 $(jumlah).html(harga_fix);
             })
         })
+
+        $('select[name="id_currency"]').on('change', function() {
+            var id_currency = $(this).val();
+            var transaksi_id = $('#transaksi_id').val()
+
+            if (id_currency) {
+                $.ajax({
+                    url: '/edit/getkurs/' + id_currency,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        $('input[name="jumlah_currency"]').val(data[0]);
+                        // console.log(data[0])
+                    },
+                    error: function(response) {
+                        console.log(response)
+                    }
+                });
+            } else {
+                $('input[name="jumlah_currency"]').empty();
+            }
+        });
+
+        $('#jumlah_tukar').on('input', function() {
+            var value = $(this).val()
+            var nilai_kurs = $('.jumlah_currency').val()
+            var calculate = parseFloat(value) * parseFloat(nilai_kurs)
+            // var hasil_calc = calculate.toFixed(2)
+
+            var hasil_calc = new Intl.NumberFormat('id', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(calculate);
+
+            $('#detailjumlahcurrency').html(hasil_calc)
+        });
+
+       
+
 
         var template = $('#template_delete_button').html()
         $('#dataTableKonfirmasi').DataTable({
@@ -580,14 +659,13 @@
                 {
                     "targets": 0,
                     "data": null,
-                    'render': function (data, type, row, meta) {
+                    'render': function(data, type, row, meta) {
                         return meta.row + 1
                     }
                 }
             ]
         });
     });
-
 </script>
 
 @endsection
