@@ -7,34 +7,21 @@
             style="background-image:url(/../falcon/assets/img/icons/spot-illustrations/corner-4.png);"></div>
         <div class="card-body position-relative">
             <div class="row">
-                <div class="col-lg-6">
-                    <h5>Filter Log Data Sesuai Tanggal Edit</h5>
-                    <p class="mt-2">Pilih Tanggal Awal dan Pilih Tanggal Akhir</p>
+                <div class="col-lg-9">
+                    <h5>Filter Log Data</h5>
+                    <p class="mt-2">Filter Log Data Sesuai Tanggal atau Jenis Log</p>
                     <hr>
                 </div>
-                <div class="col-lg-6">
-                    <div class="col-12 col-xl-auto mt-2">
-                        <span id="total_records"></span>
-                        <p></p>
-                        <form id="form1">
-                            <div class="row input-daterange">
-                                <div class="col-md-4">
-                                    <label class="small">Start Date</label>
-                                    <input class="form-control datetimepicker" id="from_date" type="date"
-                                        name="from_date" placeholder="From Date"
-                                        data-options='{"disableMobile":true}' />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="small">End Date</label>
-                                    <input class="form-control datetimepicker" id="to_date" type="date" name="to_date"
-                                        placeholder="To Date" data-options='{"disableMobile":true}' />
-                                </div>
-                                <div class="col-md-4">
-                                    <button type="button" name="filter" onclick="filter_tanggal(event)"
-                                        class="btn btn-primary px-4 mt-4">Filter</button>
-                                </div>
-                            </div>
-                        </form>
+                <div class="col-auto">
+                    <div class="col-auto col-xl-auto">
+                        <button type="button" name="filter" data-bs-toggle="modal" data-bs-target="#modalfilter"
+                            class="btn btn-primary px-4 mt-4">Filter</button>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="col-auto col-xl-auto">
+                        <a href="{{ route('log-edit.index') }}" type="button" 
+                            class="btn btn-danger px-4 mt-4">Reset</a>
                     </div>
                 </div>
             </div>
@@ -64,10 +51,15 @@
                             <tr role="row" class="odd">
                                 <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                 <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
-                                <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s', strtotime($item->created_at)) }} </td>
-                                <td class="text-center tanggal_edit fs--1">{{ date('d-M-Y', strtotime($item->created_at)) }}, {{ date('H:i:s', strtotime($item->created_at)) }} </td>
+                                <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y',
+                                    strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s',
+                                    strtotime($item->created_at)) }} </td>
+                                <td class="text-center tanggal_edit fs--1">{{ date('d-M-Y',
+                                    strtotime($item->created_at)) }}, {{ date('H:i:s', strtotime($item->created_at)) }}
+                                </td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
-                                <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}
+                                <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0,
+                                    ',', '.') }}
                                 </td>
                                 <td class="text-center status text-center fs--1">
                                     @if($item->jenis_log == 'Edit')
@@ -76,12 +68,12 @@
                                     <span class="badge rounded-pill badge-soft-danger">Delete</span>
 
                                     @endif
-                                    
+
                                 </td>
                                 <td class="text-center fs--1">
-                                    <a href="{{ route('log-edit.show', $item->id_log) }}"
-                                        class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
-                                        data-bs-placement="top" title="Detail"><span class="text-700 fas fa-eye"></span>
+                                    <a href="{{ route('log-edit.show', $item->id_log) }}" class="btn p-0 ms-2"
+                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="Detail"><span class="text-700 fas fa-eye"></span>
                                     </a>
                                 </td>
                             </tr>
@@ -96,6 +88,55 @@
     </div>
 </main>
 
+<div class="modal fade" id="modalfilter" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
+        <div class="modal-content position-relative">
+            <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="form1">
+                <div class="modal-body p-0">
+                    <div class="rounded-top-lg py-3 ps-4 pe-6 bg-light">
+                        <h4 class="mb-1">Filter Log Data</h4>
+                    </div>
+                    <div class="p-4 pb-0 mb-4">
+                        <p class="text-word-break fs--1 mb-3">Filter Data Berdasarkan Inputan</p>
+
+                        <div class="row input-daterange">
+                            <div class="col-md-6">
+                                <label class="small">Tanggal Awal Edit/Delete</label>
+                                <input class="form-control datetimepicker" id="from_date_export" type="date"
+                                    name="from_date_export" placeholder="From Date"
+                                    data-options='{"disableMobile":true}' />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small">Tanggal Akhir Edit/Delete</label>
+                                <input class="form-control datetimepicker" id="to_date_export" type="date"
+                                    name="to_date_export" placeholder="To Date" data-options='{"disableMobile":true}' />
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label class="form-label" for="jenis_log">Jenis Log</label>
+                            <select name="jenis_log" id="jenis_log" class="form-select" value="{{ old('jenis_log') }}">
+                                <option id="jlog" value="">Filter by Jenis Log</option>
+                                <option value="Edit">Log Edit</option>
+                                <option value="Delete">Log Delete</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" type="button" name="filter" onclick="filter_tanggal(event)">Filter
+                        Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     $(document).ready(function () {
         var table = $('#example').DataTable();
@@ -104,8 +145,10 @@
     function filter_tanggal(event) {
         event.preventDefault()
         var form1 = $('#form1')
-        var tanggal_mulai = form1.find('input[name="from_date"]').val()
-        var tanggal_selesai = form1.find('input[name="to_date"]').val()
+        var tanggal_mulai = form1.find('input[name="from_date_export"]').val()
+        var tanggal_selesai = form1.find('input[name="to_date_export"]').val()
+        var jenis_log = form1.find('select[name="jenis_log"]').val()
+
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -121,7 +164,7 @@
             icon: 'info',
             title: 'Mohon Tunggu, Sedang diproses ...'
         })
-        window.location.href = '/owner/jurnal-harian?from=' + tanggal_mulai + '&to=' + tanggal_selesai
+        window.location.href = '/log-edit?from=' + tanggal_mulai + '&to=' + tanggal_selesai + '&jenis=' + jenis_log
     }
 
 </script>

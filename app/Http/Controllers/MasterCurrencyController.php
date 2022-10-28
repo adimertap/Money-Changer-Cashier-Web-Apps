@@ -19,32 +19,29 @@ class MasterCurrencyController extends Controller
 
     public function store(Request $request)
     {
-    //    return $request;
-        $item = new MasterCurrency;
-        $item->nama_currency = $request->nama_currency;
-        $item->country = $request->country;
-        $item->nilai_kurs = $request->nilai_kurs;
-        $item->jenis_kurs = $request->jenis_kurs;
-        
-        // STORE IMAGE LOCAL
-        // if ($request->file('img_flag')) {
-        //     $imagePath = $request->file('img_flag');
-        //     $imageName = $imagePath->getClientOriginalName();
-           
-        //     $imagePath->move(public_path().'/img/', $imageName); 
-        //     $data[] = $imageName;
-        //   }
-  
-        //   $item->img_flag = $imageName;
+        $check = MasterCurrency::where('nama_currency', $request->nama_currency)->where('jenis_kurs', $request->jenis_kurs)->first();
+        if(!$check){
+            $item = new MasterCurrency;
+            $item->nama_currency = $request->nama_currency;
+            $item->country = $request->country;
+            $item->nilai_kurs = $request->nilai_kurs;
+            $item->jenis_kurs = $request->jenis_kurs;
+    
+            // STORE IMAGE ONLINE
+            $image  = $request->file('img_flag');
+            $result = CloudinaryStorage::upload($image->getRealPath(), $image->getClientOriginalName()); 
+            $item->img_flag = $result;
+            $item->save();
+    
+            Alert::success('Berhasil', 'Data Currency Berhasil Ditambahkan');
+            return redirect()->back();
+        }else{
+            Alert::warning('Gagal', 'Data Currency Tersebut Telah Ada');
+            return redirect()->back();
+        }
 
-        // STORE IMAGE ONLINE
-        $image  = $request->file('img_flag');
-        $result = CloudinaryStorage::upload($image->getRealPath(), $image->getClientOriginalName()); 
-        $item->img_flag = $result;
-        $item->save();
 
-        Alert::success('Berhasil', 'Data Currency Berhasil Ditambahkan');
-        return redirect()->back();
+       
     }
 
     public function hapus(Request $request)
@@ -59,6 +56,7 @@ class MasterCurrencyController extends Controller
 
     public function updatedata(Request $request)
     {
+        // return $request;
         $item = MasterCurrency::find($request->edit_currency_id);
         $item->nama_currency = $request->nama_currency;
         $item->country = $request->country;

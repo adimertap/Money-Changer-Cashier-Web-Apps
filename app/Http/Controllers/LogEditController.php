@@ -13,10 +13,38 @@ class LogEditController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $log = LogEdit::get();
+        $log = LogEdit::with([
+            'detailLog',
+        ]);        
+        if($request->from){
+            $log->where('tanggal_transaksi', '>=', $request->from);
+        }
+        if($request->to){
+            $log->where('tanggal_transaksi', '<=', $request->to);
+        }
+        if($request->jenis){
+            $log->where('jenis_log', '=', $request->jenis);
+        }
+        $log = $log->orderBy('updated_at','DESC')->get();
         return view('pages.log.index', compact('log'));
+    }
+
+    public function filterLog(Request $request)
+    {
+        $log = LogEdit::with('detailLog');
+        if($request->from_date_export){
+            $log->where('tanggal_transaksi', '>=', $request->from_date_export);
+        }
+        if($request->to_date_export){
+            $log->where('tanggal_transaksi', '<=', $request->to_date_export);
+        }
+        if($request->jenis_log){
+            $log->where('jenis_log', '=', $request->jenis_log);
+        }
+        $log = $log->get();
+
     }
 
     /**

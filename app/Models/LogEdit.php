@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LogEdit extends Model
 {
+
+    use SoftDeletes;
+
     protected $table = "new_log_edit";
 
     protected $primaryKey = 'id_log';

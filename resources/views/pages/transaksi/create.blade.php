@@ -139,10 +139,10 @@
                         <div class="row mb-3">
                             <div class="col-12">
                                 <label for="currency">Pilih Kurs</label><span class="mr-4 mb-3" style="color: red">*</span>
-                                <select class="form-select js-choice currency-select" id="currency" size="1" name="id_currency" data-options='{"removeItemButton":true,"placeholder":true}'>
+                                <select class="form-select js-choice currency-select" id="currency" size="1" name="id_currency" data-options='{"removeItemButton":true,"placeholder":true,"shouldSort":false}'>
                                     <option value="">Pilih Kurs Terlebih Dahulu</option>
                                     @foreach ($currency as $item)
-                                        <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}</option>
+                                        <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}, {{ $item->jenis_kurs }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -253,7 +253,7 @@
 
                     var total_tukar = children[4]
                     var total_tukar_trim = $(total_tukar).html()
-                    var total_tukar = total_tukar_trim.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
+                    var total_tukar = total_tukar_trim.split('Rp&nbsp;')[1].replace(',', '.').replace('.', '').replace('.', '').trim()
 
                     dataform2.push({
                         currency_id: id_currency,
@@ -292,13 +292,10 @@
                         data: data,
                         success: function(response) {
                             window.location.href = '/transaksi'
-
                             window.open(
                                 '/cetak/' + id_transaksi,
                                 '_blank'
                             );
-
-                            // window.location.reload();
 
                             const Toast = Swal.mixin({
                                 toast: true,

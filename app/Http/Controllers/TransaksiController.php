@@ -34,7 +34,7 @@ class TransaksiController extends Controller
             $count = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
             $today =  Carbon::now()->format('Y-m-d');
             $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
-            $currency = MasterCurrency::get();
+            $currency = MasterCurrency::orderBy('jenis_kurs','ASC')->get();
 
             return view('pages.transaksi.index', compact('transaksi','count','today','total_transaksi','currency'));
         }else{
@@ -42,7 +42,7 @@ class TransaksiController extends Controller
             $count = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
             $today =  Carbon::now()->format('Y-m-d');
             $total_transaksi = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
-            $currency = MasterCurrency::get();
+            $currency = MasterCurrency::orderBy('jenis_kurs','ASC')->get();
             $pegawai = User::where('role','!=','Owner')->get();
 
             return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi','currency','pegawai'));
@@ -132,7 +132,7 @@ class TransaksiController extends Controller
      */
     public function create()
     {
-        $currency = MasterCurrency::where('jenis_kurs','Lembar')->get();
+        $currency = MasterCurrency::orderBy('jenis_kurs','ASC')->get();
         $tes = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
         if(empty($tes)){
             Alert::warning('Belum Mengajukan Modal', 'Anda Belum Mengajukan Modal');
@@ -205,6 +205,7 @@ class TransaksiController extends Controller
 
         Alert::success('Berhasil', 'Data Transaksi Berhasil Ditambahkan');
         return $request;
+        
     }
 
     /**
@@ -216,7 +217,6 @@ class TransaksiController extends Controller
     public function show($id)
     {
         $transaksi = Transaksi::with('Pegawai','detailTransaksi.Currency')->find($id);
-        // return $transaksi;
         $detail = DetailTransaksi::where('id_transaksi', $id)->get();
 
         return view('pages.transaksi.detail', compact('transaksi','detail'));
@@ -232,7 +232,7 @@ class TransaksiController extends Controller
     {
         $transaksi = Transaksi::with('detailTransaksi.Currency')->find($id);
        
-        $currency = MasterCurrency::get();
+        $currency = MasterCurrency::orderBy('jenis_kurs','ASC')->get();
         $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
         $today = Carbon::now()->format('d M Y H:i:s');
         $today_format = Carbon::now()->format('Y-m-d');

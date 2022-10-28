@@ -48,7 +48,7 @@
                                 @if ($item->jenis_jurnal == 'Debit')
                                     <td class="text-center text-center fs--1 jenis">{{ $item->Transaksi->kode_transaksi }}</td>
                                     <td class="text-center text-center fs--1 jenis">Jual</td>
-                                    <td class="text-center text-center fs--1">{{ $item->Currency->nama_currency }}</td>
+                                    <td class="text-center text-center fs--1">{{ $item->Currency->nama_currency }}, {{ $item->Currency->jenis_kurs }}</td>
                                     <td class="text-center text-center fs--1">{{ $item->jumlah_tukar }}</td>
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->kurs, 0, ',', '.') }}</td>
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>

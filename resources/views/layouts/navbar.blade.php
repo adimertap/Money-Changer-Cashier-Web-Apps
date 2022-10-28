@@ -144,7 +144,7 @@
                             <span class="nav-link-icon">
                                 <i class="fas fa-table"></i>
                             </span>
-                            <span class="nav-link-text ps-1">Log Edit Transaksi</span>
+                            <span class="nav-link-text ps-1">Log Transaksi</span>
                         </div>
                     </a>
                 </li>

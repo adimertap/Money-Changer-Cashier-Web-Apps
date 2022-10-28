@@ -66,6 +66,7 @@ Route::group(['middleware' => 'auth'], function () {
     
     // LOG EDIT
     Route::resource('log-edit', LogEditController::class);
+    Route::get('/filter-log', [\App\Http\Controllers\LogEditController::class, 'filterLog'])->name('filterLog');
 
     // DETAIL CURRENCY
     Route::resource('currency-detail', CurrencyDetailController::class);

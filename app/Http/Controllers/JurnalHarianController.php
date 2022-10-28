@@ -37,7 +37,7 @@ class JurnalHarianController extends Controller
         
         $jumlah = Transaksi::count();
         $total = Transaksi::sum('total');
-        $currency = MasterCurrency::get();
+        $currency = MasterCurrency::orderBy('jenis_kurs','ASC')->get();
         $pegawai = User::where('role','!=','Owner')->get();
 
         return view('pages.jurnal.harian.index', compact('pegawai','transaksi','jumlah','total','currency'));

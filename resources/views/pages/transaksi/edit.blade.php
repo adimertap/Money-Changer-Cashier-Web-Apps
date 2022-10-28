@@ -152,7 +152,7 @@
             <form>
                 <p class="text-word-break fs--1">Lengkapi Form berikut ini</p>
               <div class="mb-3">
-                <label class="col-form-label" for="keterangan">Keterangan:</label>
+                <label class="col-form-label" for="keterangan">Keterangan:</label><span class="mr-4 mb-3" style="color: red">*</span>
                 <textarea class="form-control" id="keterangan" rows="5"></textarea>
               </div>
             </form>
@@ -184,10 +184,10 @@
                         <div class="row mb-3">
                             <div class="col-12">
                                 <label for="currency">Pilih Kurs</label><span class="mr-4 mb-3" style="color: red">*</span>
-                                <select class="form-select js-choice" id="currency" size="1" name="id_currency" data-options='{"removeItemButton":true,"placeholder":true}'>
-                                    <option value="kosong">Pilih Kurs Terlebih Dahulu</option>
+                                <select class="form-select js-choice" id="currency" size="1" name="id_currency" data-options='{"removeItemButton":true,"placeholder":true,"shouldSort":false}'>
+                                    <option value="">Pilih Kurs Terlebih Dahulu</option>
                                     @foreach ($currency as $item)
-                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}</option>
+                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}, {{ $item->jenis_kurs }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -458,25 +458,21 @@
                 }).format(grand_total_fix)
                 $('#grand_total').html(grand_total_idr)
                 
-                var detail = $('#konfirmasi').children()
-                for (let index = 0; index < detail.length; index++) {
-                    var children1 = $(detail[index]).children()
+                // var detail = $('#konfirmasi').children()
+                // for (let index = 0; index < detail.length; index++) {
+                //     var children1 = $(detail[index]).children()
 
-                    var td_currency = children1[1]
-                    var span1 = $(td_currency).children()[0]
-                    var id_currency2 = $(span1).attr('id')
-                    var kurs_text = $(span1).text()
+                //     var td_currency = children1[1]
+                //     var span1 = $(td_currency).children()[0]
+                //     var id_currency2 = $(span1).attr('id')
+                //     var kurs_text = $(span1).text()
 
-                    var tod = $(detail[index]).parent()
-                    var tes1 = $(tod).children()[index]
-                    var tes2 = $(tes1).attr('id')
-                    var fixx = tes2.split('item-')[1]
+                //     var tod = $(detail[index]).parent()
+                //     var tes1 = $(tod).children()[index]
+                //     var tes2 = $(tes1).attr('id')
+                //     var fixx = tes2.split('item-')[1]
                   
-
-                    if(currency_2 === kurs_text){
-                       
-                    }
-                } 
+                // } 
                 
                 // DRAW DATATABLE
                 $('#dataTableKonfirmasi').DataTable().row.add([

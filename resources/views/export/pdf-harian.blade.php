@@ -43,7 +43,7 @@
 				<td>{{ $i++ }}</td>
                 <td>{{$p->kode_transaksi}}</td>
 				<td>{{ date('d-M-Y', strtotime($p->tanggal_transaksi)) }}</td>
-				<td>{{$p->nama_currency}}</td>
+				<td>{{$p->nama_currency}}, {{ $p->jenis_kurs }}</td>
 				<td>Rp. {{ number_format($p->jumlah_currency)}}</td>
 				<td>{{$p->jumlah_tukar}}</td>
 				<td>Rp. {{ number_format($p->total_tukar)}}</td>

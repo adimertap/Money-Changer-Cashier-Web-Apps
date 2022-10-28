@@ -29,7 +29,7 @@
             <td>{{ date('d-M-Y H:i:s', strtotime($item->updated_at)) }}</td>
             @if ($item->jenis_jurnal == 'Debit')
                 <td>Jual</td>
-                <td>{{ $item->Currency->nama_currency }}</td>
+                <td>{{ $item->Currency->nama_currency }}, {{ $item->Currency->jenis_kurs }}</td>
                 <td>{{ $item->jumlah_tukar }}</td>
                 <td>Rp. {{ number_format($item->kurs, 0, ',', '.') }}</td>
                 <td>Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>

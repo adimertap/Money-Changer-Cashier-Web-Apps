@@ -128,7 +128,7 @@
                 @csrf
                 <div class="modal-body p-0">
                     <div class="bg-danger rounded-top-lg py-3 ps-4 pe-6">
-                        <h4 class="mb-1 text-white">Hapus Data Modal</h4>
+                        <h4 class="mb-1 text-white">Hapus Data Transaksi</h4>
                     </div>
                     <div class="p-3">
                         <div class="row">
@@ -139,8 +139,9 @@
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
                                         <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi ini? Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan Total Transaksi</p>
                                         <div class="mb-3">
-                                            <label class="col-form-label" for="keterangan">Keterangan Penghapusan:</label>
+                                            <label class="col-form-label" for="keterangan">Keterangan Penghapusan</label><span class="mr-4 mb-3" style="color: red">*</span>
                                             <textarea class="form-control" id="keterangan" name="keterangan" rows="3"></textarea>
+                                            <span class="mb-1" style="color: red">*</span> <span class="fs--1">Wajib diisi</span> 
                                           </div>
                                     </div>
                                 </div>
@@ -190,10 +191,10 @@
                             <div class="col-12">
                                 <label for="currency">Filter by Currency</label>
                                 <select class="form-select js-choice" id="id_currency" name="id_currency"
-                                    data-options='{"removeItemButton":true,"placeholder":true}'>
+                                    data-options='{"removeItemButton":true,"placeholder":true, "shouldSort":false}'>
                                     <option value="">Pilih Currency</option>
                                     @foreach ($currency as $item)
-                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}</option>
+                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}, {{ $item->jenis_kurs }}</option>
                                     @endforeach
                                 </select>
                             </div>

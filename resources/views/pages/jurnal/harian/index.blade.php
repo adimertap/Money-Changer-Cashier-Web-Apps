@@ -162,10 +162,10 @@
                             <div class="col-12">
                                 <label for="currency">Filter by Currency</label>
                                 <select class="form-select js-choice" id="id_currency" name="id_currency"
-                                    data-options='{"removeItemButton":true,"placeholder":true}'>
+                                    data-options='{"removeItemButton":true,"placeholder":true, "shouldSort":false}'>
                                     <option value="">Pilih Currency</option>
                                     @foreach ($currency as $item)
-                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}</option>
+                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}, {{ $item->jenis_kurs }}</option>
                                     @endforeach
                                 </select>
                             </div>
