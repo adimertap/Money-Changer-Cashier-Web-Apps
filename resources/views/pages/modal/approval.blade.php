@@ -241,7 +241,6 @@
                 })
             },
             error: function (response) {
-                console.log(response)
                 $('#submit_terima').prop('disabled', false);
                 Swal.fire({
                     icon: 'error',
@@ -260,9 +259,7 @@
         var modal_id = form.find('input[name="modal_id"]').val()
         var status_modal = form.find('input[name="status_modal"]').val();
         var keterangan_approval = form.find('textarea[name="keterangan_approval"]').val();
-
-       
-
+        
         var data = {
             _token : _token,
             modal_id : modal_id,

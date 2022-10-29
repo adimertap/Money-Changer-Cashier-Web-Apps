@@ -59,6 +59,9 @@
                 border: 1px solid red;
                 position: absolute;
             }
+            .anjay{
+                page-break-after: always;
+            }
         }
 
         .page {
@@ -91,6 +94,7 @@
         hr.putus {
             border-top: 2px dashed rgb(219, 218, 218);
         }
+
 
     </style>
 </head>
@@ -169,7 +173,7 @@
         </p>
     </main>
     <hr class="putus mt-4">
-    <main class="text-kecil" style="color: white; margin-top: 20px; margin-bottom: 30px">
+    <main class="text-kecil" style="color: white; top: 0; page-break-before:always">
         <div class="row align-items-center  text-center mb-3 mt-3">
             <div class="col-sm-2 text-sm-start justify-content-center">
                 <img class="ms-3 mb-3" src="{{ asset('pt.png') }}" width="40" alt="invoice" width="150"></div>
@@ -193,8 +197,11 @@
             </div>
         </div>
         <hr class="tebal mt-2 mb-2">
+
+
+
         @forelse ($transaksi->detailTransaksi as $item)
-        <div class="row align-items-center mt-2">
+        <div class="row align-items-center">
             <div class="col-1">
                 <h6 class="text-500 fs--2">{{ $loop->iteration }}.</h6>
             </div>

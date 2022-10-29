@@ -39,6 +39,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/tambah-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'store'])->name('master-currency-store');
         Route::post('/delete-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'hapus']);
         Route::post('/update-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'updatedata']);
+        Route::post('/update-nilai-kurs', [\App\Http\Controllers\MasterCurrencyController::class, 'updatekurs']);
 
         // JURNAL
         Route::resource('jurnal-harian', JurnalHarianController::class);
@@ -67,9 +68,6 @@ Route::group(['middleware' => 'auth'], function () {
     // LOG EDIT
     Route::resource('log-edit', LogEditController::class);
     Route::get('/filter-log', [\App\Http\Controllers\LogEditController::class, 'filterLog'])->name('filterLog');
-
-    // DETAIL CURRENCY
-    Route::resource('currency-detail', CurrencyDetailController::class);
 
     // APPROVAL
     Route::resource('approval-modal', ApprovalModalController::class)->middleware(['Owner']);

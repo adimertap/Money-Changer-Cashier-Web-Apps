@@ -19,7 +19,9 @@ class MasterCurrency extends Model
         'country',
         'nilai_kurs',
         'img_flag',
-        'jenis_kurs'
+        'jenis_kurs',
+        'keterangan',
+        'urutan'
     ];
 
     protected $hidden = [
