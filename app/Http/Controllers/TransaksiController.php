@@ -117,13 +117,8 @@ class TransaksiController extends Controller
                     return new ExcelHarianOwner($transaksi);
                 }
             }
-        }
-
-        
+        }        
     }
-
-
-
 
     /**
      * Show the form for creating a new resource.
@@ -148,20 +143,16 @@ class TransaksiController extends Controller
                 $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
             }
         }
-
         $today = Carbon::now()->format('d M Y H:i:s');
         $today_format = Carbon::now()->format('Y-m-d');
-
         $jumlah_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
         $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
-
         $id = Transaksi::getId();
         foreach($id as $value);
         $idlama = $value->id_transaksi;
         $idbaru = $idlama + 1;
         $blt = date('ymd');
         $id = Auth::user()->id;
-
         $kode_transaksi = 'RV'.$blt.'-'.$idbaru;
 
         return view('pages.transaksi.create', compact('currency','modal','today','kode_transaksi','today_format','idbaru','jumlah_transaksi','total_transaksi'));
@@ -183,8 +174,7 @@ class TransaksiController extends Controller
         $transaksi->id_pegawai = Auth::user()->id;
         $transaksi->save();
 
-        $transaksi->detailTransaksi()->insert($request->detail);
-        
+        $transaksi->detailTransaksi()->insert($request->detail);        
         foreach($request->detail as $key){
             $jurnal = new Jurnal();
             $jurnal->id_transaksi = $transaksi->id_transaksi;
@@ -231,12 +221,10 @@ class TransaksiController extends Controller
     public function edit($id)
     {
         $transaksi = Transaksi::with('detailTransaksi.Currency')->find($id);
-       
         $currency = MasterCurrency::orderBy('jenis_kurs','ASC')->get();
         $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
         $today = Carbon::now()->format('d M Y H:i:s');
         $today_format = Carbon::now()->format('Y-m-d');
-
         $jumlah_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
         $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
 
@@ -327,9 +315,7 @@ class TransaksiController extends Controller
 
     public function hapus(Request $request)
     {
-        
         $transaksi = Transaksi::find($request->transaksi_id);
-
         $log = new LogEdit;
         $log->id_pegawai = $transaksi->id_pegawai;
         $log->id_modal = $transaksi->id_modal;

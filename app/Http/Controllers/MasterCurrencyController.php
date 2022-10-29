@@ -42,9 +42,6 @@ class MasterCurrencyController extends Controller
             Alert::warning('Gagal', 'Data Currency Tersebut Telah Ada');
             return redirect()->back();
         }
-
-
-       
     }
 
     public function hapus(Request $request)
@@ -60,15 +57,12 @@ class MasterCurrencyController extends Controller
     public function updatedata(Request $request)
     {
         $item = MasterCurrency::find($request->edit_currency_id);
-       
         if($request->img_flag){
             $image  = $request->file('img_flag');
             $result = CloudinaryStorage::upload($image->getRealPath(), $image->getClientOriginalName()); 
             $item->img_flag = $result;
         }
-
         $item->update();
-
         Alert::success('Berhasil', 'Data Currency Berhasil Diedit');
         return redirect()->back();
     }
@@ -94,7 +88,6 @@ class MasterCurrencyController extends Controller
         if($request->jenis){
             $item->jenis_kurs = $request->jenis;
         }
-
         $item->save();
         return $request;
     }
