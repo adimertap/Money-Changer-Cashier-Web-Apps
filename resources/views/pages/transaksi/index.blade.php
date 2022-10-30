@@ -2,11 +2,11 @@
 
 @section('content')
 <div class="row g-3 mb-3 mt-3">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body">
                 <div class="row flex-between-center g-0">
-                    <div class="col-6 d-lg-block flex-between-center">
+                    <div class="col-12 d-lg-block flex-between-center">
                         <h5 class="text-primary mb-1">Welcome, {{ Auth::user()->nama_panggilan }}!</h5>
                         <p>Rekapan Transaksi Hari Ini</p>
                     </div>
@@ -21,19 +21,24 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body">
-                <div class="row flex-between-center">
-                    <div class="col d-md-flex d-lg-block flex-between-center">
-                        <h6 class="mb-md-0 mb-lg-2">Jumlah Transaksi Hari Ini</h6>
-                        <span class="badge rounded-pill badge-soft-success">{{ $count }} Transaksi</span>
+                <div class="row flex-between-center g-0">
+                    <div class="col-12 d-lg-block flex-between-center">
+                        <h5 class="text-primary mb-1">Valas Report!</h5>
+                        <p>Lihat Cepat Valas Report disini</p>
+                    </div>
+                    <div class="col-auto h-100">
+                        <button class="btn btn-primary btn-sm me-1 mb-2 mb-sm-0" type="button"
+                            data-bs-toggle="modal" data-bs-target="#modalreport">Valas Report
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body">
                 <div class="row flex-between-center">
@@ -118,6 +123,75 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalreport" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content position-relative">
+            <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="bg-light rounded-top-lg py-3 ps-4 pe-6">
+                    <h4 class="mb-1" id="staticBackdropLabel">Valas Report per {{ $today }}</h4>
+                    <p class="fs--2 mb-0">Report Pegawai: {{ Auth::user()->name }}</p>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div id="tableExample"
+                            data-list='{"valueNames":["no","nama_currency","jumlah","nilai","grand"],"page":20,"pagination":true}'>
+                            <div class="table-responsive scrollbar">
+                                <table class="table table-bordered table-striped fs--1 mb-0" id="datatableReport">
+                                    <thead class="bg-200 text-900">
+                                        <tr>
+                                            <th class="sort text-center" data-sort="no">No.</th>
+                                            <th class="sort text-center" data-sort="nama_currency">Currency</th>
+                                            <th class="sort text-center" data-sort="jumlah">Jumlah</th>
+                                            <th class="sort text-center" data-sort="nilai">Kurs(Rp)</th>
+                                            <th class="sort text-center" data-sort="grand">Total</th>
+                                        </tr>
+                                    </thead>
+                                    @php
+                                    $total_debit = 0;
+                                    // $total_kredit = 0;
+                                    foreach ($report as $key => $item) {
+                                    $total_debit = $total_debit + ($item->nilai_kurs*$item->jumlah_tukar);
+                                    // $total_kredit = $total_kredit + $item->jumlah_modal;
+                                    }
+                                    // $grand = $total_kredit - $total_debit;
+
+                                    @endphp
+                                    <tbody class="list">
+                                        @forelse ($report as $item)
+                                        <tr role="row" class="odd">
+                                            <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
+                                            <td class="text-start nama_currency">{{ $item->nama_kurs }}</td>
+                                            <td class="text-start jumlah">{{ $item->jumlah_tukar }}</td>
+                                            <td class="text-center nilai text-center bg-soft-primary">Rp. {{
+                                                number_format($item->nilai_kurs, 2, ',', '.') }}</td>
+                                            <td class="text-center grand text-center">Rp. {{
+                                                number_format($item->nilai_kurs*$item->jumlah_tukar, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+
+                                        @empty
+
+                                        @endforelse
+
+                                    </tbody>
+                                    <tr>
+                                        <th class="text-center" colspan="4">Total Tercatat / Grand Total</th>
+                                        <th class="text-center bg-soft-primary" colspan="1">{{ number_format($total_debit,2,',','.') }}
+                                        </th>
+                                    </tr>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="deleteModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
     aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -227,7 +301,13 @@
         })
 
         var table = $('#datatable').DataTable();
+        $('#datatableReport').DataTable();
+
+    
+
+
     })
+    
 
 </script>
 

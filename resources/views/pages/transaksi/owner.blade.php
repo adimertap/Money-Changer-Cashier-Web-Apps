@@ -3,42 +3,50 @@
 @section('content')
 <main>
     <div class="row g-3 mb-3 mt-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
                     <div class="row flex-between-center g-0">
-                        <div class="col-6 d-lg-block flex-between-center">
-                            <h5 class="text-primary mb-1">Welcome, {{ Auth::user()->nama_panggilan }}!</h5>
+                        <div class="col-12 d-lg-block flex-between-center">
+                            <h5 class="text-primary mb-1">Download Report!</h5>
                             <p>Rekapan Transaksi Hari Ini</p>
                         </div>
                         <div class="col-auto h-100">
-                            <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button" data-bs-toggle="modal"
-                            data-bs-target="#modalfilter"><span class="fas fa-arrow-down me-1"> </span>Download Laporan Hari Ini
-                        </button>
+                            <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button"
+                                data-bs-toggle="modal" data-bs-target="#modalfilter"><span
+                                    class="fas fa-arrow-down me-1"> </span>Download Laporan Hari Ini
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="row flex-between-center">
-                        <div class="col d-md-flex d-lg-block flex-between-center">
-                            <h6 class="mb-md-0 mb-lg-2">Jumlah Transaksi Hari Ini</h6>
-                            <span class="badge rounded-pill badge-soft-success">{{ $count }} Transaksi</span>
+                    <div class="row flex-between-center g-0">
+                        <div class="col-12 d-lg-block flex-between-center">
+                            <h5 class="text-primary mb-1">Valas Report!</h5>
+                            <p>Lihat Cepat Valas Report disini</p>
+                        </div>
+                        <div class="col-auto h-100">
+                            <button class="btn btn-primary btn-sm me-1 mb-2 mb-sm-0" type="button" id="btnreport"
+                                data-bs-toggle="modal" data-bs-target="#modalreport">Valas Report
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+
+        <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
                     <div class="row flex-between-center">
                         <div class="col d-md-flex d-lg-block flex-between-center">
                             <h6 class="mb-md-0 mb-lg-2">Total Transaksi Hari Ini</h6>
-                            <span class="badge rounded-pill badge-soft-success">Rp. {{ number_format($total_transaksi) }}</span>
+                            <span class="badge rounded-pill badge-soft-success">Rp. {{ number_format($total_transaksi)
+                                }}</span>
                         </div>
                     </div>
                 </div>
@@ -77,9 +85,12 @@
                             <tr role="row" class="odd">
                                 <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                 <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
-                                <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s', strtotime($item->created_at)) }}</td>
+                                <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y',
+                                    strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s',
+                                    strtotime($item->created_at)) }}</td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
-                                <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
+                                <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0,
+                                    ',', '.') }}</td>
                                 <td class="text-center status text-center fs--1">
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
                                 </td>
@@ -116,6 +127,93 @@
     </div>
 </main>
 
+<div class="modal fade" id="modalreport" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content position-relative">
+            <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="bg-light rounded-top-lg py-3 ps-4 pe-6">
+                    <h4 class="mb-1" id="staticBackdropLabel">Valas Report per {{ $today }}</h4>
+                    <p class="fs--2 mb-0">Pilih pegawai pada radio button untuk melihat data report perpegawai</p>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <form action="{{ url('/transaksi') }}" method="GET">
+                            <label for="filterData">Filter Berdasarkan Pegawai</label>
+                                <div class="row mb-3">
+                                    <div class="col-4">
+                                        <select class="form-select form-select-sm" id="filterData" size="1" name="filterData" >
+                                            <option value="">Report Keseluruhan</option>
+                                            @foreach ($pegawai as $user)
+                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-4">
+                                        <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+                                    </div>
+                                </div>
+                        </form>
+                        
+
+                        <div id="tableExample"
+                            data-list='{"valueNames":["no","nama_currency","jumlah","nilai","grand"],"page":20,"pagination":true}'>
+                            <div class="table-responsive scrollbar">
+                                <table class="table table-bordered table-striped fs--1 mb-0" id="datatableReport">
+                                    <thead class="bg-200 text-900">
+                                        <tr>
+                                            <th class="sort text-center" data-sort="no">No.</th>
+                                            <th class="sort text-center" data-sort="nama_currency">Currency</th>
+                                            <th class="sort text-center" data-sort="jumlah">Jumlah</th>
+                                            <th class="sort text-center" data-sort="nilai">Kurs(Rp)</th>
+                                            <th class="sort text-center" data-sort="grand">Total</th>
+                                        </tr>
+                                    </thead>
+                                    @php
+                                    $total_debit = 0;
+                                    // $total_kredit = 0;
+                                    foreach ($report as $key => $item) {
+                                    $total_debit = $total_debit + ($item->nilai_kurs*$item->jumlah_tukar);
+                                    // $total_kredit = $total_kredit + $item->jumlah_modal;
+                                    }
+                                    // $grand = $total_kredit - $total_debit;
+
+                                    @endphp
+                                    <tbody class="list" id="tess">
+                                        @forelse ($report as $item)
+                                        <tr role="row" class="odd">
+                                            <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
+                                            <td class="text-start nama_currency">{{ $item->nama_kurs }}</td>
+                                            <td class="text-start jumlah">{{ $item->jumlah_tukar }}</td>
+                                            <td class="text-center nilai text-center bg-soft-primary">Rp. {{
+                                                number_format($item->nilai_kurs, 2, ',', '.') }}</td>
+                                            <td class="text-center grand text-center">Rp. {{
+                                                number_format($item->nilai_kurs*$item->jumlah_tukar, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+
+                                        @empty
+
+                                        @endforelse
+
+                                    </tbody>
+                                    <tr>
+                                        <th class="text-center" colspan="4">Total Tercatat / Grand Total</th>
+                                        <th class="text-center" colspan="1">{{ number_format($total_debit,2,',','.') }}
+                                        </th>
+                                    </tr>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="deleteModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
     aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -137,12 +235,17 @@
                                     <div class="flex-1">
                                         <input type="hidden" name="transaksi_id" id="id_transaksi">
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
-                                        <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi ini? Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan Total Transaksi</p>
+                                        <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi ini?
+                                            Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan Total
+                                            Transaksi</p>
                                         <div class="mb-3">
-                                            <label class="col-form-label" for="keterangan">Keterangan Penghapusan</label><span class="mr-4 mb-3" style="color: red">*</span>
-                                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3"></textarea>
-                                            <span class="mb-1" style="color: red">*</span> <span class="fs--1">Wajib diisi</span> 
-                                          </div>
+                                            <label class="col-form-label" for="keterangan">Keterangan
+                                                Penghapusan</label><span class="mr-4 mb-3" style="color: red">*</span>
+                                            <textarea class="form-control" id="keterangan" name="keterangan"
+                                                rows="3"></textarea>
+                                            <span class="mb-1" style="color: red">*</span> <span class="fs--1">Wajib
+                                                diisi</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -175,14 +278,16 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" id="flexRadioDefault1" type="radio" value="excel" name="radio_input" checked/>
+                                    <input class="form-check-input" id="flexRadioDefault1" type="radio" value="excel"
+                                        name="radio_input" checked />
                                     <label class="form-check-label" for="flexRadioDefault1">Export Excel</label>
                                 </div>
 
                             </div>
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" id="flexRadioDefault2" type="radio" value="pdf" name="radio_input"  />
+                                    <input class="form-check-input" id="flexRadioDefault2" type="radio" value="pdf"
+                                        name="radio_input" />
                                     <label class="form-check-label" for="flexRadioDefault2">Export PDF</label>
                                 </div>
                             </div>
@@ -194,7 +299,8 @@
                                     data-options='{"removeItemButton":true,"placeholder":true, "shouldSort":false}'>
                                     <option value="">Pilih Currency</option>
                                     @foreach ($currency as $item)
-                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}, {{ $item->jenis_kurs }}</option>
+                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}, {{
+                                        $item->jenis_kurs }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -222,6 +328,14 @@
     </div>
 </div>
 
+@if(!empty(Session::get('modal-tes')) && Session::get('modal-tes') == 5)
+<script>
+$(function() {
+    $('#btnreport').trigger("click");
+});
+</script>
+@endif
+
 <script>
     $(document).ready(function () {
         $('.deleteModalBtn').click(function (e) {
@@ -233,7 +347,20 @@
         })
 
         var table = $('#example').DataTable([]);
+        $('#datatableReport').DataTable();
+
+        var url = (window.location).href;
+        var name = url.substring(url.lastIndexOf('=') + 1);
+        
+        
+
+       
+
+        
     })
+   
+
+   
 
 </script>
 

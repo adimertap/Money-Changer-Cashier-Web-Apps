@@ -27,8 +27,9 @@ class TransaksiController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        // return $request;
         if(Auth::user()->role == 'Pegawai'){
             $transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->orderBy('updated_at','DESC')->get();
             $count = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
@@ -36,7 +37,13 @@ class TransaksiController extends Controller
             $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
             $currency = MasterCurrency::orderBy('jenis_kurs','ASC')->get();
 
-            return view('pages.transaksi.index', compact('transaksi','count','today','total_transaksi','currency'));
+            // REPORT PEGAWAI CEPAT
+            $report = Jurnal::join('tb_currency','tb_jurnal.id_currency','tb_currency.id_currency')
+            ->where('tanggal_jurnal', $today)->where('id_pegawai', Auth::user()->id)
+            ->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs')
+            ->groupBy('nama_currency','kurs')->get();
+
+            return view('pages.transaksi.index', compact('transaksi','count','today','total_transaksi','currency','report'));
         }else{
             $transaksi = Transaksi::with('Pegawai')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->orderBy('updated_at', 'DESC')->get();
             $count = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
@@ -44,8 +51,23 @@ class TransaksiController extends Controller
             $total_transaksi = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
             $currency = MasterCurrency::orderBy('jenis_kurs','ASC')->get();
             $pegawai = User::where('role','!=','Owner')->get();
+            
+            $report = Jurnal::join('tb_currency','tb_jurnal.id_currency','tb_currency.id_currency')
+            ->where('tanggal_jurnal', $today)->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs, jenis_kurs as jenis')->groupBy('nama_currency','kurs','jenis_kurs')->get();
 
-            return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi','currency','pegawai'));
+            if($request->filterData){
+                $report = Jurnal::join('tb_currency','tb_jurnal.id_currency','tb_currency.id_currency')
+                    ->where('tanggal_jurnal', $today)->where('id_pegawai', $request->filterData)->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs, jenis_kurs as jenis, id_pegawai as user')->groupBy('nama_currency','kurs','jenis_kurs','id_pegawai')->get();
+
+                    return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi','currency','pegawai','report')); 
+
+            }
+
+            return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi','currency','pegawai','report'));
+
+            // return $report;
+
+           
         }       
     }
 

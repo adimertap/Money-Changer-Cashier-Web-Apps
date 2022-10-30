@@ -291,7 +291,7 @@
                         url: '/transaksi',
                         data: data,
                         success: function(response) {
-                            window.location.href = '/transaksi'
+                            window.location.href = '/transaksi/create'
                             window.open(
                                 '/cetak/' + id_transaksi,
                                 '_blank'
