@@ -162,12 +162,12 @@
                                     <tbody class="list">
                                         @forelse ($report as $item)
                                         <tr role="row" class="odd">
-                                            <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
-                                            <td class="text-start nama_currency">{{ $item->nama_kurs }}</td>
-                                            <td class="text-start jumlah">{{ $item->jumlah_tukar }}</td>
-                                            <td class="text-center nilai text-center bg-soft-primary">Rp. {{
+                                            <th scope="row" class="no" style="font-size: 14px">{{ $loop->iteration}}.</th>
+                                            <td class="text-start nama_currency" style="font-size: 15px">{{ $item->nama_kurs }}</td>
+                                            <td class="text-start jumlah" style="font-size: 15px">{{ $item->jumlah_tukar }}</td>
+                                            <td class="text-center nilai text-center bg-soft-primary" style="font-size: 15px">Rp. {{
                                                 number_format($item->nilai_kurs, 2, ',', '.') }}</td>
-                                            <td class="text-center grand text-center">Rp. {{
+                                            <td class="text-center grand text-center" style="font-size: 15px">Rp. {{
                                                 number_format($item->nilai_kurs*$item->jumlah_tukar, 0, ',', '.') }}
                                             </td>
                                         </tr>
@@ -178,8 +178,8 @@
 
                                     </tbody>
                                     <tr>
-                                        <th class="text-center" colspan="4">Total Tercatat / Grand Total</th>
-                                        <th class="text-center bg-soft-primary" colspan="1">{{ number_format($total_debit,2,',','.') }}
+                                        <th class="text-center bg-soft-primary" colspan="4" style="font-size: 17px">Total Tercatat / Grand Total</th>
+                                        <th class="text-center bg-soft-primary fw-bold" colspan="1" style="font-size: 18px">{{ number_format($total_debit,2,',','.') }}
                                         </th>
                                     </tr>
 

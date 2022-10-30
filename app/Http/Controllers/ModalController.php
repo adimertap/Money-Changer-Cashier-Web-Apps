@@ -146,7 +146,6 @@ class ModalController extends Controller
         $item->save();
 
         $user = User::where('role','Owner')->get();
-        // Mail::to('adimertap@gmail.com')->send(new MailModalTambah($item));
         foreach ($user as $tes) {
             Mail::to($tes->email)->send(new MailModalTambah($item));
         }
@@ -205,8 +204,6 @@ class ModalController extends Controller
         $modal->save();
 
         $user = User::where('role','Owner')->get();
-
-        // Mail::to('adimertap@gmail.com')->send(new MailTransfer($modal));
         foreach ($user as $tes) {
             Mail::to($tes->email)->send(new MailTransfer($modal));
         }
