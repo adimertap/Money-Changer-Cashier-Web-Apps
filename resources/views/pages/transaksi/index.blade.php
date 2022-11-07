@@ -188,6 +188,45 @@
                         </div>
                     </div>
                 </div>
+                <div class="card p-3">
+                    <h4 class="mb-2">Detail Valas</h4>
+                    <div id="tableExample"
+                    data-list='{"valueNames":["no","nama_currency","jumlah","nilai","grand"],"page":20,"pagination":true}'>
+                    <div class="table-responsive scrollbar">
+                        <table class="table table-bordered table-striped fs--1 mb-0" id="datatableReport2">
+                            <thead class="bg-200 text-900">
+                                <tr>
+                                    <th class="sort text-center" data-sort="no">No.</th>
+                                    <th class="sort text-center" data-sort="nama_currency">Currency</th>
+                                    <th class="sort text-center" data-sort="jumlah">Jumlah</th>
+                                    <th class="sort text-center" data-sort="tengah">Kurs Tengah</th>
+                                </tr>
+                            </thead>
+                            <tbody class="list" id="tess">
+                                @forelse ($valas as $item)
+                                <tr role="row" class="odd">
+                                    <th scope="row" class="no" >{{ $loop->iteration}}.</th>
+                                    <td class="text-start nama_currency">{{ $item->nama_kurs }} / {{ $item->jenis }}</td>
+                                    @if($item->jenis == 'Lembar')
+                                    <td class="text-center jumlah">{{ $item->jumlah }} Lembar</td>
+                                    @else
+                                    <td class="text-center jumlah">{{ $item->jumlah }} Coins</td>
+                                    @endif
+                                    <td class="text-center tengah">Rp.{{ number_format(($item->nilai*$item->jumlah)/$item->jumlah, 0,',','.' ) }}</td>
+                                </tr>
+
+                                @empty
+
+                                @endforelse
+
+
+
+                            </tbody>
+                        </table>
+                    </div>
+               
+                
+            </div>
             </div>
         </div>
     </div>
@@ -302,6 +341,7 @@
 
         var table = $('#datatable').DataTable();
         $('#datatableReport').DataTable();
+        $('#datatableReport2').DataTable();
 
     
 
