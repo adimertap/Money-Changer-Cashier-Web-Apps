@@ -20,6 +20,7 @@ class JurnalBulananController extends Controller
     {
         $transaksi = Transaksi::selectRaw('SUM(total) as grand_total, DATE_FORMAT(tanggal_transaksi, "%M") as month, YEAR(tanggal_transaksi) as year, COUNT(id_transaksi) as jumlah_transaksi')
         ->groupBy('month','year')
+        ->orderBy('month','DESC')
         ->get();
 
         // return $transaksi;

@@ -67,6 +67,7 @@ Route::group(['middleware' => 'auth'], function () {
     
     // LOG EDIT
     Route::resource('log-edit', LogEditController::class);
+    Route::get('log-edit/getdetail/{id}', [\App\Http\Controllers\LogEditController::class, 'getdetail']);
     Route::get('/filter-log', [\App\Http\Controllers\LogEditController::class, 'filterLog'])->name('filterLog');
 
     // APPROVAL

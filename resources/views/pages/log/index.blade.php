@@ -71,10 +71,15 @@
 
                                 </td>
                                 <td class="text-center fs--1">
-                                    <a href="{{ route('log-edit.show', $item->id_log) }}" class="btn p-0 ms-2"
+                                    <button class="btn p-0 ms-2 detailLog" value="{{ $item->id_log }}"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Detail"><span class="text-700 fas fa-eye"></span>
-                                    </a>
+                                    </button>
+
+                                    {{-- <a href="{{ route('log-edit.show', $item->id_log) }}" class="btn p-0 ms-2"
+                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="Detail"><span class="text-700 fas fa-eye"></span>
+                                    </a> --}}
                                 </td>
                             </tr>
                             @empty
@@ -87,6 +92,44 @@
         </div>
     </div>
 </main>
+
+
+<div class="modal fade" id="modaldetail" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 850px">
+        <div class="modal-content position-relative">
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h4 class="mb-4">Detail Log</h4>
+
+                    <div id="tableExample"
+                        data-list='{"valueNames":["no","enama_currency","enama_country","ejenis","ekurs",
+                            "eketerangan","eurutan","eflag"],"page":20,"pagination":true}'>
+                        <div class="table-responsive scrollbar">
+                            <table class="table table-bordered table-striped fs--1 mb-0" id="datatable2">
+                                <thead class="bg-200 text-900">
+                                    <tr>
+                                        <th class="sort text-center" data-sort="enama_currency">Currency</th>
+                                        <th class="sort text-center" data-sort="enama_country">Harga Currency</th>
+                                        <th class="sort text-center" data-sort="ejenis">Jumlah Tukar</th>
+                                        <th class="sort text-center" data-sort="ekurs">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="listdetail">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-auto mt-4">
+                            <button class="btn btn-secondary btn-sm" type="button" id="clearbtn" >Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="modalfilter" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
@@ -139,7 +182,51 @@
 
 <script>
     $(document).ready(function () {
+
+        $('#clearbtn').on('click', function() {
+            $('.listdetail').empty();
+            $('#modaldetail').modal('hide');
+        });
+
         var table = $('#example').DataTable();
+        // $('#datatable2').DataTable();
+        table.on('click', '.detailLog', function () {
+            var id = $(this).val();
+            $('#modaldetail').modal('show');
+            $.ajax({
+                url: 'log-edit/getdetail/' + id,
+                type: "GET",
+                dataType: "json",
+                success: function (response) {
+                    console.log(response)
+                    $.each(response, function (key, value) {
+
+                        var jumlah = new Intl.NumberFormat('id', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                        }).format(value.jumlah_currency);
+
+                        var total = new Intl.NumberFormat('id', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                        }).format(value.total_tukar);
+							$('#datatable2').append("<tr>\
+                                <td>"+value.nama_currency+"</td>\
+                                <td>"+jumlah+"</td>\
+                                <td>"+value.jumlah_tukar+"</td>\
+                                <td>"+total+"</td>\
+                                </tr>");
+						})
+                },
+                error: function (response) {
+                    console.log(response)
+                }
+            });
+        })
     })
 
     function filter_tanggal(event) {

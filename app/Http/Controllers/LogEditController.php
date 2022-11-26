@@ -74,11 +74,18 @@ class LogEditController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $log = LogEdit::find($id);
         $detail = LogEditDetail::where('id_log', $id)->get();
         return view('pages.log.detail', compact('log','detail'));
+    }
+
+    public function getdetail(Request $request, $id)
+    {
+        $log = LogEditDetail::join('tb_currency','new_detail_log_edit.currency_id','tb_currency.id_currency')
+        ->where('id_log', $id)->get();
+        return $log;
     }
 
     /**

@@ -37,7 +37,7 @@
                                 <th class="sort text-center fs--1" data-sort="total">Kurs</th>
                                 <th class="sort text-center fs--1" data-sort="status">Debit</th>
                                 <th class="sort text-center fs--1" data-sort="status">Kredit</th>
-                                <th class="sort text-center fs--1" data-sort="action">Action</th>
+                                {{-- <th class="sort text-center fs--1" data-sort="action">Action</th> --}}
                             </tr>
                         </thead>
                         <tbody class="list">
@@ -62,12 +62,12 @@
                                     <td>-</td>
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->jumlah_modal, 0, ',', '.') }}
                                 @endif
-                                <td class="text-center fs--1">
+                                {{-- <td class="text-center fs--1">
                                     <button class="btn p-0 deleteJurnalBtn" value="{{ $item->id_jurnal }}"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Delete"><span class="text-700 fas fa-trash-alt"></span>
                                     </button>
-                                </td>
+                                </td> --}}
                             
                             </tr>
                             @empty
@@ -144,7 +144,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="deleteModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
+{{-- <div class="modal fade" id="deleteModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
     aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content border-0">
@@ -179,18 +179,18 @@
             </form>
         </div>
     </div>
-</div>
+</div> --}}
 
 
 <script>
     $(document).ready(function () {
-        $('.deleteJurnalBtn').click(function (e) {
-            e.preventDefault();
+        // $('.deleteJurnalBtn').click(function (e) {
+        //     e.preventDefault();
 
-            var id = $(this).val();
-            $('#jurnal_id').val(id)
-            $('#deleteModal').modal('show');
-        });
+        //     var id = $(this).val();
+        //     $('#jurnal_id').val(id)
+        //     $('#deleteModal').modal('show');
+        // });
 
         var table = $('#example').DataTable();
     })
