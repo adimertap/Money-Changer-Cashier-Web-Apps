@@ -85,7 +85,7 @@ class LogEditController extends Controller
     {
         $log = LogEditDetail::
         join('new_log_edit','new_detail_log_edit.id_log','new_log_edit.id_log')
-        ->join('tb_currency','new_detail_log_edit.currency_id','tb_currency.id_currency')
+        ->leftjoin('tb_currency','new_detail_log_edit.currency_id','tb_currency.id_currency')
         ->where('new_detail_log_edit.id_log', $id)->get();
         return $log;
     }

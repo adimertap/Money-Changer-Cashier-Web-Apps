@@ -21,6 +21,7 @@ class LogEdit extends Model
         'tanggal_transaksi',
         'kode_transaksi',
         'total',
+        'keterangan_log'
     ];
 
     protected $hidden = [

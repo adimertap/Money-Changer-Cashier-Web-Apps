@@ -200,10 +200,8 @@
                 dataType: "json",
                 success: function (response) {
                     console.log(response)
-                    $('#keteranganLog').html(response[0].keterangan);
+                    $('#keteranganLog').html(response[0].keterangan_log);
                     $.each(response, function (key, value) {
-                        
-
                         var jumlah = new Intl.NumberFormat('id', {
                             style: 'currency',
                             currency: 'IDR',

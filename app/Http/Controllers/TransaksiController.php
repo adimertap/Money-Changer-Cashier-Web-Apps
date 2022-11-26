@@ -281,7 +281,7 @@ class TransaksiController extends Controller
         $new_log->kode_transaksi = $transaksi->kode_transaksi;
         $new_log->total = $transaksi->total;
         $new_log->jenis_log = 'Edit';
-        $new_log->keterangan = $request->keterangan;
+        $new_log->keterangan_log = $request->keterangan_log;
         $new_log->save();
 
         $getDetail = DetailTransaksi::where('id_transaksi', $transaksi->id_transaksi)->get(); 
@@ -353,7 +353,7 @@ class TransaksiController extends Controller
         $log->id_pegawai = $transaksi->id_pegawai;
         $log->id_modal = $transaksi->id_modal;
         $log->jenis_log = 'Delete';
-        $log->keterangan = $request->keterangan;
+        $log->keterangan_log = $request->keterangan_log;
         $log->tanggal_transaksi = $transaksi->tanggal_transaksi;
         $log->kode_transaksi = $transaksi->kode_transaksi;
         $log->total = $transaksi->total;
