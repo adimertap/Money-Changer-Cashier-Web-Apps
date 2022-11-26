@@ -18,9 +18,9 @@ class JurnalBulananController extends Controller
      */
     public function index()
     {
-        $transaksi = Transaksi::selectRaw('SUM(total) as grand_total, DATE_FORMAT(tanggal_transaksi, "%M") as month, YEAR(tanggal_transaksi) as year, COUNT(id_transaksi) as jumlah_transaksi')
+        $transaksi = Transaksi::selectRaw('SUM(total) as grand_total, tanggal_transaksi, DATE_FORMAT(tanggal_transaksi, "%m") as month, YEAR(tanggal_transaksi) as year, COUNT(id_transaksi) as jumlah_transaksi')
         ->groupBy('month','year')
-        ->orderBy('month','DESC')
+        ->orderBy('month','ASC')
         ->get();
 
         // return $transaksi;

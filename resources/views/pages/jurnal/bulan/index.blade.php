@@ -36,7 +36,7 @@
                             <tr role="row" class="odd">
                                 <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                 <td class="text-center year fs--1">{{ $item->year }}</td>
-                                <td class="text-center month fs--1">{{ $item->month }}</td>
+                                <td class="text-center month fs--1">{{ date("F", mktime(0, 0, 0, $item->month, 10)) }}</td>
                                 <td class="text-center jumlah_transaksi fs--1">{{ $item->jumlah_transaksi }}</td>
                                 <td class="grand_total fs--1">Rp. {{ number_format($item->grand_total, 0, ',', '.') }}</td>
                                 <td class="text-center fs--1">
