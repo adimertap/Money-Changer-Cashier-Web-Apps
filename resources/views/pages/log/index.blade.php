@@ -99,8 +99,9 @@
         <div class="modal-content position-relative">
             <div class="card mt-4">
                 <div class="card-body">
-                    <h4 class="mb-4">Detail Log</h4>
-
+                    <h4 class="mb-1">Detail Log</h4>
+                    Keterangan Log:
+                    <p id="keteranganLog" class="mb-4"></p>
                     <div id="tableExample"
                         data-list='{"valueNames":["no","enama_currency","enama_country","ejenis","ekurs",
                             "eketerangan","eurutan","eflag"],"page":20,"pagination":true}'>
@@ -199,7 +200,9 @@
                 dataType: "json",
                 success: function (response) {
                     console.log(response)
+                    $('#keteranganLog').html(response[0].keterangan);
                     $.each(response, function (key, value) {
+                        
 
                         var jumlah = new Intl.NumberFormat('id', {
                             style: 'currency',
