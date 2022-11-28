@@ -49,6 +49,8 @@ class TransaksiController extends Controller
             ->groupBy('nama_currency','jenis_kurs')
             ->get();
 
+           
+
             return view('pages.transaksi.index', compact('valas','transaksi','count','today','total_transaksi','currency','report'));
         }else{
             $transaksi = Transaksi::with('Pegawai')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->orderBy('updated_at', 'DESC')->get();
@@ -64,9 +66,10 @@ class TransaksiController extends Controller
 
             $valas = Jurnal::join('tb_currency','tb_jurnal.id_currency','tb_currency.id_currency')
             ->where('tanggal_jurnal', $today)
-            ->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah, kurs as nilai, jenis_kurs as jenis')
-            ->groupBy('nama_currency','jenis_kurs')
+            ->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah, kurs as nilai, jenis_kurs as jenis, SUM(total_tukar) as total')
+            ->groupBy('nama_currency')
             ->get();
+            // return $valas;
 
 
             if($request->filterData){

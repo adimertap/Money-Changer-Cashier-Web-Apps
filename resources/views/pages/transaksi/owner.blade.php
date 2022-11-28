@@ -238,7 +238,7 @@
                                                     @else
                                                     <td class="text-center jumlah">{{ $item->jumlah }} Coins</td>
                                                     @endif
-                                                    <td class="text-center tengah">Rp.{{ number_format(($item->nilai*$item->jumlah)/$item->jumlah, 0,',','.' ) }}</td>
+                                                    <td class="text-center tengah">Rp.{{ number_format($item->total/$item->jumlah, 2,',','.' ) }}</td>
                                                 </tr>
         
                                                 @empty

@@ -100,6 +100,8 @@ class JurnalHarianController extends Controller
                 Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
             }else{
                 return new ExcelTransaksi($transaksi);
+
+
                 // return Excel::download(new ExcelHarianView($transaksi), 'testing.xlsx');
             }
         }
