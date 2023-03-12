@@ -19,7 +19,7 @@ class ApprovalModalController extends Controller
     public function index()
     {
         $modal = ModalTransaksi::where('status_modal','Pending')->get();
-
+//test            
         return view('pages.modal.approval', compact('modal'));
     }
 
