@@ -25,7 +25,33 @@
             </div>
         </div>
     </div>
-    <div class="card mb-3">
+
+      <div class="card">
+          <div class="card-body">
+              <div class="row">
+                  <div class="col-4">
+                      <label class="form-label" for="nama_customer">Nama Customer</label>
+                      <input class="form-control form-select-sm"
+                          name="nama_customer" type="text" placeholder="Input Nama Customer"
+                          value="{{ $transaksi->nama_customer }}" readonly />
+                  </div>
+                  <div class="col-4">
+                      <label class="form-label" for="nomor_passport">Nomor Passport</label>
+                      <input class="form-control form-select-sm"
+                          name="nomor_passport" type="number" placeholder="Input Nomor Passport"
+                          value="{{ $transaksi->nomor_passport }}" readonly />
+                  </div>
+                  <div class="col-4">
+                      <label class="form-label" for="asal_negara">Asal Negara</label>
+                      <input class="form-control form-select-sm "
+                          name="asal_negara" type="text" placeholder="Input Asal Negara"
+                          value="{{ $transaksi->negara_asal }}" readonly />
+                  </div>
+              </div>
+          </div>
+      </div>
+
+    <div class="card mt-3 mb-3">
         <div class="card-body">
           <div class="table-responsive fs--1">
             <table class="table table-striped border-bottom">

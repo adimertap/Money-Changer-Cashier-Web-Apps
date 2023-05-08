@@ -30,8 +30,8 @@
                         <p>Lihat Cepat Valas Report disini</p>
                     </div>
                     <div class="col-auto h-100">
-                        <button class="btn btn-primary btn-sm me-1 mb-2 mb-sm-0" type="button"
-                            data-bs-toggle="modal" data-bs-target="#modalreport">Valas Report
+                        <button class="btn btn-primary btn-sm me-1 mb-2 mb-sm-0" type="button" data-bs-toggle="modal"
+                            data-bs-target="#modalreport">Valas Report
                         </button>
                     </div>
                 </div>
@@ -74,6 +74,8 @@
                             <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
                             <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal & Waktu</th>
                             <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
+                            <th class="sort text-center fs--1" data-sort="nama_customer">Cust.</th>
+                            <th class="sort text-center fs--1" data-sort="nomor_passport">Passport</th>
                             <th class="sort text-center fs--1" data-sort="total">Total Transaksi</th>
                             <th class="sort text-center fs--1" data-sort="print">Print</th>
                             <th class="sort text-center fs--1" data-sort="status">Status</th>
@@ -85,9 +87,14 @@
                         <tr role="row" class="odd">
                             <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                             <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
-                            <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s', strtotime($item->created_at)) }}</td>
+                            <td class="text-center tanggal_transaksi fs--1">
+                                {{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }},
+                                {{ date('H:i:s', strtotime($item->created_at)) }}</td>
                             <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
-                            <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
+                            <td class="text-center nama_customer fs--1">{{ $item->nama_customer }}</td>
+                            <td class="text-center nomor_passport fs--1">{{ $item->nomor_passport }}</td>
+                            <td class="text-center total text-center fs--1">Rp.
+                                {{ number_format($item->total, 0, ',', '.') }}</td>
                             <td class="text-center status text-center fs--1">
                                 <span class="badge rounded-pill badge-soft-success">Lunas</span>
                             </td>
@@ -106,9 +113,9 @@
                                     type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><span
                                         class="text-700 fas fa-edit"></span>
                                 </a>
-                                <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}"
-                                    type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                    title="Delete"><span class="text-700 fas fa-trash-alt"></span>
+                                <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}" type="button"
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><span
+                                        class="text-700 fas fa-trash-alt"></span>
                                 </button>
                             </td>
                         </tr>
@@ -127,7 +134,8 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content position-relative">
             <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
-                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
                 <div class="bg-light rounded-top-lg py-3 ps-4 pe-6">
@@ -162,10 +170,14 @@
                                     <tbody class="list">
                                         @forelse ($report as $item)
                                         <tr role="row" class="odd">
-                                            <th scope="row" class="no" style="font-size: 14px">{{ $loop->iteration}}.</th>
-                                            <td class="text-start nama_currency" style="font-size: 15px">{{ $item->nama_kurs }}</td>
-                                            <td class="text-start jumlah" style="font-size: 15px">{{ $item->jumlah_tukar }}</td>
-                                            <td class="text-center nilai text-center bg-soft-primary" style="font-size: 15px">Rp. {{
+                                            <th scope="row" class="no" style="font-size: 14px">{{ $loop->iteration}}.
+                                            </th>
+                                            <td class="text-start nama_currency" style="font-size: 15px">
+                                                {{ $item->nama_kurs }}</td>
+                                            <td class="text-start jumlah" style="font-size: 15px">
+                                                {{ $item->jumlah_tukar }}</td>
+                                            <td class="text-center nilai text-center bg-soft-primary"
+                                                style="font-size: 15px">Rp. {{
                                                 number_format($item->nilai_kurs, 2, ',', '.') }}</td>
                                             <td class="text-center grand text-center" style="font-size: 15px">Rp. {{
                                                 number_format($item->nilai_kurs*$item->jumlah_tukar, 0, ',', '.') }}
@@ -178,8 +190,10 @@
 
                                     </tbody>
                                     <tr>
-                                        <th class="text-center bg-soft-primary" colspan="4" style="font-size: 17px">Total Tercatat / Grand Total</th>
-                                        <th class="text-center bg-soft-primary fw-bold" colspan="1" style="font-size: 18px">{{ number_format($total_debit,2,',','.') }}
+                                        <th class="text-center bg-soft-primary" colspan="4" style="font-size: 14px">
+                                            Total Tercatat / Grand Total</th>
+                                        <th class="text-center bg-soft-primary fw-bold" colspan="1"
+                                            style="font-size: 15px">{{ number_format($total_debit,2,',','.') }}
                                         </th>
                                     </tr>
 
@@ -191,40 +205,43 @@
                 <div class="card p-3">
                     <h4 class="mb-2">Detail Valas</h4>
                     <div id="tableExample"
-                    data-list='{"valueNames":["no","nama_currency","jumlah","nilai","grand"],"page":20,"pagination":true}'>
-                    <div class="table-responsive scrollbar">
-                        <table class="table table-bordered table-striped fs--1 mb-0" id="datatableReport2">
-                            <thead class="bg-200 text-900">
-                                <tr>
-                                    <th class="sort text-center" data-sort="no">No.</th>
-                                    <th class="sort text-center" data-sort="nama_currency">Currency</th>
-                                    <th class="sort text-center" data-sort="jumlah">Jumlah</th>
-                                    <th class="sort text-center" data-sort="tengah">Kurs Tengah</th>
-                                </tr>
-                            </thead>
-                            <tbody class="list" id="tess">
-                                @forelse ($valas as $item)
-                                <tr role="row" class="odd">
-                                    <th scope="row" class="no" >{{ $loop->iteration}}.</th>
-                                    <td class="text-start nama_currency">{{ $item->nama_kurs }} / {{ $item->jenis }}</td>
-                                    @if($item->jenis == 'Lembar')
-                                    <td class="text-center jumlah">{{ $item->jumlah }} Lembar</td>
-                                    @else
-                                    <td class="text-center jumlah">{{ $item->jumlah }} Coins</td>
-                                    @endif
-                                    <td class="text-center tengah">Rp.{{ number_format($item->total/$item->jumlah, 2,',','.' ) }}</td>
-                                </tr>
+                        data-list='{"valueNames":["no","nama_currency","jumlah","nilai","grand"],"page":20,"pagination":true}'>
+                        <div class="table-responsive scrollbar">
+                            <table class="table table-bordered table-striped fs--1 mb-0" id="datatableReport2">
+                                <thead class="bg-200 text-900">
+                                    <tr>
+                                        <th class="sort text-center" data-sort="no">No.</th>
+                                        <th class="sort text-center" data-sort="nama_currency">Currency</th>
+                                        <th class="sort text-center" data-sort="jumlah">Jumlah</th>
+                                        <th class="sort text-center" data-sort="tengah">Kurs Tengah</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="list" id="tess">
+                                    @forelse ($valas as $item)
+                                    <tr role="row" class="odd">
+                                        <th scope="row" class="no">{{ $loop->iteration}}.</th>
+                                        <td class="text-start nama_currency">{{ $item->nama_kurs }} / {{ $item->jenis }}
+                                        </td>
+                                        @if($item->jenis == 'Lembar')
+                                        <td class="text-center jumlah">{{ $item->jumlah }} Lembar</td>
+                                        @else
+                                        <td class="text-center jumlah">{{ $item->jumlah }} Coins</td>
+                                        @endif
+                                        <td class="text-center tengah">
+                                            Rp.{{ number_format($item->total/$item->jumlah, 2,',','.' ) }}</td>
+                                    </tr>
 
-                                @empty
+                                    @empty
 
-                                @endforelse
+                                    @endforelse
 
 
 
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-            </div>
+                </div>
             </div>
         </div>
     </div>
@@ -250,13 +267,18 @@
                                     <div class="flex-1">
                                         <input type="hidden" name="transaksi_id" id="id_transaksi">
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
-                                        <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi ini? Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan Total Transaksi
+                                        <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Transaksi
+                                            ini? Dengan Menghapus Data Transaksi Modal akan Bertambah Sesuai dengan
+                                            Total Transaksi
                                         </p>
                                         <div class="mb-3">
-                                            <label class="col-form-label" for="keterangan">Keterangan Penghapusan</label><span class="mr-4 mb-3" style="color: red">*</span>
-                                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3"></textarea>
-                                            <span class="mb-1" style="color: red">*</span> <span class="fs--1">Wajib diisi</span> 
-                                          </div>
+                                            <label class="col-form-label" for="keterangan">Keterangan
+                                                Penghapusan</label><span class="mr-4 mb-3" style="color: red">*</span>
+                                            <textarea class="form-control" id="keterangan" name="keterangan"
+                                                rows="3"></textarea>
+                                            <span class="mb-1" style="color: red">*</span> <span class="fs--1">Wajib
+                                                diisi</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -311,7 +333,8 @@
                                     data-options='{"removeItemButton":true,"placeholder":true, "shouldSort":false}'>
                                     <option value="">Pilih Currency</option>
                                     @foreach ($currency as $item)
-                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}, {{ $item->jenis_kurs }}</option>
+                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }},
+                                        {{ $item->jenis_kurs }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -340,13 +363,7 @@
         var table = $('#datatable').DataTable();
         $('#datatableReport').DataTable();
         $('#datatableReport2').DataTable();
-
-    
-
-
     })
-    
-
 </script>
 
 

@@ -29,6 +29,10 @@
                 aria-labelledby="navbarDropdownUser">
                 <div class="bg-white dark__bg-1000 rounded-2 py-2">
                     <div class="dropdown-divider"></div>
+                    <div class="dropdown-item">
+                        <button class="btn btn-sm small p-0 changeBtn" value="{{ Auth::user()->email }}" type="button">Change Password
+                        </button>
+                    </div>
                     <a onclick="event.preventDefault(); document.getElementById('logout-form').submit()" style="cursor: pointer">
                         <div class="dropdown-item">Logout
                         <form id="logout-form" action="{{route('logout')}}" method="post" style="display: none">

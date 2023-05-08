@@ -44,6 +44,9 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
         return[
             'Kode Transaksi',
             'Tanggal Transaksi',
+            'Customer',
+            'Nomor Passport',
+            'Negara Asal',
             'Currency',
             'Harga PerCurrency',
             'Jumlah Tukar',
@@ -56,6 +59,9 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
             return[
                 $transaksi->kode_transaksi,
                 $transaksi->tanggal_transaksi,
+                $transaksi->nama_customer,
+                $transaksi->nomor_passport,
+                $transaksi->negara_asal,
                 $transaksi->nama_currency,
                 $transaksi->jumlah_currency,
                 $transaksi->jumlah_tukar,
@@ -68,7 +74,7 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
     {
         return[
             AfterSheet::class => function(AfterSheet $event){
-                $event->sheet->getStyle('A2:G2')->applyFromArray([
+                $event->sheet->getStyle('A2:J2')->applyFromArray([
                     'font' => [
                         'bold' => true
                     ],

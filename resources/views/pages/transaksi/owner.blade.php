@@ -74,10 +74,12 @@
                                 <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal & Waktu</th>
                                 <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
+                                <th class="sort text-center fs--1" data-sort="nama_customer">Cust</th>
+                                <th class="sort text-center fs--1" data-sort="nomor_passport">Passport</th>
                                 <th class="sort text-center fs--1" data-sort="total">Total Transaksi</th>
                                 <th class="sort text-center fs--1" data-sort="print">Print</th>
                                 <th class="sort text-center fs--1" data-sort="status">Status</th>
-                                <th class="text-center">Actions</th>
+                                <th class="text-center" style="width: 60px">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="list">
@@ -89,6 +91,8 @@
                                     strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s',
                                     strtotime($item->created_at)) }}</td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
+                                <td class="text-center nama_customer fs--1">{{ $item->nama_customer }}</td>
+                                <td class="text-center nomor_passport fs--1">{{ $item->nomor_passport }}</td>
                                 <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0,
                                     ',', '.') }}</td>
                                 <td class="text-center status text-center fs--1">
@@ -400,18 +404,8 @@ $(function() {
         $('#datatableReport2').DataTable();
 
         var url = (window.location).href;
-        var name = url.substring(url.lastIndexOf('=') + 1);
-        
-        
-
-       
-
-        
+        var name = url.substring(url.lastIndexOf('=') + 1);        
     })
-   
-
-   
-
 </script>
 
 

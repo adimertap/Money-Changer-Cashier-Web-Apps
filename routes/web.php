@@ -29,7 +29,8 @@ Auth::routes();
 
 
 Route::group(['middleware' => 'auth'], function () {
-    Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->middleware('Owner')->name('dashboard');
+    Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/change-password', [\App\Http\Controllers\DashboardController::class, 'change_password'])->name('change_password');
 
     Route::prefix('owner')->middleware(['Owner'])->group(function(){
         // MASTER DATA

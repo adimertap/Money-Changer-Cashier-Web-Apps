@@ -8,11 +8,11 @@
         <div class="card-body position-relative">
             <div class="row">
                 <div class="col-lg-12">
-                    <h5>Seluruh Transaksi Bulan {{ $transaksi[0]->month }}</h5>
+                    <h5>Seluruh Transaksi Bulan {{ $bulan }}</h5>
                     <p class="mt-2">Pilih Tanggal Awal dan Pilih Tanggal Akhir</p>
                     <hr>
                     <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button">
-                        <span class="fas fa-arrow-down me-1"></span>Download Transaksi Bulan {{ $transaksi[0]->month }}(.excel)
+                        <span class="fas fa-arrow-down me-1"></span>Download Transaksi Bulan {{ $bulan }}(.excel)
                     </button>
                 </div>
             </div>
@@ -25,7 +25,7 @@
                 <li class="nav-item"><a class="nav-link active" id="home-tab" data-bs-toggle="tab" href="#tab-home" role="tab"
                         aria-controls="tab-home" aria-selected="true">Berdasarkan Tanggal</a></li>
                 <li class="nav-item"><a class="nav-link" id="profile-tab" data-bs-toggle="tab" href="#tab-profile" role="tab"
-                        aria-controls="tab-profile" aria-selected="false">Seluruh Transaksi Bulan {{ $transaksi[0]->month }}</a></li>
+                        aria-controls="tab-profile" aria-selected="false">Seluruh Transaksi Bulan {{ $bulan }}</a></li>
             </ul>
             <div class="tab-content border-x border-bottom p-3" id="myTabContent">
                 <div class="tab-pane fade show active" id="tab-home" role="tabpanel" aria-labelledby="home-tab">
@@ -75,6 +75,9 @@
                                         <th class="sort text-center fs--1" data-sort="no">No.</th>
                                         <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
                                         <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
+                                        <th class="sort text-center fs--1" data-sort="nama_customer">Customer</th>
+                                        <th class="sort text-center fs--1" data-sort="nomor_passport">Passport</th>
+                                        <th class="sort text-center fs--1" data-sort="negara_asal">Negara Asal</th>
                                         <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal Transaksi</th>
                                         <th class="sort text-center fs--1" data-sort="total">Total Transaksi</th>
                                         <th class="text-center">Actions</th>
@@ -86,6 +89,9 @@
                                         <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                         <td class="text-center pegawai fs--1">{{ $item->Pegawai->name }}</td>
                                         <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
+                                        <td class="text-center nama_customer fs--1">{{ $item->nama_customer }}</td>
+                                        <td class="text-center nomor_passport fs--1">{{ $item->nomor_passport }}</td>
+                                        <td class="text-center negara_asal fs--1">{{ $item->negara_asal }}</td>
                                         <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
                                         <td class="text-center total fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
                                         <td class="text-center fs--1">

@@ -22,6 +22,9 @@ class Transaksi extends Model
         'tanggal_transaksi',
         'kode_transaksi',
         'total',
+        'nama_customer',
+        'nomor_passport',
+        'negara_asal'
     ];
 
     protected $hidden = [
