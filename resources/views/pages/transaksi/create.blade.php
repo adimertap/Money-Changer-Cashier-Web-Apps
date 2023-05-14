@@ -62,7 +62,7 @@
                         <div class="col-4">
                             <label class="form-label" for="nomor_passport">Nomor Passport</label>
                             <input class="form-control form-select-sm  @error('nomor_passport') is-invalid @enderror"
-                                name="nomor_passport" type="number" placeholder="Input Nomor Passport"
+                                name="nomor_passport" type="text" placeholder="Input Nomor Passport"
                                 value="{{ old('nomor_passport') }}" />
                             @error('nomor_passport')
                             <div class="invalid-feedback">
