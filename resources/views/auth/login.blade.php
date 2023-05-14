@@ -89,7 +89,7 @@
                                                         for="inputChoosePassword">Password</label></div>
                                                 <input class="form-control @error('password') is-invalid @enderror"
                                                     id="inputChoosePassword" placeholder="Enter Password"
-                                                    type="password" name="password" required
+                                                    type="text" name="password" required
                                                     autocomplete="current-password">
                                                     @error('password')
                                                     <div class="invalid-feedback">
