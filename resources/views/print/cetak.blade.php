@@ -114,7 +114,13 @@
         <div class="row align-items-center">
             <div class="col">
                 <h6 class="text-500 fs--2">{{ date('d-M-Y', strtotime($transaksi->tanggal_transaksi)) }}</h6>
-                <h6 class="m-0 fs--2 text-600">Buying</h6>
+                <h6 class="m-0 fs--2 text-600">
+                    @if($transaksi->jenis_transaksi == 'Jual')
+                        Selling
+                    @else
+                        Buying
+                    @endif
+                </h6>
                 <p class="fs--2 text-black m-0 text-600">{{ $transaksi->Pegawai->nama_panggilan }}</p>
             </div>
             <div class="col text-end">
@@ -157,7 +163,13 @@
             <div class="col-6 text-end">
                 <p class="fs--2 fw-bold m-0 text-600 me-2" id="total">{{ number_format($transaksi->total, 0, ',', '.') }}</p>
             </div>
-            <h6 class="text-600 m-0 fs--2 text-center mt-4">#Customer Signature</h6>
+            <h6 class="text-600 m-0 fs--2 text-center mt-4">
+                @if($transaksi->jenis_transaksi == 'Jual')
+                #Signature
+                @else
+                #Customer Signature
+                @endif
+            </h6>
         </div>
         <div class="mt-6">
          

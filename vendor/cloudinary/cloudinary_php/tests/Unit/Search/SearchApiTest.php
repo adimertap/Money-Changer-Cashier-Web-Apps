@@ -11,6 +11,9 @@
 namespace Cloudinary\Test\Unit\Search;
 
 use Cloudinary\Api\Exception\GeneralError;
+use Cloudinary\Asset\SearchAsset;
+use Cloudinary\Configuration\Configuration;
+use Cloudinary\Test\Helpers\MockSearchFoldersApi;
 use Cloudinary\Test\Helpers\MockSearchApi;
 use Cloudinary\Test\Helpers\RequestAssertionsTrait;
 use Cloudinary\Test\Unit\UnitTestCase;
@@ -33,13 +36,16 @@ final class SearchApiTest extends UnitTestCase
         $mockSearchApi
             ->expression('format:png')
             ->maxResults(10)
-            ->nextCursor('8c452e112d4c88ac7c9ffb3a2a41c41bef24')
+            ->nextCursor(self::NEXT_CURSOR)
             ->sortBy('created_at', 'asc')
             ->sortBy('updated_at')
             ->aggregate('format')
             ->aggregate('resource_type')
             ->withField('tags')
             ->withField('image_metadata')
+            ->fields(['tags', 'context'])
+            ->fields('metadata')
+            ->fields('tags')
             ->execute();
         $lastRequest = $mockSearchApi->getMockHandler()->getLastRequest();
 
@@ -52,9 +58,10 @@ final class SearchApiTest extends UnitTestCase
                 ],
                 'aggregate'   => ['format', 'resource_type'],
                 'with_field'  => ['tags', 'image_metadata'],
+                'fields'      => ['tags', 'context', 'metadata'],
                 'expression'  => 'format:png',
                 'max_results' => 10,
-                'next_cursor' => '8c452e112d4c88ac7c9ffb3a2a41c41bef24',
+                'next_cursor' => self::NEXT_CURSOR,
             ],
             'Should use right headers for execution of advanced search api'
         );
@@ -80,19 +87,59 @@ final class SearchApiTest extends UnitTestCase
             ->withField('context')
             ->withField('context')
             ->withField('tags')
+            ->fields(['tags', 'context'])
+            ->fields('tags')
             ->execute();
         $lastRequest = $mockSearchApi->getMockHandler()->getLastRequest();
 
         self::assertRequestJsonBodySubset(
             $lastRequest,
             [
-                'sort_by' => [
+                'sort_by'    => [
                     ['created_at' => 'desc'],
                     ['public_id' => 'asc'],
                 ],
-                'aggregate' => ['format', 'resource_type'],
+                'aggregate'  => ['format', 'resource_type'],
                 'with_field' => ['context', 'tags'],
+                'fields'     => ['tags', 'context'],
             ]
+        );
+    }
+
+    public function testShouldSearchFolders()
+    {
+        $mockSearchApi = new MockSearchFoldersApi();
+        $mockSearchApi->expression('parent=folder_name')->execute();
+
+        $lastRequest = $mockSearchApi->getMockHandler()->getLastRequest();
+
+        self::assertStringEndsWith('folders/search', $lastRequest->getRequestTarget());
+        self::assertRequestJsonBodySubset(
+            $lastRequest,
+            [
+                'expression' => 'parent=folder_name',
+            ]
+        );
+    }
+
+    public function testShouldBuildSearchUrl()
+    {
+        $config = Configuration::instance();
+        $config->url->privateCdn();
+
+        $mockSearchApi = new MockSearchApi($config);
+        $mockSearchApi->expression("resource_type:image AND tags=kitten AND uploaded_at>1d AND bytes>1m")
+                      ->sortBy("public_id", "desc")
+                      ->maxResults(30)->ttl(1000)->nextCursor(self::NEXT_CURSOR);
+
+        $searchAsset = new SearchAsset($config);
+        $searchAsset->expression("resource_type:image AND tags=kitten AND uploaded_at>1d AND bytes>1m")
+                    ->sortBy("public_id", "desc")
+                    ->maxResults(30)->ttl(1000)->nextCursor(self::NEXT_CURSOR);
+
+        self::assertStrEquals(
+            $searchAsset,
+            $mockSearchApi->toUrl()
         );
     }
 }

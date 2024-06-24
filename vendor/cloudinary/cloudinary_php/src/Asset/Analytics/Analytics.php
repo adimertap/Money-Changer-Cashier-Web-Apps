@@ -22,10 +22,12 @@ use OutOfRangeException;
 class Analytics
 {
     const QUERY_KEY    = '_a';
-    const ALGO_VERSION = 'A'; // The version of the algorithm
+    const ALGO_VERSION = 'B'; // The version of the algorithm
     const SDK_CODE     = 'A'; // Cloudinary PHP SDK
 
-    protected static $sdkVersion  = Cloudinary::VERSION;
+    protected static $product = 'A'; // Official SDK. Set to 'B' for integrations.
+    protected static $sdkCode = self::SDK_CODE;
+    protected static $sdkVersion = Cloudinary::VERSION;
     protected static $techVersion = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
 
     const CHARS           = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -44,7 +46,7 @@ class Analytics
         if (empty(static::$signature)) {
             // Lazily create $signature
             try {
-                static::$signature = static::ALGO_VERSION . static::SDK_CODE .
+                static::$signature = static::ALGO_VERSION . static::$product . static::$sdkCode .
                                      static::encodeVersion(static::$sdkVersion) .
                                      static::encodeVersion(static::$techVersion);
             } catch (OutOfRangeException $e) {
@@ -53,6 +55,70 @@ class Analytics
         }
 
         return static::$signature;
+    }
+
+    /**
+     * Sets the product code.
+     *
+     * Used for integrations.
+     *
+     * @param string $product The product code to set. 'A' is for the official SDK. 'B' for integrations.
+     *
+     * @return void
+     *
+     * @internal
+     */
+    public static function product($product)
+    {
+        static::$product = $product;
+    }
+
+    /**
+     * Sets the SDK code.
+     *
+     * Used for integrations.
+     *
+     * @param string $sdkCode The SDK code to set.
+     *
+     * @return void
+     *
+     * @internal
+     */
+    public static function sdkCode($sdkCode)
+    {
+        static::$sdkCode = $sdkCode;
+    }
+
+    /**
+     * Sets the SDK version.
+     *
+     * Used for integrations.
+     *
+     * @param string $sdkVersion The SDK version to set (MAJOR.MINOR.PATCH), for example: "1.0.0".
+     *
+     * @return void
+     *
+     * @internal
+     */
+    public static function sdkVersion($sdkVersion)
+    {
+        static::$sdkVersion = $sdkVersion;
+    }
+
+    /**
+     * Sets the tech version.
+     *
+     * Used for integrations.
+     *
+     * @param string $techVersion The tech version to set (MAJOR.MINOR), for example: "1.0".
+     *
+     * @return void
+     *
+     * @internal
+     */
+    public static function techVersion($techVersion)
+    {
+        static::$techVersion = join('.', array_slice(explode('.', $techVersion), 0, 2));
     }
 
     /**

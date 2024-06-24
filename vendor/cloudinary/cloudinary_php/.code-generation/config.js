@@ -16,6 +16,11 @@ module.exports = {
                 video: '(new VideoTag(\'#publicID\'))',
                 media: '(new Media(\'#publicID\'))'
             },
+            openUrlSyntaxString: {
+                image: '(new Image(\'#publicID\'))',
+                video: '(new Video(\'#publicID\'))',
+                media: '(new Media(\'#publicID\'))'
+            },
             closeSyntaxString: ';'
         },
         openActionChar: '(',
@@ -54,6 +59,11 @@ module.exports = {
                 open: "(new Transformation())",// TODO Seems like we should reuse the newInstanceSyntax
                 close: '',
             }
+        },
+        importStatementsTemplate: {
+            action: 'use Cloudinary\\Transformation\\<GROUP>;',
+            qualifier: 'use Cloudinary\\Transformation\\<GROUP>;',
+            importCase: "PascalCase",
         },
     },
     "overwrites": {

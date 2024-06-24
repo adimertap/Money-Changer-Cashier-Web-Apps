@@ -224,8 +224,12 @@ class AssetDescriptor implements AssetInterface
             )
             = FileUtils::splitPathFilenameExtension($source);
 
-        // Explicit 'format' parameter overrides extension.
-        ArrayUtils::addNonEmpty($assetJson, 'extension', ArrayUtils::get($params, 'format'));
+        // Explicit 'format' parameter overrides extension. (Fetch URLs are not affected).
+        if ($assetJson['delivery_type'] != DeliveryType::FETCH
+            || ! ArrayUtils::get($params, 'use_fetch_format', false)
+        ) {
+            ArrayUtils::addNonEmpty($assetJson, 'extension', ArrayUtils::get($params, 'format'));
+        }
 
         return self::fromJson(['asset' => $assetJson]);
     }

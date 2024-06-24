@@ -16,14 +16,23 @@
                                 <p>Dashboard Pegawai Khusus untuk Pegawai</p>
                             </div>
                             @if(Auth::user()->role == 'Owner')
-                            <div class="d-flex py-3">
-                                <div class="pe-3">
-                                    <p class="text-600 fs--1 fw-medium">Jumlah Transaksi Hari Ini</p>
-                                    <h4 class="text-800 mb-0">{{ $jumlah_hari_ini }} Transaksi</h4>
+                            <hr>
+                            <div class="d-flex py-3 ">
+                                <div class="border p-3 px-5">
+                                    <p class="text-700 fs--1 fw-medium">Jumlah Transaksi <br>Customer Hari Ini</p>
+                                    <h5 class="text-800 mb-0">{{ $jumlah_hari_ini }} Transaksi</h5>
                                 </div>
-                                <div class="ps-3">
-                                    <p class="text-600 fs--1">Total Transaksi Hari Ini</p>
-                                    <h4 class="text-800 mb-0">Rp. {{ number_format($total_hari_ini, 0, ',', '.') }}</h4>
+                                <div class="border p-3 px-5">
+                                    <p class="text-700 fs--1">Total Transaksi <br>Customer Hari Ini</p>
+                                    <h5 class="text-800 mb-0">Rp. {{ number_format($total_hari_ini, 0, ',', '.') }}</h5>
+                                </div>
+                                <div class="border p-3 px-5">
+                                    <p class="text-700 fs--1 fw-medium">Jumlah Transaksi <br>Jual Valas Hari Ini</p>
+                                    <h5 class="text-800 mb-0">{{ $jumlah_jual_hari_ini }} Transaksi</h5>
+                                </div>
+                                <div class="border p-3 px-5">
+                                    <p class="text-700 fs--1">Total Transaksi <br>Jual Valas Hari Ini</p>
+                                    <h5 class="text-800 mb-0">Rp. {{ number_format($total_jual_hari_ini, 0, ',', '.') }}</h5>
                                 </div>
                             </div>
                             @else
@@ -173,6 +182,24 @@
                                 <h6 class="fs--1 text-500 mb-0">Bulan {{ $bulan_ini }}</h6>
                             </div>
                         </div>
+                        <hr class="mt-3">
+                        <div
+                            class="col-6 col-md-4 border-200 border-md-200 border-bottom border-md-bottom-0 border-md-end pt-4 pb-md-0 ps-3 ps-md-0">
+                            <h6 class="pb-1 text-700">Transaksi Jual Valas Bulan Ini</h6>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">{{ $jumlah_jual_bulan_ini, 0, ',', '.' }}</p>
+                            <div class="d-flex align-items-center">
+                                <h6 class="fs--1 text-500 mb-0">Transaksi</h6>
+                                </h6>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 border-200 border-md-bottom-0 border-end pt-4 pb-md-0 ps-md-3">
+                            <h6 class="pb-1 text-700">Total Transaksi Jual Valas Bulan Ini </h6>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total_jual_bulan_ini, 0, ',',
+                                '.') }}</p>
+                            <div class="d-flex align-items-center">
+                                <h6 class="fs--1 text-500 mb-0">Bulan {{ $bulan_ini }}</h6>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -201,6 +228,32 @@
                             <h6 class="pb-1 text-700">Total Transaksi Money Changer Anda Bulan Ini</h6>
                             <p class="font-sans-serif lh-1 mb-1 fs-2">
                                 Rp. {{ number_format($pegawai_sum_money_bulan, 0, ',', '.')
+                            }}
+                                <div class="d-flex align-items-center">
+                                    <h6 class="fs--1 text-500 mb-0">Bulan Ini: {{ $bulan_ini }}</h6>
+                                </div>
+                            </p>
+                        </div>
+                        <div class="col-6 col-md-4 border-200 border-bottom border-end pb-4">
+                            <h6 class="pb-1 text-700">Transaksi Jual Valas</h6>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">{{ $pegawai_count_money_today_jual }}</p>
+                            <div class="d-flex align-items-center">
+                                <h6 class="fs--1 text-500 mb-0">Transaksi</h6>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 border-200 border-md-200 border-bottom border-md-end pb-4 ps-3">
+                            <h6 class="pb-1 text-700">Total Transaksi Jual Valas Anda Hari Ini</h6>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($pegawai_money_today_total_jual, 0, ',', '.')
+                                }}</p>
+                            <div class="d-flex align-items-center">
+                                <h6 class="fs--1 text-500 mb-0">Hari Ini</h6>
+                            </div>
+                        </div>
+                        <div
+                            class="col-6 col-md-4 border-200 border-bottom border-end border-md-end-0 pb-4 pt-4 pt-md-0 ps-md-3">
+                            <h6 class="pb-1 text-700">Total Transaksi Jual Valas Anda Bulan Ini</h6>
+                            <p class="font-sans-serif lh-1 mb-1 fs-2">
+                                Rp. {{ number_format($pegawai_sum_money_bulan_jual, 0, ',', '.')
                             }}
                                 <div class="d-flex align-items-center">
                                     <h6 class="fs--1 text-500 mb-0">Bulan Ini: {{ $bulan_ini }}</h6>

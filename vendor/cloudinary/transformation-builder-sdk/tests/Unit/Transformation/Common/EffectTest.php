@@ -10,12 +10,14 @@
 
 namespace Cloudinary\Test\Unit\Transformation\Common;
 
+use Cloudinary\Test\TransformationTestCase;
 use Cloudinary\Transformation\Argument\Color;
 use Cloudinary\Transformation\Argument\PointValue;
 use Cloudinary\Transformation\ArtisticFilter;
 use Cloudinary\Transformation\Cartoonify;
 use Cloudinary\Transformation\Dither;
 use Cloudinary\Transformation\Effect;
+use Cloudinary\Transformation\ForegroundObject;
 use Cloudinary\Transformation\GradientFade;
 use Cloudinary\Transformation\PixelEffect;
 use Cloudinary\Transformation\Position;
@@ -27,14 +29,13 @@ use Cloudinary\Transformation\StyleTransfer;
 use Cloudinary\Transformation\WhiteBalance;
 use Cloudinary\Transformation\Xmp;
 use OutOfRangeException;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Class SampleTest
  */
-final class EffectTest extends TestCase
+final class EffectTest extends TransformationTestCase
 {
-    protected $effectLevel = 17;
+    protected $effectLevel         = 17;
     protected $effectNegativeLevel = -17;
 
     public function testColorEffects()
@@ -225,6 +226,21 @@ final class EffectTest extends TestCase
         );
 
         self::assertEquals(
+            'e_blur_region:2000,h_40,w_30,x_10,y_20',
+            (string)Effect::blurRegion(2000, 10, 20, 30, 40)
+        );
+
+        self::assertEquals(
+            'e_blur_region:2000,h_40,w_30,x_10,y_20',
+            (string)Effect::blurRegion()->strength(2000)->x(10)->y(20)->width(30)->height(40)
+        );
+
+        self::assertEquals(
+            'e_blur_region:$var1,h_$var5,w_$var4,x_$var2,y_$var3',
+            (string)Effect::blurRegion()->strength('$var1')->x('$var2')->y('$var3')->width('$var4')->height('$var5')
+        );
+
+        self::assertEquals(
             'e_blur_faces:17',
             (string)Effect::blur(17)->region(Region::faces())
         );
@@ -232,6 +248,16 @@ final class EffectTest extends TestCase
         self::assertEquals(
             'e_blur_faces:17',
             (string)Effect::blur()->strength(17)->region(Region::faces())
+        );
+
+        self::assertEquals(
+            'e_blur_faces:17',
+            (string)Effect::blurFaces(17)
+        );
+
+        self::assertEquals(
+            'e_blur_faces:17',
+            (string)Effect::blurFaces()->strength(17)
         );
 
         self::assertEquals(
@@ -268,6 +294,53 @@ final class EffectTest extends TestCase
         );
     }
 
+    public function testBackgroundRemoval()
+    {
+        self::assertEquals(
+            'e_background_removal',
+            (string)Effect::backgroundRemoval()
+        );
+
+        self::assertEquals(
+            'e_background_removal',
+            (string)Effect::backgroundRemoval()->fineEdges(null)
+        );
+
+        self::assertEquals(
+            'e_background_removal:fineedges_y',
+            (string)Effect::backgroundRemoval()->fineEdges()
+        );
+
+        self::assertEquals(
+            'e_background_removal:fineedges_y',
+            (string)Effect::backgroundRemoval()->fineEdges(true)
+        );
+
+        self::assertEquals(
+            'e_background_removal:fineedges_y',
+            (string)Effect::backgroundRemoval()->fineEdges('y')
+        );
+
+        self::assertEquals(
+            'e_background_removal:fineedges_n',
+            (string)Effect::backgroundRemoval()->fineEdges(false)
+        );
+
+        self::assertEquals(
+            'e_background_removal:fineedges_y;hints_cat',
+            (string)Effect::backgroundRemoval()->fineEdges()->hints(ForegroundObject::cat())
+        );
+
+        self::assertEquals(
+            'e_background_removal:fineedges_y;hints_(cat;dog;bicycle)',
+            (string)Effect::backgroundRemoval()->fineEdges()->hints(
+                ForegroundObject::cat(),
+                ForegroundObject::DOG,
+                'bicycle'
+            )
+        );
+    }
+
     public function testDither()
     {
         self::assertEquals(
@@ -295,6 +368,26 @@ final class EffectTest extends TestCase
         self::assertEquals(
             'co_green,e_shadow:17,x_30,y_40',
             (string)Effect::shadow()->strength(17)->offset(30, 40)->color(Color::GREEN)
+        );
+    }
+
+    public function testDropShadow()
+    {
+        self::assertStrEquals(
+            'e_dropshadow',
+            Effect::dropShadow()
+        );
+        self::assertStrEquals(
+            'e_dropshadow:elevation_11',
+            Effect::dropShadow()->elevation(11)
+        );
+        self::assertEquals(
+            'e_dropshadow:azimuth_10;elevation_11;spread_12',
+            Effect::dropShadow()->azimuth(10)->elevation(11)->spread(12)
+        );
+        self::assertEquals(
+            'e_dropshadow:azimuth_10;elevation_11;spread_12',
+            Effect::dropShadow()->spread(12)->elevation(11)->azimuth(10)
         );
     }
 

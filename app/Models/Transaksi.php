@@ -24,7 +24,8 @@ class Transaksi extends Model
         'total',
         'nama_customer',
         'nomor_passport',
-        'negara_asal'
+        'negara_asal',
+        'jenis_transaksi'
     ];
 
     protected $hidden = [
@@ -53,6 +54,27 @@ class Transaksi extends Model
     public static function getId()
     {
         $getId = DB::table('tb_transaksi')->orderBy('id_transaksi', 'DESC')->take(1)->get();
+        if (count($getId) > 0) return $getId;
+        return (object)[
+            (object)[
+                'id_transaksi' => 0
+            ]
+        ];
+    }
+    public static function getIdBeli()
+    {
+        $getId = DB::table('tb_transaksi')->where('jenis_transaksi','Beli')->orderBy('id_transaksi', 'DESC')->take(1)->get();
+        if (count($getId) > 0) return $getId;
+        return (object)[
+            (object)[
+                'id_transaksi' => 0
+            ]
+        ];
+    }
+
+    public static function getIdJual()
+    {
+        $getId = DB::table('tb_transaksi')->where('jenis_transaksi','Jual')->orderBy('id_transaksi', 'DESC')->take(1)->get();
         if (count($getId) > 0) return $getId;
         return (object)[
             (object)[

@@ -33,7 +33,7 @@
                                 <th class="sort text-center fs--1" data-sort="tanggal">Kode</th>
                                 <th class="sort text-center fs--1" data-sort="jenis">Jenis</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Currency</th>
-                                <th class="sort text-center fs--1" data-sort="kode_transaksi">Jumlah Tukar</th>
+                                <th class="sort text-center fs--1" data-sort="kode_transaksi">Jumlah Jual/Beli</th>
                                 <th class="sort text-center fs--1" data-sort="total">Kurs</th>
                                 <th class="sort text-center fs--1" data-sort="status">Debit</th>
                                 <th class="sort text-center fs--1" data-sort="status">Kredit</th>
@@ -47,12 +47,20 @@
                                 <td class="text-start tanggal fs--1">{{ date('d-M-Y H:i:s', strtotime($item->updated_at)) }}</td>
                                 @if ($item->jenis_jurnal == 'Debit')
                                     <td class="text-center text-center fs--1 jenis">{{ $item->Transaksi->kode_transaksi }}</td>
-                                    <td class="text-center text-center fs--1 jenis">Jual</td>
+                                    <td class="text-center text-center fs--1 jenis">Penjualan Customer</td>
                                     <td class="text-center text-center fs--1">{{ $item->Currency->nama_currency }}, {{ $item->Currency->jenis_kurs }}</td>
                                     <td class="text-center text-center fs--1">{{ $item->jumlah_tukar }}</td>
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->kurs, 0, ',', '.') }}</td>
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>
                                     <td>-</td>
+                                @elseif ($item->jenis_jurnal == 'Kredit Jual')
+                                    <td class="text-center text-center fs--1 jenis">{{ $item->Transaksi->kode_transaksi }}</td>
+                                    <td class="text-center text-center fs--1 jenis">Penjualan Valas</td>
+                                    <td class="text-center text-center fs--1">{{ $item->Currency->nama_currency }}, {{ $item->Currency->jenis_kurs }}</td>
+                                    <td class="text-center text-center fs--1">{{ $item->jumlah_tukar }}</td>
+                                    <td class="text-center text-center fs--1">Rp. {{ number_format($item->kurs, 0, ',', '.') }}</td>
+                                    <td>-</td>
+                                    <td class="text-center text-center fs--1">Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>
                                 @else
                                     <td class="text-center text-center fs--1 jenis">Modal</td>
                                     <td class="text-center text-center fs--1 jenis">Modal</td>

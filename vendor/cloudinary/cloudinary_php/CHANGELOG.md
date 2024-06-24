@@ -1,3 +1,93 @@
+2.14.0 / 2024-05-07
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `restrictions` parameter in `MetadataField`
+
+2.13.1 / 2024-03-21
+==================
+
+  * Fix `analyze` API endpoint
+
+2.13.0 / 2024-03-12
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `analyze` API
+
+2.12.0 / 2023-12-03
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for access keys management in Account Provisioning API
+  * Add support for `visualSearch` Admin API
+  * Add support for `fields` parameter in Search and Admin APIs
+  * Add support for Search URL
+  * Add support for `useFetchFormat` in `VideoTag`
+  * Add support for `on_success` upload parameter
+
+Other Changes
+-------------
+
+  * Remove redundant `teapot/status-code` dependency
+
+2.11.0 / 2023-05-23
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for related assets Admin APIs
+  * Add support for `extra_headers` option in Upload and Admin API
+
+Other Changes
+-------------
+
+  * Fix Guzzle compatibility issues
+  * Update analytics token algorithm
+
+2.10.2 / 2023-02-01
+==================
+
+* Expose analytics token setters
+
+2.10.1 / 2023-01-28
+==================
+
+* Fix PHP 8.2 deprecation warnings
+
+2.10.0 / 2023-01-12
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `SearchFolders` API
+  * Add support for `media_metadata` parameter
+
+Other Changes
+-------------
+
+  * Fix `SetMetadataField` default value handling
+  * Fix format for fetched assets
+  * Fix error handling in URL signature generation
+
+2.9.2 / 2022-11-13
+==================
+
+* Add version to the reference docs
+
+2.9.1 / 2022-11-13
+==================
+
+* Use `teapot/status-code`
+
 2.9.0 / 2022-09-18
 ==================
 

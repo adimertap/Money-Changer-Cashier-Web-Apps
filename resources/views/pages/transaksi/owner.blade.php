@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <main>
     <div class="row g-3 mb-3 mt-3">
         <div class="col-md-4">
@@ -45,19 +46,22 @@
                     <div class="row flex-between-center">
                         <div class="col d-md-flex d-lg-block flex-between-center">
                             <h6 class="mb-md-0 mb-lg-2">Total Transaksi Hari Ini</h6>
-                            <span class="badge rounded-pill badge-soft-success">Rp. {{ number_format($total_transaksi)
-                                }}</span>
+                            <span class="badge rounded-pill badge-soft-success">Rp. {{ number_format($total_transaksi)}}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi.index') }}">Transaksi Beli Hari Ini</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ route('transaksi-jual.index') }}">Transaksi Jual Hari Ini</a></li>
+    </ul>
     <div class="card mb-3">
         <div class="card-header">
             <div class="row flex-between-end">
                 <div class="col-auto align-self-center">
-                    <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Transaksi Hari Ini
+                    <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Transaksi Customer Hari Ini
                     </h5>
                     <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Transaksi</p>
                 </div>
@@ -404,8 +408,18 @@ $(function() {
         $('#datatableReport2').DataTable();
 
         var url = (window.location).href;
-        var name = url.substring(url.lastIndexOf('=') + 1);        
+        var name = url.substring(url.lastIndexOf('=') + 1);
+        
+        
+
+       
+
+        
     })
+   
+
+   
+
 </script>
 
 

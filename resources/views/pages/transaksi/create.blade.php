@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <main class="mt-3">
     <div class="card bg-transparent-50 overflow-hidden mb-3">
         <div class="card-header position-relative">
@@ -10,14 +11,18 @@
             <div class="position-relative z-index-2">
                 <div class="row">
                     <div class="col-8">
-                        <h3 class="text-primary mb-1">Selamat Datang Kembali, {{ Auth::user()->nama_panggilan }}!</h3>
+                        {{-- <h3 class="text-primary mb-1">Selamat Datang Kembali, {{ Auth::user()->nama_panggilan }}!
+                        </h3> --}}
+                        <h3 class="text-primary mb-1 mt-3">Transaksi Beli Valas!</h3>
+
                         <p>Tambah Transaksi Hari Ini {{ $today }}</p>
+                        <h6 class="text-primary">Nomor Order: #{{ $kode_transaksi }}</h6>
                         <hr>
 
                     </div>
                     <div class="col-4">
                         <div class="d-flex py-3">
-                            <div class="pe-3">
+                            <div class="pe-3 mt-3">
                                 @if ($modal == '')
                                 <h6 class="text-600 fs--1 fw-medium">Anda Belum Menambahkan Modal Hari Ini</h6>
                                 @else
@@ -44,11 +49,12 @@
     </div>
     <form action="{{ route('transaksi.store') }}" id="form" method="POST" enctype="multipart/form-data">
         @csrf
-        <div class="col-xl-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-4">
+        <div class="row gx-3">
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <i class="mb-3">Lengkapi data Customer dibawah Ini</i>
+                        <div class="mb-2 mt-3">
                             <label class="form-label" for="nama_customer">Nama Customer</label>
                             <input class="form-control form-select-sm  @error('nama_customer') is-invalid @enderror"
                                 name="nama_customer" type="text" placeholder="Input Nama Customer"
@@ -59,7 +65,7 @@
                             </div>
                             @enderror
                         </div>
-                        <div class="col-4">
+                        <div class="mb-2">
                             <label class="form-label" for="nomor_passport">Nomor Passport</label>
                             <input class="form-control form-select-sm  @error('nomor_passport') is-invalid @enderror"
                                 name="nomor_passport" type="text" placeholder="Input Nomor Passport"
@@ -70,7 +76,7 @@
                             </div>
                             @enderror
                         </div>
-                        <div class="col-4">
+                        <div class="mb-4">
                             <label class="form-label" for="asal_negara">Asal Negara</label>
                             <input class="form-control form-select-sm  @error('asal_negara') is-invalid @enderror"
                                 name="asal_negara" type="text" placeholder="Input Asal Negara"
@@ -82,11 +88,11 @@
                             @enderror
                         </div>
                     </div>
+
                 </div>
+
             </div>
-        </div>
-        <div class="row g-3 mt-2">
-            <div class="col-xl-7 order-xl-1">
+            <div class="col-8">
                 <div class="card">
                     <div class="card-header bg-light btn-reveal-trigger d-flex flex-between-center">
                         <h5 class="mb-0">Order Summary</h5> <br>
@@ -96,7 +102,6 @@
                             Transaksi</a>
                     </div>
                     <div class="card-body">
-                        <h6 class="text-primary">Nomor Order: #{{ $kode_transaksi }}</h6>
                         <input type="hidden" name="kode_transaksi" value="{{ $kode_transaksi }}">
                         <input type="hidden" name="tanggal_transaksi" value="{{ $today_format }}">
                         <input type="hidden" name="id_modal" value="{{ $modal->id_modal }}">
@@ -105,69 +110,64 @@
                             <table class="table table-hover table-striped overflow-hidden" id="dataTableKonfirmasi">
                                 <thead>
                                     <tr>
-                                        <th class="small">No.</th>
-                                        <th class="small">Currency</th>
-                                        <th class="small">Harga Currency</th>
-                                        <th class="small">Jumlah</th>
-                                        <th class="small">Total</th>
-                                        <th class="small">Action</th>
+                                        <th>No.</th>
+                                        <th>Currency</th>
+                                        <th>Harga Currency</th>
+                                        <th>Jumlah</th>
+                                        <th>Total</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="konfirmasi">
+                                <tbody id="konfirmasi" style="font-size: 15px!important">
 
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                    <div class="card-footer d-flex justify-content-between bg-light">
-                        <div class="fw-semi-bold">Payable Total</div>
-                        <div class="fw-bold payable_total" id="payable_total">Rp. 0.0</div>
-                    </div>
+                    {{-- <div class="card-footer d-flex justify-content-between bg-light">
+                        <div class="fs-1 fw-semi-bold">Payable Total</div>
+                        <div class="fs-1 fw-bold payable_total" id="payable_total">Rp. 0.0</div>
+                    </div> --}}
                 </div>
             </div>
-            <div class="col-xl-5">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Confirm Transaksi</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-7 col-xl-12 col-xxl-7 px-md-3 mb-xxl-0 position-relative">
-                                <div class="d-flex"><img class="me-3" src="../falcon/assets/img/icons/shield.png" alt=""
-                                        width="60" height="60">
-                                    <div class="flex-1">
-                                        <h5 class="mb-2">Check Kembali</h5>
-                                        <div class="form-check mb-0"><input class="form-check-input" id="check_1"
-                                                type="checkbox"><label class="form-check-label mb-0">Check Kembali Order
-                                                Summary<br class="d-none d-md-block d-lg-none"></label></div>
-                                        <div class="form-check mb-0"><input class="form-check-input" id="check_2"
-                                                type="checkbox"><label class="form-check-label mb-0">Check All Total
-                                                Payment<br class="d-none d-md-block d-lg-none"></label></div>
-                                        <p class="fs--1 mb-0">Pastikan transaksi telah sesuai, centang untuk melanjutkan
-                                        </p>
-                                        </a>
+        </div>
+        <div class="mt-4">
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Confirm Transaksi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-7 col-xl-12 col-xxl-7 px-md-3 mb-xxl-0 position-relative">
+                            <div class="d-flex"><img class="me-3" src="../falcon/assets/img/icons/shield.png" alt=""
+                                    width="60" height="60">
+                                <div class="flex-1">
+                                    <h5 class="mb-1">Mohon di lakukan pengecekan kembali</h5>
+                                    <p class="fs--1 mb-0">Pastikan transaksi telah sesuai dan cek kembali total
+                                        transaksi
+                                    </p>
+                                    <div class="fs-4 mt-2 fw-semi-bold">All Total: <span class="text-primary">
+                                            <span class="grand_total" id="grand_total">Rp. 0.0</span>
                                     </div>
                                 </div>
-                                <div class="vertical-line d-none d-md-block d-xl-none d-xxl-block"> </div>
                             </div>
-                            <div
-                                class="col-md-5 col-xl-12 col-xxl-5 ps-lg-4 ps-xl-2 ps-xxl-5 text-center text-md-start text-xl-center text-xxl-start">
-                                <div class="border-dashed-bottom d-block d-md-none d-xl-block d-xxl-none my-4"></div>
-                                <div class="fs-2 fw-semi-bold">All Total: <span class="text-primary">
-                                        <span class="grand_total" id="grand_total">Rp. 0.0</span>
-                                </div>
-                                <button class="btn btn-success mt-3 px-4" onclick="submitdata(event)" id="button_submit"
-                                    type="button">Confirm &amp; Pay
-                                </button>
-                                <p class="fs--1 mt-3 mb-0">By clicking <strong>Confirm &amp; Pay </strong>button,
-                                    transaction being process
-                            </div>
+                            <div class="vertical-line d-none d-md-block d-xl-none d-xxl-block"> </div>
+                        </div>
+                        <div
+                            class="col-md-5 col-xl-12 col-xxl-5 ps-lg-4 ps-xl-2 ps-xxl-5 text-center text-md-start text-xl-center text-xxl-start">
+                            <div class="border-dashed-bottom d-block d-md-none d-xl-block d-xxl-none my-4"></div>
+
+                            <button class="btn btn-success mt-3 px-5 py-3" onclick="submitdata(event)"
+                                id="button_submit" type="button">Confirm &amp; Pay
+                            </button>
+                            {{-- <p class="fs--1 mt-3 mb-0">By clicking <strong>Confirm &amp; Pay </strong>button,
+                                transaction being process --}}
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
     </form>
-    </div>
-    </div>
 </main>
 
 <div class="modal fade" id="modaltambah" tabindex="-1" role="dialog" aria-hidden="true">
@@ -276,25 +276,7 @@
             var modal = $('#jumlah_modal').html()
             var jumlah_modal = modal.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
 
-            if (check_1 == false) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Check Terlebih Dahulu!',
-                })
-            } else if (check_2 == false) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Check Terlebih Dahulu!',
-                })
-            } else if (check_1 == false && check_2 == false) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Check Terlebih Dahulu!',
-                })
-            } else if (check_1 == true && check_2 == true) {
+          
                 var detail = $('#konfirmasi').children()
                 for (let index = 0; index < detail.length; index++) {
                     var children = $(detail[index]).children()
@@ -357,7 +339,7 @@
                         success: function (response) {
                             window.location.href = '/transaksi/create'
                             window.open(
-                                '/cetak/' + id_transaksi,
+                                '/cetak/' + response.id_transaksi,
                                 '_blank'
                             );
 
@@ -389,7 +371,7 @@
                         }
                     });
                 }
-            }
+            
         }
     }
 
@@ -479,21 +461,21 @@
                 $('#jumlah_modal').html(jumlah_total_idr)
 
                 // PAYABLE TOTAL
-                var payable_total = $('#payable_total').html()
-                var check_payable = payable_total.includes("Rp.");
-                if (check_payable == true) {
-                    var payable_total_trim = payable_total.split('Rp')[1].replace('.', '').replace('.', '').trim()
-                    var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
-                } else {
-                    var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
-                    var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
-                }
-                var payable_total_idr = new Intl.NumberFormat('id', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                }).format(payable_total_fix)
-                $('#payable_total').html(payable_total_idr)
+                // // var payable_total = $('#payable_total').html()
+                // var check_payable = payable_total.includes("Rp.");
+                // if (check_payable == true) {
+                //     var payable_total_trim = payable_total.split('Rp')[1].replace('.', '').replace('.', '').trim()
+                //     var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
+                // } else {
+                //     var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
+                //     var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
+                // }
+                // var payable_total_idr = new Intl.NumberFormat('id', {
+                //     style: 'currency',
+                //     currency: 'IDR',
+                //     minimumFractionDigits: 0,
+                // }).format(payable_total_fix)
+                // $('#payable_total').html(payable_total_idr)
 
                 // GRAND TOTAL
                 var grand_total = $('#grand_total').html()
@@ -576,17 +558,17 @@
                 var jumlah = $(row.children()[4]).text()
                 var jumlah_trim = jumlah.split('Rp')[1].replace('.', '').replace('.', '').trim()
 
-                // PAYABLE 
-                var payable_total = $('#payable_total').html()
-                var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '')
-                    .trim()
-                var payable_total_fix = parseInt(payable_total_trim) - parseInt(jumlah_trim)
-                var payable_total_idr = new Intl.NumberFormat('id', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                }).format(payable_total_fix)
-                $('#payable_total').html(payable_total_idr)
+                // // PAYABLE 
+                // var payable_total = $('#payable_total').html()
+                // var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '')
+                //     .trim()
+                // var payable_total_fix = parseInt(payable_total_trim) - parseInt(jumlah_trim)
+                // var payable_total_idr = new Intl.NumberFormat('id', {
+                //     style: 'currency',
+                //     currency: 'IDR',
+                //     minimumFractionDigits: 0,
+                // }).format(payable_total_fix)
+                // $('#payable_total').html(payable_total_idr)
 
                 // GRAND TOTAL
                 var grand_total = $('#grand_total').html()
@@ -629,7 +611,7 @@
                 $(jumlah).html(harga_fix);
             })
         })
-
+        // TES
         $('select[name="id_currency"]').on('change', function () {
             var id_currency = $(this).val();
 

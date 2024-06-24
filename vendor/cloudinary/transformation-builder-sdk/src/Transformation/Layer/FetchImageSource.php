@@ -10,10 +10,6 @@
 
 namespace Cloudinary\Transformation;
 
-use Cloudinary\Asset\AssetDescriptor;
-use Cloudinary\Asset\BaseAsset;
-use Cloudinary\ClassUtils;
-
 /**
  * Defines how to manipulate an image layer.
  *
@@ -36,12 +32,12 @@ class FetchImageSource extends ImageSource
     {
 
         if ($source instanceof BaseSourceQualifier) {
-            $this->getSourceQualifier()->setQualifierValue($source->getValue());
+            $this->getSourceQualifier()->fetchUrl($source->getValue());
 
             return $this;
         }
 
-        $this->getSourceQualifier()->setQualifierValue((string)$source);
+        $this->getSourceQualifier()->fetchUrl((string)$source);
 
 
         return $this;

@@ -6,14 +6,14 @@
         <div class="card-body py-3">
             <div class="row g-0">
                 <div class="col-6 col-md-6 border-200 border-bottom border-end pb-4">
-                    <h6 class="pb-1 text-700">Transaksi Keseluruhan</h6>
+                    <h6 class="pb-1 text-700">Transaksi Pembelian</h6>
                     <p class="font-sans-serif lh-1 mb-1 fs-2">{{ $jumlah }}</p>
                     <div class="d-flex align-items-center">
                         <h6 class="fs--1 text-500 mb-0">Transaksi</h6>
                     </div>
                 </div>
                 <div class="col-6 col-md-6 border-200 border-md-200 border-bottom border-md-end pb-4 ps-3">
-                    <h6 class="pb-1 text-700">Total Transaksi Keseluruhan</h6>
+                    <h6 class="pb-1 text-700">Total Transaksi Pembelian</h6>
                     <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total, 0, ',', '.') }}</p>
                     <div class="d-flex align-items-center">
                         <h6 class="fs--1 text-500 mb-0"></h6>
@@ -28,7 +28,7 @@
         <div class="card-body position-relative">
             <div class="row">
                 <div class="col-lg-6">
-                    <h5>Filter Data Sesuai Tanggal Inputan</h5>
+                    <h5>Filter Data Transaksi Customer</h5>
                     <p class="mt-2">Pilih Tanggal Awal dan Pilih Tanggal Akhir</p>
                     <hr>
                     <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button" data-bs-toggle="modal"
@@ -55,7 +55,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <button type="button" name="filter" onclick="filter_tanggal(event)"
-                                        class="btn btn-primary px-4 mt-4">Filter</button>
+                                        class="btn btn-primary px-3 py-1 mt-4">Filter</button>
+                                    <a href="{{ route('jurnal-harian.index') }}" class="btn btn-danger px-3 py-1 mt-4">Reset</a>
                                 </div>
                             </div>
                         </form>
@@ -64,6 +65,10 @@
             </div>
         </div>
     </div>
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item"><a class="nav-link active" href="{{ route('jurnal-harian.index') }}">Transaksi Beli</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ route('jurnal-harian-jual') }}">Transaksi Jual</a></li>
+    </ul>
 
     <div class="card mb-3">
         <div class="card-body">
@@ -88,7 +93,7 @@
                         <tbody class="list">
                             @forelse ($transaksi as $item)
                             <tr role="row" class="odd">
-                                <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
+                                <th scope="row" class="no fs--1">{{ $loop->iteration + ($transaksi->currentPage() - 1) * $transaksi->perPage() }}.</th>
                                 <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
                                 <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s', strtotime($item->created_at)) }} </td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
@@ -113,15 +118,21 @@
                                 </td>
                             </tr>
                             @empty
-
+                            <tr>
+                                <td colspan="10" class="text-center">No data available</td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="d-flex justify-content-center">
+                    {{ $transaksi->links('layouts.pagination') }}
                 </div>
             </div>
         </div>
     </div>
 </main>
+
 <div class="modal fade" id="modalfilter" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
         <div class="modal-content position-relative">
@@ -139,14 +150,15 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" id="flexRadioDefault1" type="radio" value="excel" name="radio_input" checked/>
+                                    <input class="form-check-input" id="flexRadioDefault1" type="radio" value="excel"
+                                        name="radio_input" checked />
                                     <label class="form-check-label" for="flexRadioDefault1">Export Excel</label>
                                 </div>
-
                             </div>
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" id="flexRadioDefault2" type="radio" value="pdf" name="radio_input"  />
+                                    <input class="form-check-input" id="flexRadioDefault2" type="radio" value="pdf"
+                                        name="radio_input" />
                                     <label class="form-check-label" for="flexRadioDefault2">Export PDF</label>
                                 </div>
                             </div>
@@ -171,7 +183,8 @@
                                     data-options='{"removeItemButton":true,"placeholder":true, "shouldSort":false}'>
                                     <option value="">Pilih Currency</option>
                                     @foreach ($currency as $item)
-                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}, {{ $item->jenis_kurs }}</option>
+                                    <option value="{{ $item->id_currency }}">{{ $item->nama_currency }},
+                                        {{ $item->jenis_kurs }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -199,17 +212,17 @@
     </div>
 </div>
 
-
 <script>
     $(document).ready(function () {
         var table = $('#example').DataTable();
-    })
+    });
+
 
     function filter_tanggal(event) {
-        event.preventDefault()
-        var form1 = $('#form1')
-        var tanggal_mulai = form1.find('input[name="from_date"]').val()
-        var tanggal_selesai = form1.find('input[name="to_date"]').val()
+        event.preventDefault();
+        var form1 = $('#form1');
+        var tanggal_mulai = form1.find('input[name="from_date"]').val();
+        var tanggal_selesai = form1.find('input[name="to_date"]').val();
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -217,19 +230,16 @@
             timer: 3000,
             timerProgressBar: true,
             didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
             }
-        })
+        });
         Toast.fire({
             icon: 'info',
             title: 'Mohon Tunggu, Sedang diproses ...'
-        })
-        window.location.href = '/owner/jurnal-harian?from=' + tanggal_mulai + '&to=' + tanggal_selesai
+        });
+        window.location.href = '/owner/jurnal-harian?from=' + tanggal_mulai + '&to=' + tanggal_selesai;
     }
-
 </script>
-
-
 
 @endsection

@@ -21,7 +21,9 @@ class MasterCurrency extends Model
         'img_flag',
         'jenis_kurs',
         'keterangan',
-        'urutan'
+        'urutan',
+        'last_nilai_jual',
+        'jumlah_valas'
     ];
 
     protected $hidden = [

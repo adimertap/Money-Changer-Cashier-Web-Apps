@@ -55,6 +55,47 @@
                         </div>
                     </a>
                 @endif
+
+                <li class="nav-item">
+                    <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
+                        <div class="col-auto navbar-vertical-label">Jadwal</div>
+                        <div class="col ps-0">
+                            <hr class="mb-0 navbar-vertical-divider">
+                        </div>
+                    </div>
+                    @if (Auth::user()->role == 'Owner')
+                    <a class="nav-link" href="{{ route('shift.index') }}" role="button" data-bs-toggle=""
+                        aria-expanded="false">
+                        <div class="d-flex align-items-center">
+                            <span class="nav-link-icon">
+                                <i class="fas fa-business-time"></i>
+                            </span>
+                            <span class="nav-link-text ps-1">Shift</span>
+                        </div>
+                    </a>
+                    <a class="nav-link" href="{{ route('jadwal.index') }}" role="button" data-bs-toggle=""
+                        aria-expanded="false">
+                        <div class="d-flex align-items-center">
+                            <span class="nav-link-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                            <span class="nav-link-text ps-1">Jadwal</span>
+                        </div>
+                    </a>
+                    @endif
+                    <a class="nav-link" href="{{ route('jadwal-user.index') }}" role="button" data-bs-toggle=""
+                        aria-expanded="false">
+                        <div class="d-flex align-items-center">
+                            <span class="nav-link-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </span>
+                            <span class="nav-link-text ps-1">Jadwal & Absen</span>
+                        </div>
+                    </a>
+                    
+
+                </li>
+
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Transaction</div>
@@ -76,6 +117,14 @@
                                 <i class="fas fa-cash-register"></i>
                             </span>
                             <span class="nav-link-text ps-1">Transaksi</span>
+                        </div>
+                    </a>
+                    <a class="nav-link" href="{{ route('transaksi-jual.create') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <div class="d-flex align-items-center">
+                            <span class="nav-link-icon">
+                                <i class="fas fa-cash-register"></i>
+                            </span>
+                            <span class="nav-link-text ps-1">Jual Valas</span>
                         </div>
                     </a>
                 </li>

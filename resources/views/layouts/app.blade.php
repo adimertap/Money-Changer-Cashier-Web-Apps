@@ -18,6 +18,8 @@
     <script src="/../falcon/vendors/overlayscrollbars/OverlayScrollbars.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <link href="/../falcon/vendors/fullcalendar/main.min.css" rel="stylesheet">
+
     {{-- <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js" defer></script> --}}
     <link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" rel="stylesheet"
     crossorigin="anonymous" />
@@ -130,7 +132,7 @@
     </main>
   
   
-    {{-- <script src="sweetalert2.all.min.js"></script> --}}
+    <script src="/../falcon/vendors/fullcalendar/main.min.js"></script>
     <script src="/../falcon/vendors/choices/choices.min.js"></script>
     <script src="/../falcon/vendors/popper/popper.min.js"></script>
     <script src="/../falcon/vendors/bootstrap/bootstrap.min.js"></script>
@@ -139,13 +141,11 @@
     <script src="/../falcon/vendors/echarts/echarts.min.js"></script>
     <script src="/../falcon/vendors/fontawesome/all.min.js"></script>
     <script src="/../falcon/vendors/lodash/lodash.min.js"></script>
-    {{-- <script src="/../falcon/vendors/list.js/list.min.js"></script> --}}
     <script src="/../falcon/assets/js/theme.js"></script>
     <script src="/../falcon/assets/js/theme.js"></script>
     <script src="/../falcon/assets/js/config.js"></script>
     <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
-    
 </body>
 
 

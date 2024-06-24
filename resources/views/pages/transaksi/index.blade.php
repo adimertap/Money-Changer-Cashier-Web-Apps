@@ -53,11 +53,16 @@
     </div>
 </div>
 
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi.index') }}">Transaksi Beli Hari Ini</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ route('transaksi-jual.index') }}">Transaksi Jual Hari Ini</a></li>
+</ul>
+
 <div class="card mb-3">
     <div class="card-header">
         <div class="row flex-between-end">
             <div class="col-auto align-self-center">
-                <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Transaksi Anda Hari Ini
+                <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Transaksi Customer Anda Hari Ini
                 </h5>
                 <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Transaksi</p>
             </div>

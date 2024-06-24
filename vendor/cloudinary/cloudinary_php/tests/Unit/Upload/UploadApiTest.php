@@ -15,6 +15,7 @@ use Cloudinary\Configuration\ApiConfig;
 use Cloudinary\Configuration\Configuration;
 use Cloudinary\Test\Helpers\MockUploadApi;
 use Cloudinary\Test\Helpers\RequestAssertionsTrait;
+use Cloudinary\Test\Integration\IntegrationTestCase;
 use Cloudinary\Test\Unit\Asset\AssetTestCase;
 
 /**
@@ -31,13 +32,27 @@ final class UploadApiTest extends AssetTestCase
      *
      * @throws ApiError
      */
-    public function testAccessibilityAnalysisUpload()
+    public function testVariousUploadParams()
     {
+        $params = [
+            'accessibility_analysis' => true,
+            'cinemagraph_analysis'   => true,
+            'media_metadata'         => true,
+            'visual_search'          => true,
+            'on_success'             => IntegrationTestCase::TEST_ON_SUCCESS_STR,
+        ];
+
         $mockUploadApi = new MockUploadApi();
-        $mockUploadApi->upload(self::TEST_BASE64_IMAGE, ['accessibility_analysis' => true]);
+        $mockUploadApi->upload(
+            self::TEST_BASE64_IMAGE,
+            $params
+        );
+
         $lastOptions = $mockUploadApi->getApiClient()->getRequestMultipartOptions();
 
-        self::assertEquals('1', $lastOptions['accessibility_analysis']);
+        foreach ($params as $param => $value) {
+            self::assertEquals(is_bool($value) ? $value ? '1' : '0': $value, $lastOptions[$param]);
+        }
     }
 
     /**
@@ -131,5 +146,65 @@ final class UploadApiTest extends AssetTestCase
         $lastOptions = $mockUploadApi->getApiClient()->getRequestMultipartOptions();
 
         self::assertSubset($options, $lastOptions);
+    }
+
+    /**
+     * @dataProvider headersDataProvider
+     */
+    public function testHeadersExtraHeaders($input, $expectedOutput)
+    {
+        $mockUploadApi = new MockUploadApi();
+        $mockUploadApi->upload(self::TEST_BASE64_IMAGE, $input);
+        $mockOutput = $mockUploadApi->getApiClient()->getLastRequestHeaders();
+        self::assertSubset($expectedOutput, $mockOutput);
+    }
+
+    /**
+     * @return array
+     */
+    public function headersDataProvider()
+    {
+        return [
+            [
+                [
+                    'headers'       => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+                    'extra_headers' => ['test1' => 'Bearer abc123', 'test2' => 'MyApp/1.0'],
+                ],
+                [
+                    'Content-Type' => ['application/json'],
+                    'Accept'       => ['application/json'],
+                    'test1'        => ['Bearer abc123'],
+                    'test2'        => ['MyApp/1.0'],
+                ],
+            ],
+            [
+                [
+                    'headers'       => ['X-Request-ID' => '12345'],
+                    'extra_headers' => ['Accept-Encoding' => 'gzip'],
+                ],
+                ['X-Request-ID' => ['12345'], 'Accept-Encoding' => ['gzip']],
+            ],
+            [
+                [
+                    'headers'       => ['Content-Language' => 'en-US'],
+                    'extra_headers' => [],
+                ],
+                ['Content-Language' => ['en-US']],
+            ],
+            [
+                [
+                    'headers'       => [],
+                    'extra_headers' => ['X-Debug' => ['true']],
+                ],
+                ['X-Debug' => ['true']],
+            ],
+            [
+                [
+                    'headers'       => [],
+                    'extra_headers' => [],
+                ],
+                [],
+            ],
+        ];
     }
 }

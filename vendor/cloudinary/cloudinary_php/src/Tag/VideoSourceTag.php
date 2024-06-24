@@ -10,9 +10,12 @@
 
 namespace Cloudinary\Tag;
 
+use Cloudinary\Asset\DeliveryType;
 use Cloudinary\Asset\Video;
 use Cloudinary\ClassUtils;
 use Cloudinary\Configuration\Configuration;
+use Cloudinary\Transformation\Delivery;
+use Cloudinary\Transformation\Format;
 use Cloudinary\Transformation\VideoTransformation;
 
 /**
@@ -95,8 +98,6 @@ class VideoSourceTag extends BaseTag
     {
         $this->sourceType = ClassUtils::verifyInstance($type, VideoSourceType::class, null, $codecs);
 
-        $this->video->asset->extension = $this->sourceType->type;
-
         return $this;
     }
 
@@ -110,7 +111,9 @@ class VideoSourceTag extends BaseTag
     public function serializeAttributes($attributes = [])
     {
         if (! empty((string)$this->video)) {
-            $attributes['src'] = $this->video->toUrl($this->additionalTransformation);
+            $toSerialize = new Video($this->video);
+            $toSerialize->setFormat($this->sourceType->type, $this->config->tag->useFetchFormat);
+            $attributes['src'] = $toSerialize->toUrl($this->additionalTransformation);
         }
 
         if (! empty((string)$this->sourceType)) {

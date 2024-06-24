@@ -1,39 +1,49 @@
-<div align="center">
-    <h1> Cloudinary Laravel Package</h1>
-</div>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/62209650/196528621-b68e9e10-7e55-4c7d-9177-904cadbb4296.png" align="center" height=50>
+  <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/62209650/196528761-a815025a-271a-4d8e-ac7e-cea833728bf9.png" align="center" height=50>
+  <img alt="Cloudinary" src="https://user-images.githubusercontent.com/62209650/196528761-a815025a-271a-4d8e-ac7e-cea833728bf9.png" align="center" height=50>
+</picture>
+&ensp;&ensp;
+<picture style="padding: 50px">
+  <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/1045274/200928533-47539867-07ff-406e-aa8b-25c594652dc8.png" align="center" height=50>
+  <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/1045274/200928533-47539867-07ff-406e-aa8b-25c594652dc8.png" align="center" height=50>
+  <img alt="Laravel" src="https://user-images.githubusercontent.com/1045274/200928533-47539867-07ff-406e-aa8b-25c594652dc8.png" align="center" height=50>
+</picture>
 
-<p align="center">
-    <a href="https://packagist.org/packages/cloudinary-labs/cloudinary-laravel">
-        <img src="https://img.shields.io/packagist/dt/cloudinary-labs/cloudinary-laravel.svg?style=flat-square" alt="Total Downloads">
-    </a>
-    <a href="https://packagist.org/packages/cloudinary-labs/cloudinary-laravel">
-        <img src="https://poser.pugx.org/cloudinary-labs/cloudinary-laravel/v/stable.svg" alt="Latest Stable Version">
-    </a>
-    <a href="https://packagist.org/packages/cloudinary-labs/cloudinary-laravel">
-        <img src="https://poser.pugx.org/cloudinary-labs/cloudinary-laravel/license.svg" alt="License">
-    </a>
-</p>
+######
+
+<a href="https://packagist.org/packages/cloudinary-labs/cloudinary-laravel"><img src="https://img.shields.io/packagist/dt/cloudinary-labs/cloudinary-laravel.svg?style=flat-square" alt="Total Downloads"></a> <a href="https://packagist.org/packages/cloudinary-labs/cloudinary-laravel"><img src="https://poser.pugx.org/cloudinary-labs/cloudinary-laravel/v/stable.svg?style=flat-square" alt="Latest Stable Version"></a> <a href="https://github.com/cloudinary-devs/cloudinary-laravel/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/cloudinary-devs/cloudinary-laravel?label=License&style=flat-square"></a>
 
 > A Laravel Package for uploading, optimizing, transforming and delivering media files with Cloudinary. Furthermore, it provides a fluent and expressive API to easily attach your media files to Eloquent models.
 
-## Disclaimer
+## Contents
 
-> _This software/code provided under Cloudinary Labs is an unsupported pre-production prototype undergoing further development and provided on an “AS IS” basis without warranty of any kind, express or implied, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. Furthermore, Cloudinary is not under any obligation to provide a commercial version of the software.</br> </br> Your use of the Software/code is at your sole risk and Cloudinary will not be liable for any direct, indirect, incidental, special, exemplary, consequential or similar damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of the Software, even if advised of the possibility of such damage.</br> </br> You should refrain from uploading any confidential or personally identifiable information to the Software. All rights to and in the Software are and will remain at all times, owned by, or licensed to Cloudinary._
-
-## Contributions
-Contributions from the community via PRs are welcome and will be fully credited. For details, see [contributions.md](contributing.md).
+* [Usage](#usage)
+    * [Upload, Retrieval, Transformation Method Calls](#upload-retrieval-transformation-method-calls)
+    * [Attach Files to Laravel Eloquent Models](#attach-files-to-laravel-eloquent-models)
+    * [Upload Files Via An Upload Widget](#upload-files-via-an-upload-widget)
+    * [Media Management Via The Command Line](#media-management-via-the-command-line)
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [Disclaimer](#disclaimer)
+* [Contributions](#contributions)
+* [License](#license)
 
 
 ## Usage
 
-**Upload** a file (_Image_, _Video_ or any type of _File_) to **Cloudinary**:
+> Laravel versions **8 and below** should use the **v1.x.x**.
+
+## **Upload, Retrieval & Transformation Media Method Calls**:
+
+**Upload** a file (_Image_, _Video_ or any type of _File_) to **Cloudinary**, **retrieve** and **transform** via any of the following ways:
 
 ```php
 
 /**
 *  Using the Cloudinary Facade
-*  Import the Facade in your Class like so:
 */
+
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 // access the admin api
@@ -124,8 +134,14 @@ $result->getWidth(); // Get the width of the uploaded file
 $result->getHeight(); // Get the height of the uploaded file
 $result->getTimeUploaded(); // Get the time the file was uploaded
 
+/**
+ * You can also check if a file exists
+ */
 
-**Attach Files** to Laravel **Eloquent Models**:
+$url = Storage::disk('cloudinary')->fileExists($publicId);
+```
+
+## **Attach Files** to Laravel **Eloquent Models**:
 
 First, import the `CloudinaryLabs\CloudinaryLaravel\MediaAlly` trait into your Model like so:
 
@@ -196,7 +212,91 @@ $page = Page::find(2);
 $page->detachMedia($file)  // Example of $file is $request->file('file');
 ```
 
-**Upload Files Via An Upload Widget**:
+## **Add Transformation to Uploads Using AttachMedia Method**:
+
+```php
+
+/**
+*  How to resize an image to a specific width and height, and crop it using 'fill' mode
+*/
+
+$options = [
+    'transformation' => [
+        [
+            'width' => 200,    // Desired width
+            'height' => 200,   // Desired height
+            'crop' => 'fill',  // Crop mode (you can change this to 'fit' or other modes)
+        ],
+    ],
+]
+
+$page->attachMedia($file, $options);   // Example of $file is $request->file('file');
+
+/**
+*  How to crop an image to a specific width and height.
+*/
+
+$options = [
+    'transformation' => [
+        [
+            'width' => 200,    // Desired width
+            'height' => 200,   // Desired height
+            'crop' => 'crop',  // Crop mode
+        ],
+    ],
+]
+
+$page->attachMedia($file, $options);   // Example of $file is $request->file('file');
+
+/**
+*  How to rotate an image by a specific degree.
+*/
+
+$options = [
+    'transformation' => [
+        [
+            'angle' => 45,    // Rotation angle
+        ],
+    ],
+]
+
+$page->attachMedia($file, $options);   // Example of $file is $request->file('file');
+
+/**
+*  How to apply a filter to an image.
+*/
+
+$options = [
+    'transformation' => [
+        [
+            'effect' => 'grayscale',    // Filter effect
+        ],
+    ],
+]
+
+$page->attachMedia($file, $options);   // Example of $file is $request->file('file');
+
+/**
+*  How to overlay text on an image.
+*/
+
+$options = [
+    'transformation' => [
+        [
+            'overlay' => [
+                'font_family' => 'arial',
+                'font_size' => 24,
+                'text' => 'Hello World',
+            ],
+        ],
+    ],
+]
+
+$page->attachMedia($file, $options);   // Example of $file is $request->file('file');
+
+```
+
+## **Upload Files Via An Upload Widget**:
 
 Use the `x-cld-upload-button` Blade upload button component that ships with this Package like so:
 ```
@@ -222,7 +322,27 @@ Other Blade components you can use are:
 <x-cld-video public-id="awesome"></x-cld-video> // Blade Video Component for displaying videos
 ```
 
-**Media Management via The Command Line**:
+To get the upload image link from the widget in your controller, simply set a route and controller action in your `.env`. For example:
+
+```php
+CLOUDINARY_UPLOAD_ROUTE=api/cloudinary-js-upload
+CLOUDINARY_UPLOAD_ACTION=App\Http\Controllers\Api\CloudinaryController@upload
+```
+
+Make sure to specify the full path to the controller. You should be able to get the URL like so:
+
+```php
+...
+class CloudinaryController extends Controller
+{
+    public function upload(Request $request)
+    {
+        $url = $request->get('cloud_image_url');
+    }
+}
+```
+
+## **Media Management via The Command Line**:
 
 ```bash
 /**
@@ -264,6 +384,14 @@ composer require cloudinary-labs/cloudinary-laravel
 
 Or add the following line to the require block of your `composer.json` file.
 
+### Apps Using Laravel 9
+
+```
+"cloudinary-labs/cloudinary-laravel": "2.0.0"
+```
+
+### Apps Using Laravel 8 and below
+
 ```
 "cloudinary-labs/cloudinary-laravel": "1.0.4"
 ```
@@ -292,6 +420,15 @@ Also, register the Cloudinary Facade like so:
     ...
 ]
 ```
+
+> Note: If you use **Laravel >= 9.0** , you can skip the step (adding the code above for registering the facade) and can just import it in whatever class you need it like so:
+
+```php
+  ...
+  use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+  ...
+```
+
 
 ## Configuration
 
@@ -335,7 +472,17 @@ return [
     * Upload Preset From Cloudinary Dashboard
     *
     */
-    'upload_preset' => env('CLOUDINARY_UPLOAD_PRESET')
+    'upload_preset' => env('CLOUDINARY_UPLOAD_PRESET'),
+    
+    /**
+     * Route to get cloud_image_url from Blade Upload Widget
+     */
+    'upload_route' => env('CLOUDINARY_UPLOAD_ROUTE'),
+
+    /**
+     * Controller action to get cloud_image_url from Blade Upload Widget
+     */
+    'upload_action' => env('CLOUDINARY_UPLOAD_ACTION'),
 ];
 ```
 
@@ -348,7 +495,7 @@ CLOUDINARY_UPLOAD_PRESET=xxxxxxxxxxxxx
 CLOUDINARY_NOTIFICATION_URL=
 ```
 
-***Note:** You need to get these credentials from your [Cloudinary Dashboard](https://cloudinary.com/console)*
+***Note:** You need to get these credentials from your [Cloudinary Dashboard](https://cloudinary.com/console). The CLOUDINARY_URL is the API Environment variable shown in your Cloudinary Dashboard. Use the Copy button there to get the full URL*
 
 *If you are using a hosting service like heroku, forge, digital ocean, etc, please ensure to add the above details to your configuration variables.*
 
@@ -365,6 +512,14 @@ Cloudinary relies on its own JavaScript library to initiate the Cloudinary Uploa
 ```
 
 ***Note:** ONLY LOAD THIS IF YOU HAVE DECIDED TO USE THE UPLOAD WIDGET. IF YOU ARE USING THIS PACKAGE FOR A LARAVEL API BACKEND, YOU DON'T NEED TO DO THIS!*
+
+
+## Disclaimer
+
+> _This software/code provided under Cloudinary Labs is an unsupported pre-production prototype undergoing further development and provided on an “AS IS” basis without warranty of any kind, express or implied, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. Furthermore, Cloudinary is not under any obligation to provide a commercial version of the software.</br> </br> Your use of the Software/code is at your sole risk and Cloudinary will not be liable for any direct, indirect, incidental, special, exemplary, consequential or similar damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of the Software, even if advised of the possibility of such damage.</br> </br> You should refrain from uploading any confidential or personally identifiable information to the Software. All rights to and in the Software are and will remain at all times, owned by, or licensed to Cloudinary._
+
+## Contributions
+Contributions from the community via PRs are welcome and will be fully credited. For details, see [contributions.md](contributing.md).
 
 ## License
 

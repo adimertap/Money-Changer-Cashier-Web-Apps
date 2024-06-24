@@ -19,6 +19,7 @@ class ApiEndPoint
     const USAGE              = 'usage';
     const ASSETS             = 'resources';
     const DERIVED_ASSETS     = 'derived_resources';
+    const RELATED_ASSETS     = 'related_assets';
     const FOLDERS            = 'folders';
     const TAGS               = 'tags';
     const STREAMING_PROFILES = 'streaming_profiles';
@@ -26,4 +27,5 @@ class ApiEndPoint
     const UPLOAD_PRESETS     = 'upload_presets';
     const UPLOAD_MAPPINGS    = 'upload_mappings';
     const METADATA_FIELDS    = 'metadata_fields';
+    const ANALYSIS           = 'analysis';
 }

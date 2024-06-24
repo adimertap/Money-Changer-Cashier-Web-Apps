@@ -25,6 +25,7 @@ class VideoSource extends AssetBasedSource
 {
     use VideoTransformationTrait;
     use VideoSourceTrait;
+    use AudioSourceTrait;
     use ImageSourceTrait;
 
     /**

@@ -38,6 +38,7 @@
                                         <th class="sort text-center fs--1" data-sort="no">No.</th>
                                         <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal Transaksi</th>
                                         <th class="sort text-center fs--1" data-sort="jumlah_transaksi">Jumlah Transaksi</th>
+                                        <th class="sort text-center fs--1" data-sort="jumlah_transaksi">Jenis Transaksi</th>
                                         <th class="sort text-center fs--1" data-sort="grand_total">Total</th>
                                         <th class="text-center">Actions</th>
                                     </tr>
@@ -49,6 +50,8 @@
                                         <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
                                         <td class="text-center jumlah_transaksi fs--1">{{ $item->jumlah_transaksi }}</td>
                                         <td class="text-center grand_total text-center fs--1">Rp. {{ number_format($item->grand_total, 0, ',', '.') }}</td>
+                                        <td class="text-center jumlah_transaksi fs--1">{{ $item->jenis }}</td>
+
                                         <td class="text-center fs--1">
                                             <a href="{{ route('jurnal-bulanan.edit', $item->tanggal_transaksi) }}"
                                                 class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"

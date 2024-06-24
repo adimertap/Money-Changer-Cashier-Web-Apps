@@ -1,0 +1,21 @@
+# Laravel-specific
+/bootstrap/cache/*
+/public/storage/*
+/storage/*.key
+/vendor
+/node_modules
+/tests
+
+# Ignore environment files
+.env
+.env.*
+node_modules
+vendor
+vendor
+
+# Ignore log and cache files
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*

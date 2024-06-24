@@ -10,8 +10,11 @@
 
 namespace Cloudinary\Test\Unit\Admin;
 
+use Cloudinary\Api\Exception\ApiError;
 use Cloudinary\Test\Helpers\MockAdminApi;
 use Cloudinary\Test\Helpers\RequestAssertionsTrait;
+use Cloudinary\Test\Integration\IntegrationTestCase;
+use Cloudinary\Test\Unit\Asset\AssetTestCase;
 use Cloudinary\Test\Unit\UnitTestCase;
 
 /**
@@ -21,6 +24,59 @@ final class AssetsTest extends UnitTestCase
 {
     use RequestAssertionsTrait;
 
+
+    /**
+     * @return array[]
+     */
+    public function listAssetsFieldsDataProvider()
+    {
+        return [
+            [
+                'options'     => [
+                    'fields' => ['tags', 'secure_url'],
+                ],
+                'url'         => '/resources/image',
+                'queryParams' => [
+                    'fields' => 'tags,secure_url',
+                ],
+            ],
+            [
+                'options'     => [
+                    'fields' => 'context,url',
+                ],
+                'url'         => '/resources/image',
+                'queryParams' => [
+                    'fields' => 'context,url',
+                ],
+            ],
+            [
+                'options'     => [
+                    'fields' => "",
+                ],
+                'url'         => '/resources/image',
+                'queryParams' => [],
+            ],
+        ];
+    }
+
+    /**
+     * Test list assets fields serialization.
+     *
+     * @dataProvider listAssetsFieldsDataProvider
+     */
+    public function testListAssetFields($options, $url, $queryParams)
+    {
+        $mockAdminApi = new MockAdminApi();
+        $mockAdminApi->assets($options);
+        $lastRequest = $mockAdminApi->getMockHandler()->getLastRequest();
+
+        self::assertRequestUrl($lastRequest, $url);
+        self::assertRequestQueryStringSubset($lastRequest, $queryParams);
+    }
+
+    /**
+     * @return array[]
+     */
     public function restoreDeletedAssetSpecificVersionDataProvider()
     {
         return [
@@ -77,11 +133,13 @@ final class AssetsTest extends UnitTestCase
     public function testUpdateAssetFields()
     {
         $mockAdminApi = new MockAdminApi();
-        $mockAdminApi->update(self::$UNIQUE_TEST_ID,
+        $mockAdminApi->update(
+            self::$UNIQUE_TEST_ID,
             [
                 'metadata'            => ['key' => 'value'],
                 'asset_folder'        => 'asset_folder',
                 'unique_display_name' => true,
+                'visual_search'       => true,
             ]
         );
         $lastRequest = $mockAdminApi->getMockHandler()->getLastRequest();
@@ -93,7 +151,170 @@ final class AssetsTest extends UnitTestCase
                 'metadata'            => 'key=value',
                 'asset_folder'        => 'asset_folder',
                 'unique_display_name' => true,
+                'visual_search'       => true,
             ]
         );
+    }
+
+    /**
+     * Test related assets.
+     */
+    public function testRelatedAssets()
+    {
+        $testIds = [
+            'image/upload/' . self::$UNIQUE_TEST_ID,
+            'raw/upload/' . self::$UNIQUE_TEST_ID,
+        ];
+
+        $mockAdminApi = new MockAdminApi();
+        $mockAdminApi->addRelatedAssets(
+            self::$UNIQUE_TEST_ID,
+            $testIds
+        );
+
+        $lastRequest = $mockAdminApi->getMockHandler()->getLastRequest();
+
+        self::assertRequestUrl($lastRequest, '/resources/related_assets/image/upload/' . self::$UNIQUE_TEST_ID);
+        self::assertRequestJsonBodySubset(
+            $lastRequest,
+            [
+                'assets_to_relate' => $testIds,
+            ]
+        );
+
+        $mockAdminApi = new MockAdminApi();
+        $mockAdminApi->deleteRelatedAssets(
+            self::$UNIQUE_TEST_ID,
+            $testIds
+        );
+
+        $lastRequest = $mockAdminApi->getMockHandler()->getLastRequest();
+
+        self::assertRequestUrl($lastRequest, '/resources/related_assets/image/upload/' . self::$UNIQUE_TEST_ID);
+        self::assertRequestJsonBodySubset(
+            $lastRequest,
+            [
+                'assets_to_unrelate' => $testIds,
+            ]
+        );
+    }
+
+    /**
+     * Test related assets by asset Ids.
+     */
+    public function testRelatedAssetsByAssetIds()
+    {
+        $testAssetIds = [
+            self::API_TEST_ASSET_ID2,
+            self::API_TEST_ASSET_ID3,
+        ];
+
+        $mockAdminApi = new MockAdminApi();
+        $mockAdminApi->addRelatedAssetsByAssetIds(
+            self::API_TEST_ASSET_ID,
+            $testAssetIds
+        );
+
+        $lastRequest = $mockAdminApi->getMockHandler()->getLastRequest();
+
+        self::assertRequestUrl($lastRequest, '/resources/related_assets/' . self::API_TEST_ASSET_ID);
+        self::assertRequestJsonBodySubset(
+            $lastRequest,
+            [
+                'assets_to_relate' => $testAssetIds,
+            ]
+        );
+
+        $mockAdminApi = new MockAdminApi();
+        $mockAdminApi->deleteRelatedAssetsByAssetIds(
+            self::API_TEST_ASSET_ID,
+            $testAssetIds
+        );
+
+        $lastRequest = $mockAdminApi->getMockHandler()->getLastRequest();
+
+        self::assertRequestUrl($lastRequest, '/resources/related_assets/' . self::API_TEST_ASSET_ID);
+        self::assertRequestJsonBodySubset(
+            $lastRequest,
+            [
+                'assets_to_unrelate' => $testAssetIds,
+            ]
+        );
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function visualSearchDataProvider()
+    {
+        return [
+            [
+                'options'    => [
+                    'image_url' => AssetTestCase::FETCH_IMAGE_URL,
+                ],
+                'url'        => '/resources/visual_search',
+                'bodyFields' => [
+                    'image_url' => AssetTestCase::FETCH_IMAGE_URL,
+                ],
+            ],
+            [
+                'options'    => [
+                    'image_asset_id' => self::API_TEST_ASSET_ID,
+                ],
+                'url'        => '/resources/visual_search',
+                'bodyFields' => [
+                    'image_asset_id' => self::API_TEST_ASSET_ID,
+                ],
+            ],
+            [
+                'options'    => [
+                    'text' => 'sample image',
+                ],
+                'url'        => '/resources/visual_search',
+                'bodyFields' => [
+                    'text' => 'sample image',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test Visual search.
+     *
+     * @dataProvider visualSearchDataProvider
+     *
+     * @param array  $options
+     * @param string $url
+     * @param array  $bodyFields
+     *
+     * @throws ApiError
+     */
+    public function testVisualSearch($options, $url, $bodyFields)
+    {
+        $mockAdminApi = new MockAdminApi();
+        $mockAdminApi->visualSearch($options);
+        $lastRequest = $mockAdminApi->getMockHandler()->getLastRequest();
+
+        self::assertRequestUrl($lastRequest, $url);
+        self::assertRequestBodySubset($lastRequest, $bodyFields);
+    }
+
+    /**
+     * Test Visual search using image file.
+     *
+     * @throws ApiError
+     */
+    public function testVisualSearchImageFile()
+    {
+        $mockAdminApi = new MockAdminApi();
+        $mockAdminApi->visualSearch(['image_file' => IntegrationTestCase::TEST_IMAGE_PATH]);
+        $lastRequest = $mockAdminApi->getMockHandler()->getLastRequest();
+
+        self::assertRequestUrl($lastRequest, '/resources/visual_search');
+        $body = $lastRequest->getBody()->getContents();
+
+        self::assertStringContainsString('image_file', $body);
+        self::assertStringContainsString('Content-Length: 5110', $body);
     }
 }

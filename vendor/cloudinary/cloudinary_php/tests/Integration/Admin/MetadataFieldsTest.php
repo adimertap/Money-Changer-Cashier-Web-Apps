@@ -220,6 +220,7 @@ class MetadataFieldsTest extends IntegrationTestCase
     {
         $dateMetadataField = new DateMetadataField(self::$EXTERNAL_ID_DATE);
         $dateMetadataField->setExternalId(self::$EXTERNAL_ID_DATE);
+        $dateMetadataField->setRestrictions(["readonly_ui" => true]);
 
         $result = self::$adminApi->addMetadataField($dateMetadataField);
 
@@ -229,7 +230,8 @@ class MetadataFieldsTest extends IntegrationTestCase
             [
                 'label' => self::$EXTERNAL_ID_DATE,
                 'external_id' => self::$EXTERNAL_ID_DATE,
-                'mandatory' => false
+                'mandatory' => false,
+                'restrictions' => ["readonly_ui" => true],
             ]
         );
     }
@@ -243,6 +245,7 @@ class MetadataFieldsTest extends IntegrationTestCase
     {
         $setMetadataField = new SetMetadataField(self::$EXTERNAL_ID_SET, self::$DATASOURCE_MULTIPLE);
         $setMetadataField->setExternalId(self::$EXTERNAL_ID_SET);
+        $setMetadataField->setDefaultValue([self::$DATASOURCE_ENTRY_EXTERNAL_ID, 'v4']);
 
         $result = self::$adminApi->addMetadataField($setMetadataField);
 
@@ -252,7 +255,8 @@ class MetadataFieldsTest extends IntegrationTestCase
             [
                 'label' => self::$EXTERNAL_ID_SET,
                 'external_id' => self::$EXTERNAL_ID_SET,
-                'mandatory' => false
+                'mandatory' => false,
+                'default_value' => [self::$DATASOURCE_ENTRY_EXTERNAL_ID, 'v4']
             ]
         );
     }

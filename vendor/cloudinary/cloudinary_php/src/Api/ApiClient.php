@@ -20,7 +20,7 @@ use Cloudinary\FileUtils;
 use Cloudinary\Utils;
 use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Promise;
+use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\LimitStream;
 use InvalidArgumentException;
@@ -52,7 +52,8 @@ class ApiClient extends BaseApiClient
 
         $this->configuration($configuration);
 
-        $this->baseUri = "{$this->api->uploadPrefix}/" . self::apiVersion() . "/{$this->cloud->cloudName}/";
+        $this->baseUri = "{$this->api->uploadPrefix}/" . self::apiVersion($this->api->apiVersion)
+                         . "/{$this->cloud->cloudName}/";
 
         $this->createHttpClient();
     }
@@ -140,7 +141,7 @@ class ApiClient extends BaseApiClient
      */
     public function postAndSignFormAsync($endPoint, $formParams)
     {
-        if (!$this->cloud->oauthToken) {
+        if (! $this->cloud->oauthToken) {
             ApiUtils::signRequest($formParams, $this->cloud);
         }
 
@@ -240,7 +241,7 @@ class ApiClient extends BaseApiClient
     {
         $unsigned = ArrayUtils::get($options, 'unsigned');
 
-        if (!$this->cloud->oauthToken && !$unsigned) {
+        if (! $this->cloud->oauthToken && ! $unsigned) {
             ApiUtils::signRequest($parameters, $this->cloud);
         }
 
@@ -355,13 +356,13 @@ class ApiClient extends BaseApiClient
                     ]
                 );
 
-                return Promise\rejection_for($e);
+                return Create::rejectionFor($e);
             }
 
             ArrayUtils::addNonEmptyFromOther($parameters, 'public_id', $uploadResult);
         }
 
-        return Promise\promise_for($uploadResult);
+        return Create::promiseFor($uploadResult);
     }
 
     /**
@@ -380,7 +381,7 @@ class ApiClient extends BaseApiClient
     protected function postSingleChunkAsync($endPoint, $singleChunk, $parameters, $options = [])
     {
         $filePart = [
-            'name'     => 'file',
+            'name'     => ArrayUtils::get($options, 'file_field', 'file'),
             'contents' => $singleChunk,
         ];
 
@@ -414,11 +415,11 @@ class ApiClient extends BaseApiClient
 
         if (isset($this->cloud->oauthToken)) {
             $authConfig = [
-                'headers' => ['Authorization' => 'Bearer ' . $this->cloud->oauthToken]
+                'headers' => ['Authorization' => 'Bearer ' . $this->cloud->oauthToken],
             ];
         } else {
             $authConfig = [
-                'auth' => [$this->cloud->apiKey, $this->cloud->apiSecret]
+                'auth' => [$this->cloud->apiKey, $this->cloud->apiSecret],
             ];
         }
 

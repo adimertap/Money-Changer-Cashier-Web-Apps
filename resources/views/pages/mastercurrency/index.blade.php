@@ -76,6 +76,7 @@
                                 <th class="sort text-center" data-sort="keterangan">Keterangan</th>
                                 <th class="sort text-center" data-sort="urutan">Key</th>
                                 <th class="sort text-center" data-sort="flag">Flag</th>
+                                <th class="sort text-center" data-sort="kurs">Jumlah / Last Sell</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
@@ -112,6 +113,13 @@
                                     <img src="{{ $item->img_flag }}" alt="flag" height="30" />
                                     @endif
                                 </td>
+                                <td class="text-center">
+                                    @if(!$item->jumlah_valas) 
+                                    0 / {{ number_format($item->last_nilai_jual, 2, ',', '.') }}
+                                    @else
+                                    {{ $item->jumlah_valas }} / {{ number_format($item->last_nilai_jual, 2, ',', '.') }}
+                                    @endif
+                                    </td>
                                 <td class="text-center">
                                     <button class="btn p-0 ms-2 editCurrencyBtn" value="{{ $item->id_currency }}"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"

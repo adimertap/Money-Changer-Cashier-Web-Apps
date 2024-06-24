@@ -1,6 +1,6 @@
 {
   "name": "cloudinary/cloudinary_php",
-  "version": "2.9.0",
+  "version": "2.14.0",
   "description": "Cloudinary PHP SDK",
   "keywords": [
     "cloudinary",
@@ -26,8 +26,9 @@
   "require": {
     "php": ">=5.6.0",
     "cloudinary/transformation-builder-sdk":  "^1",
-    "guzzlehttp/guzzle": "^6|^7",
-    "shrikeh/teapot": "^1|^2",
+    "guzzlehttp/guzzle": "^6.5.8|^7.4.5",
+    "guzzlehttp/promises": "^1.5.3|^2.0",
+    "guzzlehttp/psr7": "^1.9.1|^2.5",
     "ext-json": "*",
     "monolog/monolog": "^1|^2|^3",
     "psr/log" : "^1|^2|^3"

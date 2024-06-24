@@ -22,7 +22,7 @@ use Cloudinary\ClassUtils;
  *
  * @api
  */
-class VideoOverlay extends BaseSourceContainer
+class VideoOverlay extends BasePositionalSourceContainer
 {
     /**
      * @var Timeline $timeline The timeline position of the overlay.
@@ -51,7 +51,7 @@ class VideoOverlay extends BaseSourceContainer
      *
      * @param Timeline|null $timeline The timeline position of the overlay.
      *
-     * @return BaseSourceContainer
+     * @return BasePositionalSourceContainer
      */
     public function timeline(Timeline $timeline = null)
     {
