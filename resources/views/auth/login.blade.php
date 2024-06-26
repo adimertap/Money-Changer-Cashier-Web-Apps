@@ -79,14 +79,14 @@
                                                     </div>
                                                     @enderror
                                             </div>
-                                        
+
 
                                             <div class="mb-3">
                                                 <div class="d-flex justify-content-between"><label class="form-label"
                                                         for="inputChoosePassword">Password</label></div>
                                                 <input class="form-control @error('password') is-invalid @enderror"
                                                     id="inputChoosePassword" placeholder="Enter Password"
-                                                    type="text" name="password" required
+                                                    type="password" name="password" required
                                                     autocomplete="current-password">
                                                     @error('password')
                                                     <div class="invalid-feedback">
@@ -94,7 +94,7 @@
                                                     </div>
                                                     @enderror
                                             </div>
-                                            
+
 
                                             <div class="row flex-between-center">
                                                 <div class="col-auto">
