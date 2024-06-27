@@ -25,52 +25,52 @@ class JadwalUserController extends Controller
 
           $startOfMonth = Carbon::now($timezone)->startOfMonth();
           $endOfMonth = Carbon::now($timezone)->endOfMonth();
-  
+
           $jadwal = JadwalKerja::with('Shift', 'User')->where('id', Auth::user()->id)
               ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
               ->get()
               ->sortBy('tanggal');
-  
+
           $jadwalToday = JadwalKerja::with('Shift', 'User')->where('id', Auth::user()->id)
               ->where('tanggal', Carbon::today($timezone))
               ->get();
-  
+
           $countTodayStatusX = JadwalKerja::where('id', Auth::user()->id)
           ->where('tanggal', Carbon::today($timezone))
           ->whereIn('status', ['X', 'T'])
           ->count();
-      
+
           $today = Carbon::today($timezone);
           $jadwalTodayCount = $jadwalToday->count();
           $currentMonth = Carbon::now($timezone)->format('F');
- 
+
           // Button Absen Setelah 4 Jam Masuk
           $jadwalMasukFilled = JadwalKerja::where('id', Auth::user()->id)
           ->where('tanggal', Carbon::today($timezone))
           ->where('jam_masuk','!=', null)
           ->where('status', 'X')
           ->first();
- 
+
          // $shiftActual = MasterShift::where('shift_id', $jadwalMasukFilled->shift_id)->value('shift_in');
          // $shiftCheck = Carbon::createFromFormat('H:i:s', $jadwalMasukFilled->jam_masuk, $timezone);
          // dd([
          //         'Actual' => $shiftActual,
          //         '+ 2 Jam' => $shiftCheck->toTimeString()
          //     ]);
- 
-  
+
+
           // Radius Salah
           //  -8.035976527872002, 114.38504957190355
- 
+
           // Radius Basurra
           // -6.200000, 106.816666
- 
+
           // Radius PT Riastavalasindo on googlemaps
           //  -8.701647497474847, 115.16637512084526
- 
-          $fixedLatitude = -8.701647497474847; // Example fixed latitude
-          $fixedLongitude = 115.16637512084526; // Example fixed longitude
-  
+
+          $fixedLatitude = -6.200000; // Example fixed latitude
+          $fixedLongitude =  106.816666; // Example fixed longitude
+
           return view('absensi.absen', compact('jadwalMasukFilled','countTodayStatusX','jadwal', 'jadwalToday', 'currentMonth', 'jadwalTodayCount', 'today', 'fixedLatitude', 'fixedLongitude'));
     }
 
@@ -100,17 +100,17 @@ class JadwalUserController extends Controller
                 ->where('tanggal', Carbon::today($timezone))
                 ->whereIn('status', ['X', 'T'])
                 ->first();
-    
+
             if (!$jadwal) {
                 Alert::warning('Warning', 'Absensi Gagal, Tidak Terdapat Jadwal Hari Ini!');
                 return redirect()->back();
             }
-    
+
             DB::beginTransaction();
-    
+
             $shiftIn = MasterShift::where('shift_id', $jadwal->shift_id)->value('shift_in');
             $shiftOut = MasterShift::where('shift_id', $jadwal->shift_id)->value('shift_out');
-    
+
             $shiftInTime = Carbon::createFromFormat('H:i:s', $shiftIn, $timezone);
             $shiftOutTime = Carbon::createFromFormat('H:i:s', $shiftOut, $timezone);
             $currentTimeObj = Carbon::createFromFormat('H:i:s', $currentTime, $timezone);
@@ -130,26 +130,26 @@ class JadwalUserController extends Controller
                 $jadwal->jam_keluar = $currentTime;
                 $jadwal->status_absen_out = $absen;
             }
-    
+
             $jadwal->update();
-    
+
             if ($jadwal->jam_masuk != null && $jadwal->jam_keluar != null) {
                 $jadwal->status = 'Y';
                 $jadwal->update();
             }
-    
+
             DB::commit();
-    
+
             if ($jadwal->jam_keluar == null) {
-                $message = ($absen === "Terlambat") ? 
-                    "Sukses Absen, Anda Terlambat {$currentTime}" : 
+                $message = ($absen === "Terlambat") ?
+                    "Sukses Absen, Anda Terlambat {$currentTime}" :
                     "Sukses Absen, {$currentTime}";
             } else {
-                $message = ($absen === "Pulang Cepat") ? 
-                    "Sukses Absen, Anda Pulang Lebih Cepat {$currentTime}" : 
+                $message = ($absen === "Pulang Cepat") ?
+                    "Sukses Absen, Anda Pulang Lebih Cepat {$currentTime}" :
                     "Sukses Absen, {$currentTime}";
             }
-    
+
             Alert::success('Success', $message);
             return redirect()->back();
         } catch (\Throwable $th) {

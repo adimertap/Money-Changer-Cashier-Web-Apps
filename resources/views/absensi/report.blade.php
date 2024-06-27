@@ -74,12 +74,12 @@
                 </div>
             </div>
         </form>
-       
+
 
         <div class="card mb-3 mt-3">
             <div class="card-header">
                 <div class="d-flex justify-content-between">
-                    <h5 class="mb-0" data-anchor="data-anchor">Laporan Absensi 
+                    <h5 class="mb-0" data-anchor="data-anchor">Laporan Absensi
                         @if ($selectedMonth)
                         - {{ $selectedMonth }}
                         @endif
@@ -164,7 +164,7 @@
                         </table>
                     </div>
                     <div class="d-flex justify-content-center mt-3">
-                        {{ $jadwal->links('vendor.pagination.custom') }}
+                        {{ $jadwal->links('layouts.pagination') }}
                     </div>
                 </div>
             </div>

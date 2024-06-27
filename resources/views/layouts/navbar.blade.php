@@ -1,8 +1,8 @@
 <nav class="navbar navbar-light navbar-vertical navbar-expand-xl">
     <div class="d-flex align-items-center">
-        
+
         <div class="toggle-icon-wrapper">
-         
+
         </div>
         <a class="navbar-brand" href="{{ route('dashboard') }}">
             <div class="d-flex align-items-center py-3"><span class="font-sans-serif">Kasir</span></div>
@@ -30,7 +30,7 @@
                             </div>
                         </a>
                     </li>
-             
+
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Master Data</div>
@@ -56,6 +56,18 @@
                     </a>
                 @endif
 
+                @if(Auth::user()->role != 'Owner')
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('dashboard') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <div class="d-flex align-items-center">
+                            <span class="nav-link-icon">
+                                <i class="fas fa-home"></i>
+                            </span>
+                            <span class="nav-link-text ps-1">Dashboard</span>
+                        </div>
+                    </a>
+                </li>
+                @endif
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Jadwal</div>
@@ -92,7 +104,7 @@
                             <span class="nav-link-text ps-1">Jadwal & Absen</span>
                         </div>
                     </a>
-                    
+
 
                 </li>
 
@@ -128,7 +140,7 @@
                         </div>
                     </a>
                 </li>
-              
+
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Pelaporan</div>
@@ -170,7 +182,42 @@
                             <span class="nav-link-text ps-1">Jurnal Debit Kredit</span>
                         </div>
                     </a>
-                    
+
+                    <a class="nav-link dropdown-indicator collapsed" href="#laporanAbsen" role="button"
+                        data-bs-toggle="collapse" aria-expanded="true" aria-controls="laporanAbsen">
+                        <div class="d-flex align-items-center"><span class="nav-link-icon">
+                                <i class="fas fa-calendar-alt"></i></span><span class="nav-link-text ps-1">Laporan
+                                Absensi</span></div>
+                    </a>
+                    @php
+                    $laporan_absensi = ['getUserReport', 'jadwal-laporan.index' ];
+                    @endphp
+                    <ul class="nav collapse {{ (in_array(request()->route()->getName(), $laporan_absensi)) ? 'show' : '' }}"
+                        id="laporanAbsen" style="">
+                        @if(Auth::user()->role == 'Owner')
+                        <li class="nav-item mt-1">
+                            <a class="nav-link" href="{{ route('getUserReport') }}" data-bs-toggle=""
+                                aria-expanded="false">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">
+                                        Laporan Pegawai</span>
+                                </div>
+                            </a>
+                        </li>
+                        @endif
+
+                        <li class="nav-item mt-1">
+                            <a class="nav-link" href="{{ route('jadwal-laporan.index') }}" data-bs-toggle=""
+                                aria-expanded="false">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text ps-1">
+                                        Laporan Saya</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+
+
                 </li>
                 @if (Auth::user()->role == 'Owner')
                 <li class="nav-item">
@@ -198,8 +245,8 @@
                     </a>
                 </li>
                 @endif
-               
-               
+
+
                 <li class="nav-item">
                     <div class="row navbar-vertical-label-wrapper mt-3 mb-2">
                         <div class="col-auto navbar-vertical-label">Sesi Login</div>
@@ -209,7 +256,7 @@
                     </div>
                     <h6 class="mb-0">Role Anda<span class="text-primary"> {{ Auth::user()->role }}</span></h6>
                 </li>
-                
+
             </ul>
             {{-- <div class="settings mb-3 mt-5">
                 <div class="card alert p-0 shadow-none" role="alert">

@@ -13,6 +13,7 @@
         font-weight: bold;
         /* Bold text */
     }
+
 </style>
 <main>
     <div class="d-flex justify-content-between mt-3">
@@ -22,7 +23,7 @@
         </div>
         <button class="btn btn-sm btn-primary h-100 mt-3" onclick="aturJadwal()">Atur Jadwal</button>
     </div>
-   
+
 
 
     <div class="card overflow-hidden p-4">
@@ -30,11 +31,13 @@
             <li class="nav-item"><a class="nav-link active" id="home-tab" data-bs-toggle="tab" href="#tab-home" role="tab" aria-controls="tab-home" aria-selected="true">Jadwal Kerja</a></li>
             <li class="nav-item"><a class="nav-link" id="profile-tab" data-bs-toggle="tab" href="#tab-profile" role="tab" aria-controls="tab-profile" aria-selected="false">Request Tukar Jadwal</a></li>
             {{-- <li class="nav-item"><a class="nav-link" id="contact-tab" data-bs-toggle="tab" href="#tab-contact" role="tab" aria-controls="tab-contact" aria-selected="false">Contact</a></li> --}}
-          </ul>
-          <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="tab-home" role="tabpanel" aria-labelledby="home-tab">  <div class="card-body p-0 pt-3" style="height: 1000px">
-                <div id="calendar"></div>
-            </div></div>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="tab-home" role="tabpanel" aria-labelledby="home-tab">
+                <div class="card-body p-0 pt-3" style="height: 1000px">
+                    <div id="calendar"></div>
+                </div>
+            </div>
             <div class="tab-pane fade" id="tab-profile" role="tabpanel" aria-labelledby="profile-tab">
                 <div class="card-body">
                     <i class="mb-3">Data Pegawai yang ingin tukar jadwal</i>
@@ -58,22 +61,22 @@
                                         <td class="text-center">{{ Carbon\Carbon::parse($item->tanggal)->format('d F Y') }}</td>
                                         <td class="text-center">{{ $item->Shift->shift_name }}</td>
                                         <td class="text-center">{{ $item->User->name }}</td>
-                                        <td >{{ $item->keterangan }}</td>
+                                        <td>{{ $item->keterangan }}</td>
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-primary"  style="font-size: 12px!important" onclick="updateTukar('{{ $item->tanggal }}','{{ $item->jadwal_id }}','{{ $item->User->id }}','{{ $item->shift_id }}')" type="button">Update</button>
+                                            <button class="btn btn-sm btn-primary" style="font-size: 12px!important" onclick="updateTukar('{{ $item->tanggal }}','{{ $item->jadwal_id }}','{{ $item->User->id }}','{{ $item->shift_id }}')" type="button">Update</button>
                                         </td>
 
                                     </tr>
                                     @endforeach
                                 </tbody>
-    
+
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-          </div>
-      
+        </div>
+
     </div>
 </main>
 
@@ -126,20 +129,20 @@
                             <div class="col-md-12 mb-3">
                                 <label class="form-label" for="keterangan">Keterangan</label>
                                 <textarea class="form-control" name="keterangan" type="text" placeholder="Input keterangan" rows="2" value="{{ old('keterangan') }}"></textarea>
-                            </div>
-                        </div> --}}
-                        <div class="mb-4">
-                            <span class="mb-4" style="color: red">*</span> <span class="fs--1">Wajib diisi</span>
-                        </div>
                     </div>
+                </div> --}}
+                <div class="mb-4">
+                    <span class="mb-4" style="color: red">*</span> <span class="fs--1">Wajib diisi</span>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
-                    <button class="btn btn-primary" id="btnModal" type="submit">Save </button>
-                </div>
-            </form>
         </div>
     </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" id="btnModal" type="submit">Save </button>
+    </div>
+    </form>
+</div>
+</div>
 </div>
 
 <div class="modal fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
@@ -158,7 +161,7 @@
                         <div class="row mt-4 mb-2">
                             <div class="col-md-12 mb-3">
                                 <label class="form-label" for="start_date">Date</label>
-                                <input class="form-control" name="start_date" id="startDateEdit" type="date" placeholder="Input Start Date" value="{{ old('start_date') }}" readonly/>
+                                <input class="form-control" name="start_date" id="startDateEdit" type="date" placeholder="Input Start Date" value="{{ old('start_date') }}" readonly />
                             </div>
                         </div>
                         <div class="col-md-12 mb-3">
@@ -188,23 +191,23 @@
                             <div class="col-md-12 mb-3">
                                 <label class="form-label" for="keteranganEdit">Keterangan</label>
                                 <textarea class="form-control" id="keteranganEdit" name="keterangan" type="text" placeholder="Input keterangan" rows="2" value="{{ old('keterangan') }}" ></textarea>
-                            </div>
-                        </div> --}}
-                        <div class="mb-4">
-                            <span class="mb-4" style="color: red">*</span> <span class="fs--1">Wajib diisi</span>
-                        </div>
                     </div>
+                </div> --}}
+                <div class="mb-4">
+                    <span class="mb-4" style="color: red">*</span> <span class="fs--1">Wajib diisi</span>
                 </div>
-                <div class="modal-footer d-flex justify-content-between">
-                    <button class="btn btn-danger" id="btnDelete" onclick="deleteJadwal()" type="button">Delete</button>
-                    <div>
-                        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
-                        <button class="btn btn-primary" id="btnEdit" type="submit">Update</button>
-                    </div>
-                </div>
-            </form>
         </div>
     </div>
+    <div class="modal-footer d-flex justify-content-between">
+        <button class="btn btn-danger" id="btnDelete" onclick="deleteJadwal()" type="button">Delete</button>
+        <div>
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary" id="btnEdit" type="submit">Update</button>
+        </div>
+    </div>
+    </form>
+</div>
+</div>
 </div>
 
 
@@ -216,7 +219,7 @@
     function updateTukar(tanggal, jadwalId, user, shift) {
         var datePart = tanggal.split(' ')[0];
         $('#jadwalIdEdit').val(jadwalId);
-        $('#startDateEdit').prop('readonly',false);
+        $('#startDateEdit').prop('readonly', false);
         $('#startDateEdit').val(datePart);
         $('#pegawaiEdit').val(user).trigger('change');
         $('input[name="shiftEdit"][value="' + shift + '"]').prop('checked', true);
@@ -290,7 +293,10 @@
                     , method: 'GET'
                     , success: function(data) {
                         console.log(data)
-                        var formattedStartDate = new Date(data.start_date).toISOString().split('T')[0];
+                        // var formattedStartDate = new Date(data.start_date).toISOString().split('T')[0];
+                        var startDate = new Date(data.start_date);
+                        startDate.setDate(startDate.getDate() + 1);
+                        var formattedStartDate = startDate.toISOString().split('T')[0];
                         // Populate modal with fetched data
                         $('#jadwalIdEdit').val(data.id)
                         $('#startDateEdit').val(formattedStartDate);
