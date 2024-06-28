@@ -68,8 +68,8 @@ class JadwalUserController extends Controller
           // Radius PT Riastavalasindo on googlemaps
           //  -8.701647497474847, 115.16637512084526
 
-          $fixedLatitude = -6.200000; // Example fixed latitude
-          $fixedLongitude =  106.816666; // Example fixed longitude
+          $fixedLatitude = -8.701647497474847; // Example fixed latitude
+          $fixedLongitude =  115.16637512084526; // Example fixed longitude
 
           return view('absensi.absen', compact('jadwalMasukFilled','countTodayStatusX','jadwal', 'jadwalToday', 'currentMonth', 'jadwalTodayCount', 'today', 'fixedLatitude', 'fixedLongitude'));
     }
