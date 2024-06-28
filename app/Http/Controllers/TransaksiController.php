@@ -57,7 +57,7 @@ class TransaksiController extends Controller
         //     $total_transaksi = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
         //     $currency = MasterCurrency::orderBy('jenis_kurs','ASC')->get();
         //     $pegawai = User::where('role','!=','Owner')->get();
-            
+
         //     $report = Jurnal::join('tb_currency','tb_jurnal.id_currency','tb_currency.id_currency')
         //     ->where('tanggal_jurnal', $today)->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs, jenis_kurs as jenis')
         //     ->groupBy('nama_currency','kurs','jenis_kurs')->get();
@@ -71,14 +71,14 @@ class TransaksiController extends Controller
         //     if($request->filterData){
         //         $report = Jurnal::join('tb_currency','tb_jurnal.id_currency','tb_currency.id_currency')
         //             ->where('tanggal_jurnal', $today)->where('id_pegawai', $request->filterData)->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs, jenis_kurs as jenis, id_pegawai as user')->groupBy('nama_currency','kurs','jenis_kurs','id_pegawai')->get();
-        //             return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi','currency','pegawai','report')); 
+        //             return view('pages.transaksi.owner', compact('transaksi', 'count','today','total_transaksi','currency','pegawai','report'));
 
         //     }
 
         //     return view('pages.transaksi.owner', compact('valas','transaksi', 'count','today','total_transaksi','currency','pegawai','report'));
 
-           
-        // }       
+
+        // }
         try {
             $today = Carbon::now()->format('Y-m-d');
             $user = Auth::user();
@@ -103,14 +103,14 @@ class TransaksiController extends Controller
 
             $report = $jurnalQuery->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs, jenis_kurs as jenis')
                 ->where('jenis_jurnal', 'Debit')
-                ->groupBy('nama_currency', 'kurs', 'jenis_kurs')
+                ->groupBy('nama_currency', 'jenis_kurs')
                 ->get();
 
             $valas = $jurnalQuery->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah, kurs as nilai, jenis_kurs as jenis, SUM(total_tukar) as total')
                 ->where('jenis_jurnal', 'Debit')
                 ->groupBy('nama_currency', 'jenis_kurs')
                 ->get();
-                
+
 
             if (!$isPegawai) {
                 $pegawai = User::where('role', '!=', 'Owner')->get();
@@ -119,7 +119,7 @@ class TransaksiController extends Controller
                     $report = $jurnalQuery->where('id_pegawai', $request->filterData)
                         ->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs, jenis_kurs as jenis, id_pegawai as user')
                         ->where('jenis_jurnal', 'Debit')
-                        ->groupBy('nama_currency', 'kurs', 'jenis_kurs', 'id_pegawai')
+                        ->groupBy('nama_currency', 'jenis_kurs', 'id_pegawai')
                         ->get();
                     return view('pages.transaksi.owner', compact('valas','transaksi', 'count', 'today', 'total_transaksi', 'currency', 'pegawai', 'report'));
                 }
@@ -154,7 +154,7 @@ class TransaksiController extends Controller
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
-       
+
     }
 
     public function Export_dokumen(Request $request)
@@ -331,7 +331,7 @@ class TransaksiController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {  
+    {
         try {
             DB::beginTransaction();
             $transaksi = new Transaksi();
@@ -386,7 +386,7 @@ class TransaksiController extends Controller
             DB::rollBack();
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
-        }   
+        }
     }
 
     /**
