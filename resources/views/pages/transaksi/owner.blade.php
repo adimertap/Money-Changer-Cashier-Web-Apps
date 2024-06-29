@@ -13,9 +13,7 @@
                             <p>Rekapan Transaksi Hari Ini</p>
                         </div>
                         <div class="col-auto h-100">
-                            <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button"
-                                data-bs-toggle="modal" data-bs-target="#modalfilter"><span
-                                    class="fas fa-arrow-down me-1"> </span>Download Laporan Hari Ini
+                            <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button" data-bs-toggle="modal" data-bs-target="#modalfilter"><span class="fas fa-arrow-down me-1"> </span>Download Laporan Hari Ini
                             </button>
                         </div>
                     </div>
@@ -31,8 +29,7 @@
                             <p>Lihat Cepat Valas Report disini</p>
                         </div>
                         <div class="col-auto h-100">
-                            <button class="btn btn-primary btn-sm me-1 mb-2 mb-sm-0" type="button" id="btnreport"
-                                data-bs-toggle="modal" data-bs-target="#modalreport">Valas Report
+                            <button class="btn btn-primary btn-sm me-1 mb-2 mb-sm-0" type="button" id="btnreport" data-bs-toggle="modal" data-bs-target="#modalreport">Valas Report
                             </button>
                         </div>
                     </div>
@@ -68,8 +65,7 @@
             </div>
         </div>
         <div class="card-body">
-            <div id="tableExample" class="dataTables_wrapper"
-                data-list='{"valueNames":["no","pegawai","tanggal_transaksi","kode_transaksi","total"],"page":20,"pagination":true}'>
+            <div id="tableExample" class="dataTables_wrapper" data-list='{"valueNames":["no","pegawai","tanggal_transaksi","kode_transaksi","total"],"page":20,"pagination":true}'>
                 <div class="table-responsive scrollbar">
                     <table id="example" class="table table-striped" style="width:100%">
                         <thead class="bg-200 text-900">
@@ -103,23 +99,15 @@
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Print"><span class="text-700 fas fa-print"></span>
+                                    <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Print"><span class="text-700 fas fa-print"></span>
                                     </a>
                                 </td>
                                 <td class="text-center fs--1">
-                                    <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Detail"><span class="text-700 fas fa-eye"></span>
+                                    <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail"><span class="text-700 fas fa-eye"></span>
                                     </a>
-                                    <a href="{{ route('transaksi.edit', $item->id_transaksi) }}" class="btn p-0"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Edit"><span class="text-700 fas fa-edit"></span>
+                                    <a href="{{ route('transaksi.edit', $item->id_transaksi) }}" class="btn p-0" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><span class="text-700 fas fa-edit"></span>
                                     </a>
-                                    <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Delete"><span class="text-700 fas fa-trash-alt"></span>
+                                    <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><span class="text-700 fas fa-trash-alt"></span>
                                     </button>
                                 </td>
                             </tr>
@@ -150,121 +138,116 @@
                     <div class="card-body">
                         <form action="{{ url('/transaksi') }}" method="GET">
                             <label for="filterData">Filter Berdasarkan Pegawai</label>
-                                <div class="row mb-3">
-                                    <div class="col-4">
-                                        <select class="form-select form-select-sm" id="filterData" size="1" name="filterData" >
-                                            <option value="">Report Keseluruhan</option>
-                                            @foreach ($pegawai as $user)
-                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-4">
-                                        <button class="btn btn-sm btn-primary" type="submit">Filter</button>
-                                    </div>
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <select class="form-select form-select-sm" id="filterData" size="1" name="filterData">
+                                        <option value="">Report Keseluruhan</option>
+                                        @foreach ($pegawai as $user)
+                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
+                                <div class="col-4">
+                                    <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+                                </div>
+                            </div>
                         </form>
-                        
+
 
                         <div class="card p-3 mb-5">
-                            <div id="tableExample"
-                            data-list='{"valueNames":["no","nama_currency","jumlah","nilai","grand"],"page":20,"pagination":true}'>
-                            <div class="table-responsive scrollbar">
-                                <table class="table table-bordered table-striped fs--1 mb-0" id="datatableReport">
-                                    <thead class="bg-200 text-900">
-                                        <tr>
-                                            <th class="sort text-center" data-sort="no">No.</th>
-                                            <th class="sort text-center" data-sort="nama_currency">Currency</th>
-                                            <th class="sort text-center" data-sort="jumlah">Jumlah</th>
-                                            <th class="sort text-center" data-sort="nilai">Kurs(Rp)</th>
-                                            <th class="sort text-center" data-sort="grand">Total</th>
-                                        </tr>
-                                    </thead>
-                                    @php
-                                    $total_debit = 0;
-                                    // $total_kredit = 0;
-                                    foreach ($report as $key => $item) {
-                                    $total_debit = $total_debit + ($item->nilai_kurs*$item->jumlah_tukar);
-                                    // $total_kredit = $total_kredit + $item->jumlah_modal;
-                                    }
-                                    // $grand = $total_kredit - $total_debit;
+                            <div id="tableExample" data-list='{"valueNames":["no","nama_currency","jumlah","nilai","grand"],"page":20,"pagination":true}'>
+                                <div class="table-responsive scrollbar">
+                                    <table class="table table-bordered table-striped fs--1 mb-0" id="datatableReport">
+                                        <thead class="bg-200 text-900">
+                                            <tr>
+                                                <th class="sort text-center" data-sort="no">No.</th>
+                                                <th class="sort text-center" data-sort="nama_currency">Currency</th>
+                                                <th class="sort text-center" data-sort="jumlah">Jumlah</th>
+                                                <th class="sort text-center" data-sort="nilai">Kurs(Rp)</th>
+                                                <th class="sort text-center" data-sort="grand">Total</th>
+                                            </tr>
+                                        </thead>
+                                        @php
+                                        $total_debit = 0;
+                                        foreach ($report as $key => $item) {
+                                        $total_debit = $total_debit + ($item->nilai_kurs*$item->jumlah_tukar);
+                                        }
 
-                                    @endphp
-                                    <tbody class="list" id="tess">
-                                        @forelse ($report as $item)
-                                        <tr role="row" class="odd">
-                                            <th scope="row" class="no" style="font-size: 14px">{{ $loop->iteration}}.</th>
-                                            <td class="text-start nama_currency" style="font-size: 15px">{{ $item->nama_kurs }}</td>
-                                            <td class="text-start jumlah" style="font-size: 15px">{{ $item->jumlah_tukar }}</td>
-                                            <td class="text-center nilai text-center bg-soft-primary" style="font-size: 15px">Rp. {{
+                                        @endphp
+                                        <tbody class="list" id="tess">
+                                            @forelse ($report as $item)
+                                            <tr role="row" class="odd">
+                                                <th scope="row" class="no" style="font-size: 14px">{{ $loop->iteration}}.</th>
+                                                <td class="text-start nama_currency" style="font-size: 15px">{{ $item->nama_kurs }}</td>
+                                                <td class="text-start jumlah" style="font-size: 15px">{{ $item->jumlah_tukar }}</td>
+                                                <td class="text-center nilai text-center bg-soft-primary" style="font-size: 15px">Rp. {{
                                                 number_format($item->nilai_kurs, 2, ',', '.') }}</td>
-                                            <td class="text-center grand text-center" style="font-size: 15px">Rp. {{
+                                                <td class="text-center grand text-center" style="font-size: 15px">Rp. {{
                                                 number_format($item->nilai_kurs*$item->jumlah_tukar, 0, ',', '.') }}
-                                            </td>
+                                                </td>
+                                            </tr>
+
+                                            @empty
+
+                                            @endforelse
+
+
+
+                                        </tbody>
+                                        <tr>
+                                            <th class="text-center bg-soft-primary" colspan="4" style="font-size: 17px">Total Tercatat / Grand Total</th>
+                                            <th class="text-center bg-soft-primary fw-bold" colspan="1" style="font-size: 18px">{{ number_format($total_debit,2,',','.') }}
+                                            </th>
                                         </tr>
 
-                                        @empty
-
-                                        @endforelse
-
-                                        
-
-                                    </tbody>
-                                    <tr>
-                                        <th class="text-center bg-soft-primary" colspan="4" style="font-size: 17px">Total Tercatat / Grand Total</th>
-                                        <th class="text-center bg-soft-primary fw-bold" colspan="1" style="font-size: 18px">{{ number_format($total_debit,2,',','.') }}
-                                        </th>
-                                    </tr>
-
-                                </table>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                        </div>
 
-                    
-                                <div class="card p-3">
-                                    <h4 class="mb-2">Detail Valas</h4>
-                                    <div id="tableExample"
-                                    data-list='{"valueNames":["no","nama_currency","jumlah","nilai","grand"],"page":20,"pagination":true}'>
-                                    <div class="table-responsive scrollbar">
-                                        <table class="table table-bordered table-striped fs--1 mb-0" id="datatableReport2">
-                                            <thead class="bg-200 text-900">
-                                                <tr>
-                                                    <th class="sort text-center" data-sort="no">No.</th>
-                                                    <th class="sort text-center" data-sort="nama_currency">Currency</th>
-                                                    <th class="sort text-center" data-sort="jumlah">Jumlah</th>
-                                                    <th class="sort text-center" data-sort="tengah">Kurs Tengah</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="list" id="tess">
-                                                @forelse ($valas as $item)
-                                                <tr role="row" class="odd">
-                                                    <th scope="row" class="no" >{{ $loop->iteration}}.</th>
-                                                    <td class="text-start nama_currency">{{ $item->nama_kurs }} / {{ $item->jenis }}</td>
-                                                    @if($item->jenis == 'Lembar')
-                                                    <td class="text-center jumlah">{{ $item->jumlah }} Lembar</td>
-                                                    @else
-                                                    <td class="text-center jumlah">{{ $item->jumlah }} Coins</td>
-                                                    @endif
-                                                    <td class="text-center tengah">Rp.{{ number_format($item->total/$item->jumlah, 2,',','.' ) }}</td>
-                                                </tr>
-        
-                                                @empty
-        
-                                                @endforelse
-        
-        
-        
-                                            </tbody>
-                                        </table>
-                                    </div>
-                               
-                                
+
+                        <div class="card p-3">
+                            <h4 class="mb-2">Detail Valas</h4>
+                            <div id="tableExample" data-list='{"valueNames":["no","nama_currency","jumlah","nilai","grand"],"page":20,"pagination":true}'>
+                                <div class="table-responsive scrollbar">
+                                    <table class="table table-bordered table-striped fs--1 mb-0" id="datatableReport2">
+                                        <thead class="bg-200 text-900">
+                                            <tr>
+                                                <th class="sort text-center" data-sort="no">No.</th>
+                                                <th class="sort text-center" data-sort="nama_currency">Currency</th>
+                                                <th class="sort text-center" data-sort="jumlah">Jumlah</th>
+                                                <th class="sort text-center" data-sort="tengah">Kurs Tengah</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="list" id="tess">
+                                            @forelse ($valas as $item)
+                                            <tr role="row" class="odd">
+                                                <th scope="row" class="no">{{ $loop->iteration}}.</th>
+                                                <td class="text-start nama_currency">{{ $item->nama_kurs }} / {{ $item->jenis }}</td>
+                                                @if($item->jenis == 'Lembar')
+                                                <td class="text-center jumlah">{{ $item->jumlah }} Lembar</td>
+                                                @else
+                                                <td class="text-center jumlah">{{ $item->jumlah }} Coins</td>
+                                                @endif
+                                                <td class="text-center tengah">Rp.{{ number_format($item->total/$item->jumlah, 2,',','.' ) }}</td>
+                                            </tr>
+
+                                            @empty
+
+                                            @endforelse
+
+
+
+                                        </tbody>
+                                    </table>
+                                </div>
+
+
                             </div>
                         </div>
-                       
-                        
-                    
+
+
+
                     </div>
                 </div>
             </div>
@@ -272,13 +255,10 @@
     </div>
 </div>
 
-<div class="modal fade" id="deleteModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"
-    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal fade" id="deleteModal" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content border-0">
-            <div class="position-absolute top-0 end-0 mt-3 me-3 z-index-1"><button
-                    class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal"
-                    aria-label="Close"></button></div>
+            <div class="position-absolute top-0 end-0 mt-3 me-3 z-index-1"><button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal" aria-label="Close"></button></div>
             <form action="{{ url('/delete-transaksi') }}" method="POST">
                 @csrf
                 <div class="modal-body p-0">
@@ -298,8 +278,7 @@
                                         <div class="mb-3">
                                             <label class="col-form-label" for="keterangan">Keterangan
                                                 Penghapusan</label><span class="mr-4 mb-3" style="color: red">*</span>
-                                            <textarea class="form-control" id="keterangan" name="keterangan"
-                                                rows="3"></textarea>
+                                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3"></textarea>
                                             <span class="mb-1" style="color: red">*</span> <span class="fs--1">Wajib
                                                 diisi</span>
                                         </div>
@@ -322,8 +301,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
         <div class="modal-content position-relative">
             <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
-                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
-                    data-bs-dismiss="modal" aria-label="Close"></button>
+                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('export-dokumen-harian') }}" id="form2">
                 <div class="modal-body p-0">
@@ -335,16 +313,14 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" id="flexRadioDefault1" type="radio" value="excel"
-                                        name="radio_input" checked />
+                                    <input class="form-check-input" id="flexRadioDefault1" type="radio" value="excel" name="radio_input" checked />
                                     <label class="form-check-label" for="flexRadioDefault1">Export Excel</label>
                                 </div>
 
                             </div>
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" id="flexRadioDefault2" type="radio" value="pdf"
-                                        name="radio_input" />
+                                    <input class="form-check-input" id="flexRadioDefault2" type="radio" value="pdf" name="radio_input" />
                                     <label class="form-check-label" for="flexRadioDefault2">Export PDF</label>
                                 </div>
                             </div>
@@ -352,8 +328,7 @@
                         <div class="row mb-3 mt-3">
                             <div class="col-12">
                                 <label for="currency">Filter by Currency</label>
-                                <select class="form-select js-choice" id="id_currency" name="id_currency"
-                                    data-options='{"removeItemButton":true,"placeholder":true, "shouldSort":false}'>
+                                <select class="form-select js-choice" id="id_currency" name="id_currency" data-options='{"removeItemButton":true,"placeholder":true, "shouldSort":false}'>
                                     <option value="">Pilih Currency</option>
                                     @foreach ($currency as $item)
                                     <option value="{{ $item->id_currency }}">{{ $item->nama_currency }}, {{
@@ -365,8 +340,7 @@
                         <div class="row mb-3 mt-3">
                             <div class="col-12">
                                 <label for="currency">Filter by Pegawai</label>
-                                <select class="form-select js-choice" id="pegawai" name="id_pegawai"
-                                    data-options='{"removeItemButton":true,"placeholder":true}'>
+                                <select class="form-select js-choice" id="pegawai" name="id_pegawai" data-options='{"removeItemButton":true,"placeholder":true}'>
                                     <option value="">Pilih Pegawai</option>
                                     @foreach ($pegawai as $item)
                                     <option value="{{ $item->id }}">{{ $item->name }}</option>
@@ -387,15 +361,16 @@
 
 @if(!empty(Session::get('modal-tes')) && Session::get('modal-tes') == 5)
 <script>
-$(function() {
-    $('#btnreport').trigger("click");
-});
+    $(function() {
+        $('#btnreport').trigger("click");
+    });
+
 </script>
 @endif
 
 <script>
-    $(document).ready(function () {
-        $('.deleteModalBtn').click(function (e) {
+    $(document).ready(function() {
+        $('.deleteModalBtn').click(function(e) {
             e.preventDefault();
 
             var id = $(this).val();
@@ -409,16 +384,13 @@ $(function() {
 
         var url = (window.location).href;
         var name = url.substring(url.lastIndexOf('=') + 1);
-        
-        
 
-       
 
-        
+
+
+
+
     })
-   
-
-   
 
 </script>
 
