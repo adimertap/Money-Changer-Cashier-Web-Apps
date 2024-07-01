@@ -11,15 +11,18 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
 class ExcelDebitKredit implements FromView, ShouldAutoSize, WithEvents
 {
-    public function __construct($jurnal, $currency)
+    public function __construct($jurnal, $currency, $totalDebit, $totalKredit, $totalModal)
     {
         $this->jurnal = $jurnal;
         $this->currency = $currency;
+        $this->totalDebit = $totalDebit;
+        $this->totalKredit = $totalKredit;
+        $this->totalModal = $totalModal;
     }
 
     public function view(): View
     {
-        return view('pages.jurnal.kredit&debit.excel',['jurnal' => $this->jurnal, 'kurs' => $this->currency]);
+        return view('pages.jurnal.kredit&debit.excel',['jurnal' => $this->jurnal, 'kurs' => $this->currency, 'totalDebit' => $this->totalDebit, 'totalKredit'=> $this->totalKredit,'totalModal'=> $this->totalModal]);
     }
 
     public function registerEvents(): array
@@ -34,12 +37,12 @@ class ExcelDebitKredit implements FromView, ShouldAutoSize, WithEvents
                     'alignment' => [
                         'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
                     ],
-                    
+
                 ]);
 
             }
         ];
     }
 
-    
+
 }

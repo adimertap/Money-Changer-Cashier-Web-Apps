@@ -25,7 +25,7 @@ class JurnalKreditDebitController extends Controller
         }else{
             $jurnal = Jurnal::where('id_pegawai', Auth::user()->id)->orderBy('updated_at','DESC')->take(300)->get();
         }
-       
+
         $currency = MasterCurrency::get();
 
         return view('pages.jurnal.kredit&debit.index', compact('jurnal','currency'));
@@ -38,23 +38,39 @@ class JurnalKreditDebitController extends Controller
      */
     public function create(Request $request)
     {
-       
+
         $jurnal = Jurnal::with('Currency')->OrderBy('updated_at');
+        $totalDebit = Jurnal::with('Currency')->OrderBy('updated_at');
+        $totalKredit = Jurnal::with('Currency')->OrderBy('updated_at');
+        $totalModal = Jurnal::with('Currency')->OrderBy('updated_at');
+
+
         if($request->from_date_export){
             $jurnal->where('tanggal_jurnal', '>=', $request->from_date_export);
+            $totalDebit->where('tanggal_jurnal', '>=', $request->from_date_export);
+            $totalKredit->where('tanggal_jurnal', '>=', $request->from_date_export);
+            $totalModal->where('tanggal_jurnal', '>=', $request->from_date_export);
         }
         if($request->to_date_export){
             $jurnal->where('tanggal_jurnal', '<=', $request->to_date_export);
+            $totalDebit->where('tanggal_jurnal', '>=', $request->to_date_export);
+            $totalKredit->where('tanggal_jurnal', '>=', $request->to_date_export);
+            $totalModal->where('tanggal_jurnal', '>=', $request->to_date_export);
         }
         if($request->filter_jenis){
             $jurnal->where('jenis_jurnal', $request->filter_jenis);
+            $totalDebit->where('jenis_jurnal', $request->filter_jenis);
+            $totalKredit->where('jenis_jurnal', $request->filter_jenis);
+            $totalModal->where('jenis_jurnal', $request->filter_jenis);
         }
         if(Auth::user()->role =='Owner'){
             $jurnal = $jurnal->get();
         }else{
             $jurnal = $jurnal->where('id_pegawai', Auth::user()->id)->get();
         }
-       
+        $totalDebit = $totalDebit->where('jenis_jurnal', 'Debit')->get();
+        $totalKredit = $totalKredit->where('jenis_jurnal', 'Kredit Jual')->get();
+        $totalModal = $totalModal->where('jenis_jurnal', 'Kredit')->get();
 
         $currency = Jurnal::join('tb_currency','tb_jurnal.id_currency','tb_currency.id_currency')
         ->selectRaw('nama_currency as nama, SUM(jumlah_tukar) as total, kurs as jumlah_kurs')
@@ -73,14 +89,15 @@ class JurnalKreditDebitController extends Controller
         }else{
             $currency = $currency->where('id_pegawai', Auth::user()->id)->get();
         }
-       
-        
+
+
         if(count($jurnal) == 0){
             Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');
             return redirect()->back();
         }else{
+
             if($request->radio_input == 'pdf'){
-                $pdf = Pdf::loadview('pages.jurnal.kredit&debit.pdf',['jurnal'=>$jurnal, 'kurs'=> $currency]);
+                $pdf = Pdf::loadview('pages.jurnal.kredit&debit.pdf',['jurnal'=>$jurnal, 'kurs'=> $currency, 'totalDebit' => $totalDebit, 'totalKredit' => $totalKredit, 'totalModal' => $totalModal]);
                     if($request->from_date_export && $request->to_date_export){
                         return $pdf->download('report-jurnal '.$request->from_date_export.' '.$request->to_date_export.' .pdf');
                     }else{
@@ -88,14 +105,14 @@ class JurnalKreditDebitController extends Controller
                     }
             }else{
                 if($request->from_date_export && $request->to_date_export){
-                    return Excel::download(new ExcelDebitKredit($jurnal, $currency), 'report-jurnal'.$request->from_date_export.' '.$request->to_date_export.' .xlsx');
+                    return Excel::download(new ExcelDebitKredit($jurnal, $currency, $totalDebit, $totalKredit, $totalModal), 'report-jurnal'.$request->from_date_export.' '.$request->to_date_export.' .xlsx');
                 }else{
-                    return Excel::download(new ExcelDebitKredit($jurnal, $currency), 'report-jurnal.xlsx');
+                    return Excel::download(new ExcelDebitKredit($jurnal, $currency, $totalDebit, $totalKredit, $totalModal), 'report-jurnal.xlsx');
                 }
             }
             Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
         }
-        
+
     }
 
     /**

@@ -12,16 +12,24 @@
         </tr>
     </thead>
     <tbody>
-        @php 
+        @php
             $i=1;
-            $total_debit = 0; 
+            $total_debit = 0;
             $total_kredit = 0;
-            foreach ($jurnal as $key => $item) {
+            $total_modal = 0;
+            foreach ($totalDebit as $key => $item) {
                 $total_debit = $total_debit + $item->total_tukar;
-                $total_kredit = $total_kredit + $item->jumlah_modal;
             }
-            $grand = $total_kredit - $total_debit;
-         
+
+            foreach ($totalKredit as $key => $value) {
+                $total_kredit = $total_kredit + $value->total_tukar;
+            }
+
+            foreach ($totalModal as $key => $modal) {
+                $total_modal = $total_modal + $modal->jumlah_modal;
+            }
+
+            $grand = ($total_kredit + $total_modal) - $total_debit;
         @endphp
         @foreach ($jurnal as $item)
         <tr>
@@ -34,6 +42,13 @@
                 <td>Rp. {{ number_format($item->kurs, 0, ',', '.') }}</td>
                 <td>Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>
                 <td>-</td>
+            @elseif ($item->jenis_jurnal == 'Kredit Jual')
+                <td>Jual Valas</td>
+                <td>{{ $item->Currency->nama_currency ?? '' }}, {{ $item->Currency->jenis_kurs ?? '' }}</td>
+                <td>{{ $item->jumlah_tukar }}</td>
+                <td>Rp. {{ number_format($item->kurs, 0, ',', '.') }}</td>
+                <td>-</td>
+                <td>Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>
             @else
                 <td>Modal</td>
                 <td>-</td>
@@ -43,13 +58,13 @@
                 <td>Rp. {{ number_format($item->jumlah_modal, 0, ',', '.') }}</td>
             @endif
         </tr>
-        @endforeach 
+        @endforeach
     </tbody>
     <tr>
         <th colspan="1"></th>
         <th colspan="5">Total Debit dan Kredit</th>
         <th colspan="1">Rp. {{ number_format($total_debit, 0, ',', '.') }}</th>
-        <th colspan="1">Rp. {{ number_format($total_kredit, 0, ',', '.') }}</th>
+        <th colspan="1">Rp. {{ number_format($total_kredit + $total_modal, 0, ',', '.') }}</th>
     </tr>
 </table>
 
@@ -64,7 +79,7 @@
         </tr>
     </thead>
     <tbody>
-        @php 
+        @php
             $i=1;
 
         @endphp
@@ -76,11 +91,15 @@
             <td>Rp. {{ number_format($item->jumlah_kurs, 0, ',','.') }}</td>
             <td>Rp. {{ number_format($item->total * $item->jumlah_kurs, 0, ',','.') }}</td>
         </tr>
-        @endforeach 
+        @endforeach
     </tbody>
     <tr>
         <th colspan="4">Total Debit Tercatat</th>
         <th colspan="1">Rp. {{ number_format($total_debit, 0, ',', '.') }}</th>
+    </tr>
+    <tr>
+        <th colspan="4">Penjualan Valas</th>
+        <th colspan="1">Rp. {{ number_format($total_kredit, 0, ',', '.') }}</th>
     </tr>
     <tr>
         <th colspan="4">Sisa Modal</th>

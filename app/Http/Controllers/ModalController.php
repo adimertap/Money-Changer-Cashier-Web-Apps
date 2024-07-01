@@ -69,19 +69,19 @@ class ModalController extends Controller
             $modal->total_modal_backup = $request->jumlah_modal;
             $modal->jenis_modal = 'Modal Awal';
             $modal->save();
-    
-            // $user = User::where('role','Owner')->get();
-            // foreach ($user as $tes) {
-            //     Mail::to($tes->email)->send(new MailModal($modal));
-            // }
-    
+
+            $user = User::where('role','Owner')->get();
+            foreach ($user as $tes) {
+                Mail::to($tes->email)->send(new MailModal($modal));
+            }
+
             Alert::success('Berhasil', 'Data Modal Berhasil Ditambahkan');
             return redirect()->back();
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
-       
+
     }
 
     /**
@@ -120,7 +120,7 @@ class ModalController extends Controller
             if($modal->status_modal == 'Tolak' && $modal->jenis_modal == 'Edit Modal' || $modal->status_modal == 'Tolak' && $modal->jenis_modal == 'Penambahan Modal'){
                 $modal->pengajuan_tambah = $request->jumlah_modal;
                 $tambah = $request->jumlah_modal;
-    
+
                 // $modal->jumlah_modal = $modal->jumlah_modal + $tambah;
                 $modal->riwayat_modal = $modal->riwayat_modal + $tambah;
                 $modal->total_modal_backup = $modal->total_modal_backup + $tambah;
@@ -129,18 +129,18 @@ class ModalController extends Controller
                 $modal->riwayat_modal = $request->jumlah_modal;
                 $modal->total_modal_backup = $request->jumlah_modal;
             }
-    
+
             $modal->status_modal = 'Pending';
             $modal->jenis_modal = 'Edit Modal';
             $modal->update();
-    
+
             Alert::success('Berhasil', 'Data Modal Berhasil Diedit');
             return redirect()->back();
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
-       
+
     }
 
     public function tambah(Request $request)
@@ -148,28 +148,28 @@ class ModalController extends Controller
         try {
             $item = ModalTransaksi::find($request->ajukan_modal_id);
             $item->pengajuan_tambah = $request->jumlah_modal;
-    
+
             $tambah = $request->jumlah_modal;
             // $item->jumlah_modal = $item->jumlah_modal + $tambah;
             $item->riwayat_modal = $item->riwayat_modal + $tambah;
             $item->total_modal_backup = $item->total_modal_backup + $tambah;
-    
+
             $item->status_modal = 'Pending';
             $item->jenis_modal = 'Penambahan Modal';
             $item->save();
-    
-            // $user = User::where('role','Owner')->get();
-            // foreach ($user as $tes) {
-            //     Mail::to($tes->email)->send(new MailModalTambah($item));
-            // }
-    
+
+            $user = User::where('role','Owner')->get();
+            foreach ($user as $tes) {
+                Mail::to($tes->email)->send(new MailModalTambah($item));
+            }
+
             Alert::success('Berhasil', 'Data Modal Berhasil Diajukan, Mohon Tunggu');
             return redirect()->back();
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
-      
+
     }
 
 
@@ -187,14 +187,14 @@ class ModalController extends Controller
             $jurnal = Jurnal::where('id_modal', $request->modal_delete_id);
             $jurnal->delete();
             $modal->delete();
-    
+
             Alert::success('Berhasil', 'Data Modal Berhasil Terhapus');
             return redirect()->back();
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
-       
+
     }
 
     public function transfer(Request $request)
@@ -225,19 +225,19 @@ class ModalController extends Controller
             $modal->jenis_modal = 'Transfer Modal';
             $modal->riwayat_modal = 0;
             $modal->save();
-    
-            // $user = User::where('role','Owner')->get();
-            // foreach ($user as $tes) {
-            //     Mail::to($tes->email)->send(new MailTransfer($modal));
-            // }
-    
+
+            $user = User::where('role','Owner')->get();
+            foreach ($user as $tes) {
+                Mail::to($tes->email)->send(new MailTransfer($modal));
+            }
+
             Alert::success('Berhasil', 'Data Transfer Modal Berhasil Diajukan, Mohon Menunggu Approval');
             return redirect()->back();
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
-       
+
 
     }
 }
