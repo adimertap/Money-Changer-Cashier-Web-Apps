@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Absensi;
 use App\Http\Controllers\Controller;
 use App\Models\JadwalKerja;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -66,6 +67,18 @@ class LaporanAbsensiController extends Controller
         : null;
 
         return view('absensi.report', compact('jadwal', 'selectedMonth', 'selectedYear', 'selectedStatus', 'displayText'));
+    }
+
+    public function today(Request $request)
+    {
+        try {
+            $today = Carbon::now()->format('Y-m-d');
+            $jadwal = JadwalKerja::where('tanggal',$today )->get();
+            return view('absensi.reportToday', compact('jadwal','today'));
+        } catch (\Throwable $th) {
+            return $th;
+        }
+
     }
 
     public function getUser(){
