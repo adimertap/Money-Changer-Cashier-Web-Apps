@@ -61,7 +61,6 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('/jurnal-jual', [\App\Http\Controllers\JurnalHarianController::class, 'jual'])->name('jurnal-harian-jual');
             Route::get('/download-dokumen/jual', [\App\Http\Controllers\JurnalHarianController::class, 'Export_dokumen_jual'])->name('export-dokumen-jual');
 
-
             Route::resource('jurnal-bulanan', JurnalBulananController::class);
             Route::get('/jurnal-bulanan/detail/{id}', [\App\Http\Controllers\JurnalBulananController::class, 'DetailTransaksi'])->name('bulanan-transaksi');
 
@@ -70,7 +69,6 @@ Route::group(['middleware' => 'auth'], function () {
         });
         Route::resource('jurnal-debit-kredit', JurnalKreditDebitController::class);
         Route::post('/delete-jurnal', [\App\Http\Controllers\JurnalKreditDebitController::class, 'hapus'])->name('jurnal-delete');
-
 
         // TRANSAKSI
         Route::resource('transaksi', TransaksiController::class);

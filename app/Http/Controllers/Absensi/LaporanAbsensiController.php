@@ -19,6 +19,7 @@ class LaporanAbsensiController extends Controller
     public function index(Request $request)
     {
         $query = JadwalKerja::query();
+
         if ($request->has('statusFilter') && !empty($request->statusFilter)) {
             if ($request->statusFilter == 'Terlambat') {
                 $query->where('status_absen_in', "Terlambat");
@@ -28,25 +29,27 @@ class LaporanAbsensiController extends Controller
                 $query->where('status', "X");
             }
         }
+
         if ($request->has('monthFilter') && !empty($request->monthFilter)) {
             $query->whereMonth('tanggal', $request->monthFilter);
         }
+
         if ($request->has('yearFilter') && !empty($request->yearFilter)) {
             $query->whereYear('tanggal', $request->yearFilter);
         }
 
-        if ($request->query->keys()) {
-            $id = $request->query->keys()[0];
-            $user = User::find($id);
+        $userid = $request->query('userid');
+        if ($userid) {
+            $user = User::find($userid);
             $displayText = $user ? $user->name : 'User not found';
         } else {
-            $id = Auth::user()->id;
+            $userid = Auth::user()->id;
             $displayText = Auth::user()->name;
         }
 
-        // Use the determined ID in the query
-        // $jadwal = $query->with('Shift', 'User')->where('id', $id)->get()->sortBy('tanggal');
-        $jadwal = $query->with('Shift', 'User')->where('id', $id)->orderBy('tanggal')->paginate(10);
+        // return $userid;
+
+        $jadwal = $query->with('Shift', 'User')->where('id', $userid)->orderBy('tanggal', 'DESC')->get();
 
         $monthNames = [
             '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
@@ -55,19 +58,29 @@ class LaporanAbsensiController extends Controller
         ];
 
         $selectedMonth = $request->has('monthFilter') && !empty($request->monthFilter)
-        ? $monthNames[$request->monthFilter]
-        : null;
+            ? $monthNames[$request->monthFilter]
+            : null;
 
         $selectedYear = $request->has('yearFilter') && !empty($request->yearFilter)
-        ? $request->yearFilter
-        : null;
+            ? $request->yearFilter
+            : null;
 
         $selectedStatus = $request->has('statusFilter') && !empty($request->statusFilter)
-        ? $request->statusFilter
-        : null;
+            ? $request->statusFilter
+            : null;
 
-        return view('absensi.report', compact('jadwal', 'selectedMonth', 'selectedYear', 'selectedStatus', 'displayText'));
+        $queryParams = http_build_query([
+            'userid' => $userid,
+            'statusFilter' => $selectedStatus,
+            'monthFilter' => $selectedMonth,
+            'yearFilter' => $selectedYear,
+        ]);
+
+        $url = url('/jadwal-laporan?' . $queryParams);
+
+        return view('absensi.report', compact('jadwal', 'selectedMonth', 'selectedYear', 'selectedStatus', 'displayText', 'url'));
     }
+
 
     public function today(Request $request)
     {

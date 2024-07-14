@@ -36,7 +36,7 @@
                                     </td>
                                     <td class="in">{{ $item->role }}</td>
                                     <td class="text-center">
-                                        <a href="{{ route('jadwal-laporan.index', $item->id) }}" class="btn btn-xs btn-primary" style="font-size: 12px!important" type="button">Report Absensi</a>
+                                        <a href="{{ route('jadwal-laporan.index', ['userid' => $item->id]) }}" class="btn btn-xs btn-primary" style="font-size: 12px!important" type="button">Report Absensi</a>
                                     </td>
                                 </tr>
                                 @endforeach

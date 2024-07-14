@@ -10,6 +10,7 @@
     <div class="mt-4">
         <h4 class="mb-3">Laporan Absensi {{ $displayText }}</h4>
         <form action="{{ route('jadwal-laporan.index') }}" method="GET">
+            <input type="hidden" name="userid" value="{{ request()->query('userid') }}">
             <div class="card mb-2 mt-2">
                 <div class="card-body">
                     <div class="row">
@@ -49,7 +50,7 @@
                         <div class="col-4">
                             <div class="form-floating form-floating-outline">
                                 <select type="text" id="yearFilter" name="yearFilter" class="form-select"
-                                    value="{{ old('monthFilter') }}">
+                                    value="{{ old('yearFilter') }}">
                                     <option value="">Filter By Tahun</option>
                                     <option value="2020" {{ old('yearFilter')=='2020' ? 'selected' : '' }}>2020</option>
                                     <option value="2021" {{ old('yearFilter')=='2021' ? 'selected' : '' }}>2021</option>
@@ -69,11 +70,12 @@
                     </div>
                     <div class="d-flex justify-content-start mt-4">
                         <button type="submit" class="btn btn-sm btn-primary me-2">Apply Filter</button>
-                        <a href="{{ route('jadwal-laporan.index') }}" type="button" class="btn btn-sm btn-danger">Reset</a>
+                        <a href="{{ route('jadwal-laporan.index', ['userid' => request()->query('userid')]) }}" type="button" class="btn btn-sm btn-danger">Reset</a>
                     </div>
                 </div>
             </div>
         </form>
+
 
 
         <div class="card mb-3 mt-3">
@@ -112,7 +114,9 @@
                             <tbody class="list">
                                 @foreach ($jadwal as $item)
                                 <tr role="row" class="odd">
-                                <th scope="row" class="no fs--1">{{ $loop->iteration + ($jadwal->currentPage() - 1) * $jadwal->perPage() }}.</th>
+                                {{-- <th scope="row" class="no fs--1">{{ $loop->iteration + ($jadwal->currentPage() - 1) * $jadwal->perPage() }}.</th> --}}
+                                <th scope="row" class="no fs--1">{{ $loop->iteration }}.</th>
+
                                     <td class="text-center">{{ Carbon\Carbon::parse($item->tanggal)->format('d F Y') }}
                                     </td>
                                     <td class="in">{{ $item->Shift->shift_name }} , Jam {{ $item->Shift->shift_in }} -
@@ -163,9 +167,9 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="d-flex justify-content-center mt-3">
+                    {{-- <div class="d-flex justify-content-center mt-3">
                         {{ $jadwal->links('layouts.pagination') }}
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>
