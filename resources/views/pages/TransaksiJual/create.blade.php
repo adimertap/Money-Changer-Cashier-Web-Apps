@@ -357,20 +357,20 @@
                 , title: 'Oops...'
                 , text: 'Jumlah Tukar Tidak Boleh Bernilai 0 atau Kosong!'
             , });
-        } else if (jumlah_actual == 0 || jumlah_actual == "") {
-            Swal.fire({
-                icon: 'error'
-                , title: 'Oops...'
-                , text: 'Jumlah Lembar Valas 0!'
-            , });
-            return;
-        } else if (parseInt(jumlah_tukar) > parseInt(jumlah_actual)) {
-            Swal.fire({
-                icon: 'error'
-                , title: 'Oops...'
-                , text: 'Jumlah Lembar Jual Tidak Boleh Lebih Besar!'
-            , });
-            return;
+        // } else if (jumlah_actual == 0 || jumlah_actual == "") {
+        //     Swal.fire({
+        //         icon: 'error'
+        //         , title: 'Oops...'
+        //         , text: 'Jumlah Lembar Valas 0!'
+        //     , });
+        //     return;
+        // } else if (parseInt(jumlah_tukar) > parseInt(jumlah_actual)) {
+        //     Swal.fire({
+        //         icon: 'error'
+        //         , title: 'Oops...'
+        //         , text: 'Jumlah Lembar Jual Tidak Boleh Lebih Besar!'
+        //     , });
+        //     return;
         } else {
             var jumlah_modal = $('#jumlah_modal').html()
             var check_modal = jumlah_modal.includes("Rp.")
