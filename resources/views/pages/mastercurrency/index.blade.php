@@ -114,10 +114,10 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    @if(!$item->jumlah_valas) 
-                                    0 / {{ number_format($item->last_nilai_jual, 2, ',', '.') }}
+                                    @if(!$item->jumlah_valas)
+                                    {{ number_format($item->last_nilai_jual, 2, ',', '.') }}
                                     @else
-                                    {{ $item->jumlah_valas }} / {{ number_format($item->last_nilai_jual, 2, ',', '.') }}
+                                    {{ number_format($item->last_nilai_jual, 2, ',', '.') }}
                                     @endif
                                     </td>
                                 <td class="text-center">
@@ -287,7 +287,7 @@
                             <a href="{{ route('master-currency') }}" class="btn btn-secondary" type="button">Kembali</a>
                         </div>
                     </div>
-                  
+
                 </div>
             </div>
         </div>
@@ -519,7 +519,7 @@
             $(this).on('change', function(){
                 var id = $(this).attr('id')
                 var jenis = $(this).val()
-                
+
                 var dataReq = {
                     id: id,
                     jenis: jenis,
@@ -531,7 +531,7 @@
                     url: '/owner/update-nilai-kurs',
                     cache: false,
                     data: dataReq,
-                    
+
                     success: function(response) {
                         const Toast = Swal.mixin({
                             toast: true,
@@ -557,7 +557,7 @@
                             text: 'Error! Tidak Berhasil Jenis Kurs',
                         })
                     }
-                }); 
+                });
             })
         });
 
@@ -565,7 +565,7 @@
             $(this).on('change', function(){
                 var id = $(this).attr('id')
                 var country = $(this).val()
-                
+
                 var dataReq = {
                     id: id,
                     country: country,
@@ -577,7 +577,7 @@
                     url: '/owner/update-nilai-kurs',
                     cache: false,
                     data: dataReq,
-                    
+
                     success: function(response) {
                         const Toast = Swal.mixin({
                             toast: true,
@@ -603,7 +603,7 @@
                             text: 'Error! Tidak Berhasil Country Kurs',
                         })
                     }
-                }); 
+                });
             })
         });
 
@@ -611,7 +611,7 @@
             $(this).on('change', function(){
                 var id = $(this).attr('id')
                 var nama = $(this).val()
-                
+
                 var dataReq = {
                     id: id,
                     nama: nama,
@@ -623,7 +623,7 @@
                     url: '/owner/update-nilai-kurs',
                     cache: false,
                     data: dataReq,
-                    
+
                     success: function(response) {
                         const Toast = Swal.mixin({
                             toast: true,
@@ -649,7 +649,7 @@
                             text: 'Error! Tidak Berhasil Nama Kurs',
                         })
                     }
-                }); 
+                });
             })
         });
 
@@ -663,7 +663,7 @@
                     "_token": $('#token_edit').val()
                 }
 
-                
+
                 console.log(dataReq)
 
                 $.ajax({
@@ -671,7 +671,7 @@
                     url: '/owner/update-nilai-kurs',
                     cache: false,
                     data: dataReq,
-                    
+
                     success: function(response) {
                         const Toast = Swal.mixin({
                             toast: true,
@@ -697,7 +697,7 @@
                             text: 'Error! Tidak Berhasil Urutan Kurs',
                         })
                     }
-                }); 
+                });
             })
         });
 
@@ -705,7 +705,7 @@
             $(this).on('change', function(){
                 var id = $(this).attr('id')
                 var keterangan = $(this).val()
-                
+
                 if(keterangan == null || keterangan == ''){
                     var tes = $(this).val("-")
                     var yak = "-";
@@ -722,7 +722,7 @@
                     }
                 }
 
-                
+
                 console.log(dataReq)
 
                 $.ajax({
@@ -730,7 +730,7 @@
                     url: '/owner/update-nilai-kurs',
                     cache: false,
                     data: dataReq,
-                    
+
                     success: function(response) {
                         const Toast = Swal.mixin({
                             toast: true,
@@ -756,7 +756,7 @@
                             text: 'Error! Tidak Berhasil Mengupdate Kurs',
                         })
                     }
-                }); 
+                });
             })
         });
 
@@ -764,7 +764,7 @@
         $('.kurs_edit').each(function() {
             $(this).on('change', function() {
                 var id = $(this).attr('id')
-                var kurs = $(this).val()  
+                var kurs = $(this).val()
                 var kurs_template = kurs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
                 $(this).val(kurs_template)
 
@@ -802,7 +802,7 @@
                             text: 'Error! Tidak Berhasil Mengupdate Kurs',
                         })
                     }
-                }); 
+                });
             })
         });
 
@@ -820,9 +820,9 @@
         $('#nilai_kurs').on('input', function() {
             var value = $(this).val()
             console.log(value)
-            
+
             // var hasil_calc = calculate.toFixed(2)
-            
+
             var hasil_calc = new Intl.NumberFormat('id', {
                 style: 'currency',
                 currency: 'IDR',
@@ -867,7 +867,7 @@
             }else{
                 $('#img-flag').attr("src",null);
             }
-          
+
             $('#editForm').attr('action', '/owner/master-currency/' + id)
             $('#editCurrency').modal('show');
 

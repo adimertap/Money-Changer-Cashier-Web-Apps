@@ -145,7 +145,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-12 mb-3">
+                        <div class="col-md-12 mb-3" style="display: none">
                             <label class="form-label" for="jumlah_actual">Jumlah Actual (Lembar)</label>
                             <input class="form-control" id="jumlah_actual" name="jumlah_actual" type="number" value="{{ old('jumlah_actual') }}" readonly />
                         </div>
@@ -470,7 +470,7 @@
                 var jumlah = $(row.children()[4]).text()
                 var jumlah_trim = jumlah.split('Rp')[1].replace('.', '').replace('.', '').trim()
 
-                // // PAYABLE 
+                // // PAYABLE
                 // var payable_total = $('#payable_total').html()
                 // var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '')
                 //     .trim()
