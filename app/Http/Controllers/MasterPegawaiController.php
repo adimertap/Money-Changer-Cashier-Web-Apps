@@ -23,6 +23,39 @@ class MasterPegawaiController extends Controller
         return view('pages.masterpegawai.index', compact('pegawai','jumlah'));
     }
 
+    public function reset_password($id)
+    {
+        $pegawai = User::where('id', $id)->first();
+        if(!$pegawai){
+            Alert::warning('Warning', 'Pegawai not found');
+            return redirect()->back();
+        }
+
+        return view('auth.passwords.resetv2', compact('pegawai'));
+    }
+
+    public function reset_password_post(Request $request, $id){
+        try {
+            $pegawai = User::where('id', $id)->first();
+            if(!$pegawai){
+                Alert::warning('Warning', 'Pegawai not found');
+                return redirect()->back();
+            }
+
+            if($request->password !== $request->confirm_password){
+                Alert::warning('Warning', 'Pegawai not found');
+                return redirect()->back();
+            }
+            $pegawai->password = bcrypt($request->password);
+            $pegawai->update();
+
+            Alert::success('Success', 'Pasword ' . $pegawai->name . ' Updated');
+            return redirect()->route('master-pegawai.show', $id);
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -63,7 +96,7 @@ class MasterPegawaiController extends Controller
             return redirect()->back();
         }
 
-        
+
     }
 
     /**

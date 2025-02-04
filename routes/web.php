@@ -30,10 +30,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 Auth::routes();
+Route::get('/change-password/v2', [\App\Http\Controllers\DashboardController::class, 'change_password_v2'])->name('change_password_v2');
+Route::post('/change-password/v2', [\App\Http\Controllers\DashboardController::class, 'change_password_v2_post'])->name('change_password_v2_post');
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::post('/change-password', [\App\Http\Controllers\DashboardController::class, 'change_password'])->name('change_password');
+
+
 
     Route::resource('jadwal', JadwalKerjaController::class);
     Route::resource('jadwal-user', JadwalUserController::class);
@@ -48,6 +52,10 @@ Route::group(['middleware' => 'auth'], function () {
         Route::prefix('owner')->middleware(['Owner'])->group(function () {
             // MASTER DATA
             Route::resource('master-pegawai', MasterPegawaiController::class);
+            Route::get('/master-pegawa/reset/{id}', [\App\Http\Controllers\MasterPegawaiController::class, 'reset_password'])->name('master-pegawai-reset');
+            Route::put('/master-pegawa/reset/{id}', [\App\Http\Controllers\MasterPegawaiController::class, 'reset_password_post'])->name('master-pegawai-reset-post');
+
+
             Route::resource('shift', MasterShiftController::class);
             Route::post('/delete-pegawai', [\App\Http\Controllers\MasterPegawaiController::class, 'hapus'])->name('master-pegawai-delete');
             Route::get('/master-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'index'])->name('master-currency');

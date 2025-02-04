@@ -53,7 +53,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Password</label><br>
-                    <a href="{{ route('password.reset', $item->id) }}" class="btn btn-primary me-1 mb-1 btn-sm" type="button">Ubah Password?</a>
+                    <a href="{{ route('master-pegawai-reset', $item->id) }}" class="btn btn-primary me-1 mb-1 btn-sm" type="button">Ubah Password?</a>
                 </div>
                 </div>
 

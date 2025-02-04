@@ -28,6 +28,8 @@
 </head>
 
 <body>
+    @include('sweetalert::alert')
+
     <main class="main" id="top">
         <div class="container-fluid">
             <div class="row min-vh-100 flex-center g-0">
@@ -104,7 +106,7 @@
                                                         <label class="form-check-label mb-0" for="card-checkbox">Remember me</label></div>
                                                 </div>
                                                 <div class="col-auto"><a class="fs--1"
-                                                        href="{{ route('password.request') }}">Forgot Password?</a></div>
+                                                        href="{{ route('change_password_v2') }}">Forgot Password?</a></div>
                                             </div>
                                             <div class="mb-3"><button class="btn btn-primary d-block w-100 mt-3"
                                                     type="submit" >Log in</button></div>

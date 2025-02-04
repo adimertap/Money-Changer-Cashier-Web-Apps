@@ -55,7 +55,7 @@ class DashboardController extends Controller
 
             //SEMUA
             $jumlah_seluruh = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
-           
+
 
             $transaksi = Transaksi::with('detailTransaksi')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))
                 ->orderBy('created_at', 'DESC')
@@ -142,7 +142,7 @@ class DashboardController extends Controller
             $validator = Validator::make($request->all(), [
                 'password' => ['required', 'string', 'min:6', 'regex:/^(?=.*[A-Z])(?=.*[0-9])/'],
             ]);
-        
+
             if ($validator->fails()) {
                 $errors = $validator->errors()->all();
                 Alert::warning('Error', implode("<br>", $errors));
@@ -150,16 +150,44 @@ class DashboardController extends Controller
             }else{
                 $user->password = bcrypt($password);
                 $user->save();
-    
+
                  Alert::success('Berhasil', 'Berhasil Reset Password');
                 return redirect()->back();
             }
-        
+
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
-        
+    }
+
+    public function change_password_v2()
+    {
+        return view('auth.passwords.resetLogin');
+    }
+
+    public function change_password_v2_post(Request $request){
+        try {
+            $email = $request->email;
+            $password = $request->password;
+            if($password !== $request->confirm_password){
+                Alert::warning('Error', 'Password Confirm not match');
+                return redirect()->back();
+            }
+            $user = User::where('email', $email)->first();
+            if (!$user) {
+                Alert::warning('Error', 'User not Found, Try Again');
+                return redirect()->back();
+            }
+            $user->password = bcrypt($password);
+            $user->update();
+
+            Alert::success('Berhasil', 'Berhasil Reset Password');
+            return redirect()->route('login');
+        } catch (\Throwable $th) {
+            Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
+            return redirect()->back();
+        }
     }
 
 }

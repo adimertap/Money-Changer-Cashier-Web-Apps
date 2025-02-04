@@ -64,7 +64,7 @@
                     </div>
                 </div>
                 <hr class="mt-4">
-                <p class="mb-0 pt-1 mt-2 mb-0">Account Pegawai</p>
+                <p class="mb-0 pt-1 mt-2 mb-0">Account Pegawai 1</p>
                 <div class="row mb-5 mt-3">
                     <div class="col-md-6">
                         <label class="form-label" for="email">Email Pegawai</label>
@@ -73,14 +73,14 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Password</label><br>
-                        <a href="{{ route('password.reset', $item->id) }}" class="btn btn-primary me-1 mb-1 btn-sm"
+                        <a href="{{ route('master-pegawai-reset', $item->id) }}" class="btn btn-primary me-1 mb-1 btn-sm"
                             type="button">Ubah Password?</a>
                     </div>
                 </div>
-                
+
                 <a href="{{ route('master-pegawai.index') }}" class="btn btn-secondary" type="button">Kembali</a>
                 <button class="btn btn-primary" type="submit">Edit Data</button>
-              
+
             </form>
         </div>
     </div>
