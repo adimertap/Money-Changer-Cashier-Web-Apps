@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class Transaksi extends Model
 {
-
     use SoftDeletes;
 
     protected $table = "tb_transaksi";

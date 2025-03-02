@@ -17,30 +17,71 @@ class JurnalBulananController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    // public function index()
+    // {
+    //     try {
+    //         $transaksi = Transaksi::selectRaw(
+    //             '
+    //             SUM(CASE WHEN jenis_transaksi = "Beli" THEN total ELSE 0 END) as grand_total,
+    //             SUM(CASE WHEN jenis_transaksi = "Jual" THEN total ELSE 0 END) as jual_total,
+    //             DATE_FORMAT(tanggal_transaksi, "%m") as month,
+    //             YEAR(tanggal_transaksi) as year,
+    //             SUM(CASE WHEN jenis_transaksi = "Beli" THEN 1 ELSE 0 END) as jumlah_transaksi,
+    //             SUM(CASE WHEN jenis_transaksi = "Jual" THEN 1 ELSE 0 END) as jual_transaksi'
+    //         )
+    //             ->groupBy('year', 'month')
+    //             ->orderBy('year', 'DESC')
+    //             ->orderBy('month', 'DESC')
+    //             ->get();
+    //         return $transaksi;
+
+    //         return view('pages.jurnal.bulan.index', compact('transaksi'));
+    //     } catch (\Throwable $th) {
+    //         Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
+    //         return redirect()->back();
+    //     }
+    // }
     public function index()
     {
         try {
+
             $transaksi = Transaksi::selectRaw(
-                '
-                SUM(CASE WHEN jenis_transaksi = "Beli" THEN total ELSE 0 END) as grand_total, 
+                'SUM(CASE WHEN jenis_transaksi = "Beli" THEN total ELSE 0 END) as grand_total,
                 SUM(CASE WHEN jenis_transaksi = "Jual" THEN total ELSE 0 END) as jual_total,
-                DATE_FORMAT(tanggal_transaksi, "%m") as month, 
-                YEAR(tanggal_transaksi) as year, 
-                SUM(CASE WHEN jenis_transaksi = "Beli" THEN 1 ELSE 0 END) as jumlah_transaksi, 
-                SUM(CASE WHEN jenis_transaksi = "Jual" THEN 1 ELSE 0 END) as jual_transaksi'
+                DATE_FORMAT(tanggal_transaksi, "%m") as month,
+                YEAR(tanggal_transaksi) as year'
             )
-                ->groupBy('year', 'month')
-                ->orderBy('year', 'DESC')
-                ->orderBy('month', 'DESC')
-                ->get();
-    
-            return view('pages.jurnal.bulan.index', compact('transaksi'));
+            ->groupBy('year', 'month')
+            ->orderByRaw("FIELD(month, '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12')")
+            ->orderBy('year', 'DESC')
+            ->get();
+            $months = [
+                '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+                '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+                '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+            ];
+            $years = $transaksi->pluck('year')->unique()->sort()->values()->all();
+            $data = [];
+            foreach ($months as $num => $name) {
+                $data[$num] = [
+                    'month_name' => $name,
+                    'totals' => array_fill_keys($years, 0)
+                ];
+            }
+
+            // Populate transaction totals
+            foreach ($transaksi as $item) {
+                $data[$item->month]['totals'][$item->year] = $item->grand_total;
+            }
+
+            return view('pages.jurnal.bulan.index', compact('data', 'years'));
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
-       
     }
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -49,7 +90,7 @@ class JurnalBulananController extends Controller
      */
     public function create()
     {
-        
+
     }
 
     /**
@@ -89,14 +130,14 @@ class JurnalBulananController extends Controller
         $bulan = $month;
 
         return view('pages.jurnal.bulan.detail', compact('transaksi', 'transaksi_seluruh', 'bulan'));
-    
+
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
-     
 
-        
+
+
     }
 
     /**
@@ -110,7 +151,7 @@ class JurnalBulananController extends Controller
         $transaksi = Transaksi::where('tanggal_transaksi', $tanggal_transaksi)->get();
         return view('pages.jurnal.bulan.detailtanggal', compact('transaksi'));
     }
-    
+
     public function DetailTransaksi($id)
     {
         $transaksi = Transaksi::with('Pegawai','detailTransaksi.Currency')->find($id);

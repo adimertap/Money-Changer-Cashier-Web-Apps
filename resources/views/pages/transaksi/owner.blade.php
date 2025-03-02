@@ -56,20 +56,22 @@
     </ul>
     <div class="card mb-3">
         <div class="card-header">
-            <div class="row flex-between-end">
-                <div class="col-auto align-self-center">
-                    <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Transaksi Customer Hari Ini
-                    </h5>
-                    <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Transaksi</p>
-                </div>
+            <h5 class="mb-0">Rekapan Data Transaksi Customer Anda Hari Ini</h5>
+            <div class="d-flex justify-content-end">
+                <label for="perPageSelect" class="me-2">Show</label>
+                <select id="perPageSelect" class="form-select w-auto">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
             </div>
         </div>
         <div class="card-body">
-            <div id="tableExample" class="dataTables_wrapper" data-list='{"valueNames":["no","pegawai","tanggal_transaksi","kode_transaksi","total"],"page":20,"pagination":true}'>
-                <div class="table-responsive scrollbar">
-                    <table id="example" class="table table-striped" style="width:100%">
-                        <thead class="bg-200 text-900">
-                            <tr>
+            <div class="table-responsive scrollbar">
+                <table class="table table-striped" id="example">
+                    <thead class="bg-200 text-900">
+                        <tr>
                                 <th class="sort text-center fs--1" data-sort="no">No.</th>
                                 <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal & Waktu</th>
@@ -83,9 +85,9 @@
                             </tr>
                         </thead>
                         <tbody class="list">
-                            @forelse ($transaksi as $item)
+                            @forelse ($transaksi as $index => $item)
                             <tr role="row" class="odd">
-                                <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
+                                <td class="text-center">{{ $transaksi->firstItem() + $index }}</td>
                                 <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
                                 <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y',
                                     strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s',
@@ -118,6 +120,10 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $transaksi->appends(['per_page' => request('per_page')])->links('pagination::bootstrap-4') }}
+                </div>
+
             </div>
         </div>
     </div>
@@ -369,6 +375,7 @@
 @endif
 
 <script>
+    //
     $(document).ready(function() {
         $('.deleteModalBtn').click(function(e) {
             e.preventDefault();
@@ -378,7 +385,10 @@
             $('#deleteModal').modal('show');
         })
 
-        var table = $('#example').DataTable([]);
+        var table = $('#example').DataTable({
+            paging: false,
+            // scrollY: 400
+        });
         $('#datatableReport').DataTable();
         $('#datatableReport2').DataTable();
 
@@ -386,7 +396,10 @@
         var name = url.substring(url.lastIndexOf('=') + 1);
 
 
-
+        $('#perPageSelect').on('change', function () {
+            var perPage = $(this).val();
+            window.location.href = '?per_page=' + perPage;
+        });
 
 
 

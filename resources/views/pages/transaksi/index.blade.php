@@ -54,82 +54,84 @@
 </div>
 
 <ul class="nav nav-pills mb-3">
-    <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi.index') }}">Transaksi Beli Hari Ini</a></li>
+    <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi.index') }}">Transaksi Beli Hari Ini</a>
+    </li>
     <li class="nav-item"><a class="nav-link" href="{{ route('transaksi-jual.index') }}">Transaksi Jual Hari Ini</a></li>
 </ul>
 
 <div class="card mb-3">
     <div class="card-header">
-        <div class="row flex-between-end">
-            <div class="col-auto align-self-center">
-                <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Transaksi Customer Anda Hari Ini
-                </h5>
-                <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Transaksi</p>
-            </div>
+        <h5 class="mb-0">Rekapan Data Transaksi Customer Anda Hari Ini</h5>
+        <div class="d-flex justify-content-end">
+            <label for="perPageSelect" class="me-2">Show</label>
+            <select id="perPageSelect" class="form-select w-auto">
+                <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20</option>
+                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+            </select>
         </div>
     </div>
-    <div class="card-body">
-        <div id="tableExample"
-            data-list='{"valueNames":["no","pegawai","tanggal_transaksi","kode_transaksi","total"],"page":20,"pagination":true}'>
-            <div class="table-responsive scrollbar">
-                <table id="example" class="table table-striped" style="width:100%">
-                    <thead class="bg-200 text-900">
+   <div class="card-body">
+        <div class="table-responsive scrollbar">
+            <table class="table table-striped" id="example">
+                <thead class="bg-200 text-900">
+                    <tr>
+                        <th class="text-center">No.</th>
+                        <th class="text-center">Pegawai</th>
+                        <th class="text-center">Tanggal & Waktu</th>
+                        <th class="text-center">Kode Transaksi</th>
+                        <th class="text-center">Cust.</th>
+                        <th class="text-center">Passport</th>
+                        <th class="text-center">Total Transaksi</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                        @forelse ($transaksi as $index => $item)
                         <tr>
-                            <th class="sort text-center fs--1" data-sort="no">No.</th>
-                            <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
-                            <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal & Waktu</th>
-                            <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
-                            <th class="sort text-center fs--1" data-sort="nama_customer">Cust.</th>
-                            <th class="sort text-center fs--1" data-sort="nomor_passport">Passport</th>
-                            <th class="sort text-center fs--1" data-sort="total">Total Transaksi</th>
-                            <th class="sort text-center fs--1" data-sort="print">Print</th>
-                            <th class="sort text-center fs--1" data-sort="status">Status</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="list">
-                        @forelse ($transaksi as $item)
-                        <tr role="row" class="odd">
-                            <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
-                            <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
-                            <td class="text-center tanggal_transaksi fs--1">
+                            <td class="text-center">{{ $transaksi->firstItem() + $index }}</td>
+                            <td class="text-start">{{ $item->Pegawai->name }}</td>
+                            <td class="text-center">
                                 {{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }},
-                                {{ date('H:i:s', strtotime($item->created_at)) }}</td>
-                            <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
-                            <td class="text-center nama_customer fs--1">{{ $item->nama_customer }}</td>
-                            <td class="text-center nomor_passport fs--1">{{ $item->nomor_passport }}</td>
-                            <td class="text-center total text-center fs--1">Rp.
-                                {{ number_format($item->total, 0, ',', '.') }}</td>
-                            <td class="text-center status text-center fs--1">
+                                {{ date('H:i:s', strtotime($item->created_at)) }}
+                            </td>
+                            <td class="text-center">{{ $item->kode_transaksi }}</td>
+                            <td class="text-center">{{ $item->nama_customer }}</td>
+                            <td class="text-center">{{ $item->nomor_passport }}</td>
+                            <td class="text-center">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
+                            <td class="text-center">
                                 <span class="badge rounded-pill badge-soft-success">Lunas</span>
                             </td>
                             <td class="text-center">
                                 <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0 ms-1"
-                                    type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Print"><span
-                                        class="text-700 fas fa-print"></span>
+                                    title="Print">
+                                    <span class="text-700 fas fa-print"></span>
                                 </a>
-                            </td>
-                            <td class="text-center fs--1">
                                 <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0 ms-1"
-                                    type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail"><span
-                                        class="text-700 fas fa-eye"></span>
+                                    title="Detail">
+                                    <span class="text-700 fas fa-eye"></span>
                                 </a>
                                 <a href="{{ route('transaksi.edit', $item->id_transaksi) }}" class="btn p-0 ms-1"
-                                    type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><span
-                                        class="text-700 fas fa-edit"></span>
+                                    title="Edit">
+                                    <span class="text-700 fas fa-edit"></span>
                                 </a>
-                                <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}" type="button"
-                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><span
-                                        class="text-700 fas fa-trash-alt"></span>
+                                <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}" title="Delete">
+                                    <span class="text-700 fas fa-trash-alt"></span>
                                 </button>
                             </td>
                         </tr>
-
                         @empty
-
+                        <tr>
+                            <td colspan="9" class="text-center">No data available</td>
+                        </tr>
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+            <div class="d-flex justify-content-center mt-3">
+                {{ $transaksi->appends(['per_page' => request('per_page')])->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
@@ -365,10 +367,19 @@
             $('#deleteModal').modal('show');
         })
 
-        var table = $('#datatable').DataTable();
+        var table = $('#example').DataTable({
+            paging: false,
+            // scrollY: 400
+        });
         $('#datatableReport').DataTable();
         $('#datatableReport2').DataTable();
+        $('#perPageSelect').on('change', function () {
+            var perPage = $(this).val();
+            window.location.href = '?per_page=' + perPage;
+        });
+
     })
+
 </script>
 
 

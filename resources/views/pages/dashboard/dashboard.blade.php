@@ -107,14 +107,14 @@
                     </div>
                 </div>
             </div>
-            <div class="card bg-light mb-3">
+            {{-- <div class="card bg-light mb-3">
                 <div class="card-body p-3">
                     <p class="fs--1 mb-0"><a href="{{ route('jurnal-bulanan.index') }}">
                             <span class="fas fa-exchange-alt me-2" data-fa-transform="rotate-90"></span>
                             Klik untuk lihat <strong>Jurnal Bulanan </strong>Perusahaan Anda</a>. Data dibawah
                         menampilkan informasi penting Perusahaan Anda</p>
                 </div>
-            </div>
+            </div> --}}
             @endif
 
             @if(Auth::user()->role == 'Owner')

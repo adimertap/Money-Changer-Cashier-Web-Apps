@@ -24,21 +24,30 @@ class ModalController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        if(Auth::user()->role == 'Owner'){
-            $modal = ModalTransaksi::orderBy('created_at', 'DESC')->get();
-        }else{
-            $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->orWhere('riwayat_modal','>', '0')->orderBy('created_at', 'DESC')->get();
+        try {
+            $perPage = $request->input('per_page', 10);
+            if(Auth::user()->role == 'Owner'){
+                $modalQuery = ModalTransaksi::orderBy('created_at', 'DESC');
+            }else{
+                $modalQuery = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))
+                ->orWhere('riwayat_modal','>', '0')->orderBy('created_at', 'DESC');
+            }
+            $modal = $modalQuery->paginate($perPage);
+
+            $modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->get();
+            $modal_tf = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
+            $jumlah_modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
+            $today = Carbon::now()->format('Y-m-d');
+            if(count($modal_today) == 0){
+                Alert::warning('Modal Belum Diinput', 'Anda Belum Menginputkan Modal Hari Ini, Lakukan Inputan atau Transfer');
+            }
+            return view('pages.modal.index', compact('modal','modal_today','today','jumlah_modal_today','modal_tf'));
+        } catch (\Throwable $th) {
+            Alert::warning('Error', 'Error Server');
         }
-        $modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->get();
-        $modal_tf = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
-        $jumlah_modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
-        $today = Carbon::now()->format('Y-m-d');
-        if(count($modal_today) == 0){
-            Alert::warning('Modal Belum Diinput', 'Anda Belum Menginputkan Modal Hari Ini, Lakukan Inputan atau Transfer');
-        }
-        return view('pages.modal.index', compact('modal','modal_today','today','jumlah_modal_today','modal_tf'));
+
     }
 
     /**

@@ -61,26 +61,30 @@
     </div>
     <div class="card mb-3">
         <div class="card-header">
-            <div class="row flex-between-end">
-                <div class="col-auto align-self-center">
-                    @if (Auth::user()->role == 'Pegawai')
+            <h5 class="mb-0">
+                @if (Auth::user()->role == 'Pegawai')
                     <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Modal Anda Hari Ini</h5>
                     <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Modal</p>
                     @else
                     <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Modal</h5>
                     <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Modal</p>
                     @endif
-
-                </div>
+            </h5>
+            <div class="d-flex justify-content-end">
+                <label for="perPageSelect" class="me-2">Show</label>
+                <select id="perPageSelect" class="form-select w-auto">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
             </div>
         </div>
         <div class="card-body">
-            <div id="tableExample"
-                data-list='{"valueNames":["no","tanggal_modal",,"pegawai","jumlah_modal","status_modal"],"page":20,"pagination":true}'>
-                <div class="table-responsive scrollbar">
-                    <table class="table table-bordered table-striped fs--1 mb-0" id="datatable">
-                        <thead class="bg-200 text-900">
-                            <tr>
+            <div class="table-responsive scrollbar">
+                <table class="table table-striped" id="example">
+                    <thead class="bg-200 text-900">
+                        <tr>
                                 <th class="sort text-center" data-sort="no">No.</th>
                                 <th class="sort text-center" data-sort="tanggal_modal">Tanggal</th>
                                 <th class="sort text-center" data-sort="pegawai">Pegawai</th>
@@ -92,9 +96,9 @@
                             </tr>
                         </thead>
                         <tbody class="list">
-                            @forelse ($modal as $item)
+                            @forelse ($modal as $index => $item)
                             <tr role="row" class="odd">
-                                <th scope="row" class="no">{{ $loop->iteration}}.</th>
+                                <td class="text-center">{{ $modal->firstItem() + $index }}</td>
                                 <td class="tanggal_modal">{{ date('d-M-Y', strtotime($item->tanggal_modal)) }}</td>
                                 <td class="pegawai">{{ $item->Pegawai->name }}</td>
                                 <td class="jumlah_modal text-center">Rp. {{ number_format($item->jumlah_modal, 0, ',',
@@ -159,6 +163,9 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $modal->appends(['per_page' => request('per_page')])->links('pagination::bootstrap-4') }}
                 </div>
             </div>
         </div>
@@ -368,12 +375,17 @@
 </div>
 
 <script>
+
+
+
+
+
     function form_tambah_baru(event) {
         event.preventDefault()
         var form = $('#form_tambah_baru')
         var _token = form.find('input[name="_token"]').val()
         var jumlah_modal = form.find('input[name="jumlah_modal"]').val()
-        
+
         var data = {
             _token: _token,
             jumlah_modal: jumlah_modal,
@@ -523,7 +535,13 @@
 
 
     $(document).ready(function () {
-        var table = $('#datatable').DataTable();
+        var table = $('#example').DataTable({
+            paging:false
+        });
+        $('#perPageSelect').on('change', function () {
+            var perPage = $(this).val();
+            window.location.href = '?per_page=' + perPage;
+        });
         table.on('click', '.editModalBtn', function () {
             var id = $(this).val();
             $('#modal_edit_id').val(id)
@@ -559,7 +577,7 @@
             $('#modal_transfer_id').val(id)
             $('#modaltransfer').modal('show');
         });
-        
+
         $('.ajukanModalBtn').click(function (e) {
             e.preventDefault();
 
@@ -575,7 +593,7 @@
             $('#id_modal').val(id)
             $('#deleteModal').modal('show');
         });
-        
+
         $('.tambah_jumlah_modal').each(function () {
             $(this).on('input', function () {
                 var harga = $(this).val()

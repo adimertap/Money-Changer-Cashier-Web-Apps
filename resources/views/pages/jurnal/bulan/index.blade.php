@@ -17,41 +17,26 @@
     </div>
     <div class="card mb-3">
         <div class="card-body">
-            <div id="tableExample"
-                data-list='{"valueNames":["no","pegawai","tanggal_transaksi","kode_transaksi","total"],"page":20,"pagination":true}'>
+            <div id="tableExample">
                 <div class="table-responsive scrollbar">
                     <table id="example" class="table table-striped" style="width:100%">
                         <thead class="bg-200 text-900">
                             <tr>
-                                <th class="sort text-center fs--1" data-sort="no">No.</th>
-                                <th class="sort text-center fs--1" data-sort="year">Tahun Jurnal</th>
-                                <th class="sort text-center fs--1" data-sort="month">Bulan Jurnal</th>
-                                <th class="sort text-center fs--1" data-sort="jumlah_transaksi">Transaksi Customer</th>
-                                <th class="sort text-center fs--1" data-sort="jumlah_transaksi">Transaksi Jual</th>
-                                <th class="sort text-center fs--1" data-sort="grand_total">Total Customer</th>
-                                <th class="sort text-center fs--1" data-sort="grand_total">Total Jual</th>
-
-                                <th class="text-center">Actions</th>
+                                <th class="text-center" data-sort="no">No.</th>
+                                <th>Bulan</th>
+                                @foreach ($years as $year)
+                                    <th class="text-center">{{ $year }}</th>
+                                @endforeach
                             </tr>
                         </thead>
                         <tbody class="list">
-                            @forelse ($transaksi as $item)
-                            <tr role="row" class="odd">
-                                <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
-                                <td class="text-center year fs--1">{{ $item->year }}</td>
-                                <td class="text-center month fs--1">{{ date("F", mktime(0, 0, 0, $item->month, 10)) }}</td>
-                                <td class="text-center jumlah_transaksi fs--1">{{ $item->jumlah_transaksi }}</td>
-                                <td class="text-center jumlah_transaksi fs--1">{{ $item->jual_transaksi }}</td>
-
-                                <td class="grand_total fs--1">Rp. {{ number_format($item->grand_total, 0, ',', '.') }}</td>
-                                <td class="grand_total fs--1">Rp. {{ number_format($item->jual_total, 0, ',', '.') }}</td>
-
-                                <td class="text-center fs--1">
-                                    <a href="{{ route('jurnal-bulanan.show', $item->month) }}" class="btn p-0 ms-2"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Detail"><span class="text-700 fas fa-eye"></span>
-                                    </a>
-                                </td>
+                            @forelse ($data as $month)
+                            <tr>
+                                <th scope="row" class="no">{{ $loop->iteration}}.</th>
+                                <td>{{ $month['month_name'] }}</td>
+                                @foreach ($years as $year)
+                                    <td class="text-center">Rp. {{ number_format($month['totals'][$year], 0, ',', '.') }}</td>
+                                @endforeach
                             </tr>
                             @empty
 
@@ -67,7 +52,12 @@
 
 <script>
     $(document).ready(function () {
-        var table = $('#example').DataTable();
+        var table = $('#example').DataTable({
+            responsive: true,
+            paging: false,
+            sort: false
+            // scrollY: 400
+        });
     })
 
     function filter_tanggal(event) {
