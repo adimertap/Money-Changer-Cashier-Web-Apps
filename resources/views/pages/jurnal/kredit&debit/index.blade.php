@@ -1,6 +1,20 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    .pagination {
+        font-size: 1rem;
+    }
+    .pagination .page-link {
+        font-size: 1rem !important;
+        line-height: 1.5 !important;
+        padding: 0.25rem 0.75rem;
+    }
+    .pagination .page-link svg {
+        width: 1em;
+        height: 1em;
+    }
+</style>
 <main>
     <div class="card mb-3">
         <div class="bg-holder d-none d-lg-block bg-card"
@@ -43,7 +57,7 @@
                         <tbody class="list">
                             @forelse ($jurnal as $item)
                             <tr role="row" class="odd">
-                                <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
+                                <th scope="row" class="no fs--1">{{ $loop->iteration + ($jurnal->currentPage() - 1) * $jurnal->perPage() }}.</th>
                                 <td class="text-start tanggal fs--1">{{ date('d-M-Y H:i:s', strtotime($item->updated_at)) }}</td>
                                 @if ($item->jenis_jurnal == 'Debit')
                                     <td class="text-center text-center fs--1 jenis">{{ $item->Transaksi->kode_transaksi }}</td>
@@ -76,13 +90,16 @@
                                         title="Delete"><span class="text-700 fas fa-trash-alt"></span>
                                     </button>
                                 </td> --}}
-                            
+
                             </tr>
                             @empty
 
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="d-flex justify-content-center">
+                    {{ $jurnal->links('layouts.pagination') }}
                 </div>
             </div>
         </div>
@@ -194,13 +211,11 @@
     $(document).ready(function () {
         // $('.deleteJurnalBtn').click(function (e) {
         //     e.preventDefault();
-
         //     var id = $(this).val();
         //     $('#jurnal_id').val(id)
         //     $('#deleteModal').modal('show');
         // });
-
-        var table = $('#example').DataTable();
+        // Removed DataTables initialization to avoid conflict with Laravel pagination
     })
 
 

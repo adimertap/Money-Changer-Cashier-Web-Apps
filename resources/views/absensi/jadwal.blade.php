@@ -20,19 +20,19 @@
             <h4 class="mb-0">Selamat Datang, {{ Auth::user()->name }}</h4>
             <i class="text-muted">Atur Jadwal Pegawai Anda pada halaman ini</i>
         </div>
-        <button class="btn btn-sm btn-primary h-100 mt-3" onclick="aturJadwal()">Atur Jadwal</button>
+        <div>
+            <button class="btn btn-sm btn-secondary h-50 mt-3 me-2" onclick="downloadFormat()">Download Format
+                Excel</button>
+            <button class="btn btn-sm btn-primary h-50 mt-3 me-2" onclick="uploadExcel()">Upload Excel</button>
+            <button class="btn btn-sm btn-primary h-50 mt-3 me-2" onclick="aturJadwal()">Atur Jadwal</button>
+        </div>
     </div>
-
-
-
     <div class="card overflow-hidden p-4">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item"><a class="nav-link active" id="home-tab" data-bs-toggle="tab" href="#tab-home"
                     role="tab" aria-controls="tab-home" aria-selected="true">Jadwal Kerja</a></li>
             <li class="nav-item"><a class="nav-link" id="profile-tab" data-bs-toggle="tab" href="#tab-profile"
                     role="tab" aria-controls="tab-profile" aria-selected="false">Request Tukar Jadwal</a></li>
-            {{-- <li class="nav-item"><a class="nav-link" id="contact-tab" data-bs-toggle="tab" href="#tab-contact"
-                    role="tab" aria-controls="tab-contact" aria-selected="false">Contact</a></li> --}}
         </ul>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="tab-home" role="tabpanel" aria-labelledby="home-tab">
@@ -71,7 +71,6 @@
                                                 onclick="updateTukar('{{ $item->tanggal }}','{{ $item->jadwal_id }}','{{ $item->User->id }}','{{ $item->shift_id }}')"
                                                 type="button">Update</button>
                                         </td>
-
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -82,7 +81,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 </main>
 
@@ -153,6 +151,85 @@
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
                     <button class="btn btn-primary" id="btnModal" type="submit">Save </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-download-format" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 600px">
+        <div class="modal-content position-relative">
+            <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('jadwal.download-format') }}" method="POST" id="jadwalForm"
+                enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body p-0">
+                    <div class="p-4 pb-0">
+                        <p class="text-word-break fs--1">Download Format Excel</p>
+                        <div class="row mt-4 mb-1">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="start_date">Start Date</label>
+                                <input class="form-control @error('start_date') is-invalid @enderror" name="start_date"
+                                    type="date" placeholder="Input Start Date" value="{{ old('start_date') }}" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="end_date">End Date</label>
+                                <input class="form-control @error('end_date') is-invalid @enderror" name="end_date"
+                                    type="date" placeholder="Input End Date" value="{{ old('end_date') }}" />
+                            </div>
+                        </div>
+                        <div class="col-md-12 mb-5">
+                            <label class="form-label" for="pegawai">Pegawai</label>
+                            <select type="text" id="pegawai" name="pegawai" class="form-select"
+                                value="{{ old('pegawai') }}">
+                                <option value="">Semua Pegawai</option>
+                                @foreach ($user as $item)
+                                <option value="{{ $item->id }}">
+                                    {{ $item->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" id="btnModalDownload" type="submit">Download </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-upload" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 600px">
+        <div class="modal-content position-relative">
+            <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
+                <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('jadwal.upload-excel') }}" method="POST" id="uploadForm"
+                enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body p-0">
+                    <div class="p-4 pb-0">
+                        <p class="text-word-break fs--1">Upload Excel</p>
+                        <div class="row mt-4 mb-1">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label" for="file">File Excel</label>
+                                <input class="form-control @error('file') is-invalid @enderror" name="file" type="file"
+                                    placeholder="Input File" value="{{ old('file') }}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" id="btnModalUpload" type="submit">Upload </button>
                 </div>
             </form>
         </div>
@@ -233,6 +310,14 @@
 
 
 <script>
+    function downloadFormat() {
+        $('#modal-download-format').modal('show');
+    }
+
+    function uploadExcel() {
+        $('#modal-upload').modal('show');
+    }
+
     function aturJadwal() {
         $('#modal-tambah').modal('show');
     }

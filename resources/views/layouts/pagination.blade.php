@@ -1,5 +1,24 @@
 @if ($paginator->hasPages())
     <nav aria-label="Page navigation example">
+        <style>
+            .pagination .page-link {
+                font-size: 1rem !important;
+                padding: 0.25rem 0.75rem !important;
+                line-height: 1.2 !important;
+                min-width: 2rem;
+                min-height: 2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .pagination .page-link svg,
+            .pagination .page-link > span > svg {
+                width: 1em !important;
+                height: 1em !important;
+                vertical-align: middle !important;
+                display: inline-block !important;
+            }
+        </style>
         <ul class="pagination justify-content-center">
             {{-- Previous Page Link --}}
             @if ($paginator->onFirstPage())

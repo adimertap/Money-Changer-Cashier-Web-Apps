@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Alert;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class JadwalKerjaController extends Controller
 {
@@ -24,11 +25,12 @@ class JadwalKerjaController extends Controller
         $shift = MasterShift::get();
         $jadwal = JadwalKerja::get();
 
-        $tukar = JadwalKerja::with('User', 'Shift')->where('status','T')->get();
+        $tukar = JadwalKerja::with('User', 'Shift')->where('status', 'T')->get();
 
-        return view('absensi.jadwal', compact('user', 'shift', 'jadwal','tukar'));
+        return view('absensi.jadwal', compact('user', 'shift', 'jadwal', 'tukar'));
     }
-    public function getEventDetails($id){
+    public function getEventDetails($id)
+    {
         $jadwal = JadwalKerja::with(['User', 'Shift'])->find($id);
 
         return response()->json([
@@ -46,6 +48,94 @@ class JadwalKerjaController extends Controller
         return response()->json($jadwal);
     }
 
+    public function jadwalUploadExcel(Request $request)
+    {
+        try {
+            $file = $request->file('file');
+            $data = Excel::toArray([], $file)[0]; // Get the first sheet
+
+            // Skip the header row
+            $rows = array_slice($data, 1);
+
+            DB::beginTransaction();
+
+            foreach ($rows as $row) {
+                // Adjust indexes if your columns are different
+                $shift_id = $row[0];
+                $pegawai_id = $row[1];
+                $tanggal = $row[3];
+                $keterangan = $row[4];
+                $month = $row[5];
+                $year = $row[6];
+
+                // Check if record exists
+                $exists = JadwalKerja::where('id', $pegawai_id)
+                    ->where('tanggal', $tanggal)
+                    ->exists();
+
+                if ($exists) {
+                    JadwalKerja::where('tanggal', $tanggal)
+                        ->where('id', $pegawai_id)
+                        ->update([
+                            'shift_id' => $shift_id,
+                            'id' => $pegawai_id,
+                            'month' => $month,
+                            'year' => $year,
+                        ]);
+                    continue;
+                }
+
+                $check = JadwalKerja::where('shift_id', $shift_id)
+                    ->where('tanggal', $tanggal)
+                    ->first();
+                if ($check) {
+                    continue;
+                }
+
+                // Create new JadwalKerja
+                JadwalKerja::create([
+                    'shift_id' => $shift_id,
+                    'id' => $pegawai_id,
+                    'tanggal' => $tanggal,
+                    'month' => $month,
+                    'year' => $year,
+                    'keterangan' => $keterangan,
+                    'status' => 'X',
+                ]);
+            }
+
+            DB::commit();
+
+            Alert::success('Success', 'Data Berhasil Diimport');
+            return redirect()->back();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            Alert::warning('Warning', 'Internal Server Error, Data Not Found');
+            return redirect()->back();
+        }
+    }
+
+    public function jadwalDownloadFormat(Request $request)
+    {
+        try {
+            $pegawai_id = $request->pegawai;
+            $start_date = $request->start_date;
+            $end_date = $request->end_date ?? $start_date;
+            $shift_id = $request->shift_id;
+
+            // If 'Semua Pegawai' is selected (empty or null), get all user IDs with role 'Pegawai'
+            if (empty($pegawai_id)) {
+                $pegawai_ids = \App\Models\User::where('role', 'Pegawai')->pluck('id')->toArray();
+            } else {
+                $pegawai_ids = [$pegawai_id];
+            }
+
+            return \Excel::download(new \App\Exports\JadwalKerjaFormatExport($pegawai_ids, $start_date, $end_date, $shift_id), 'jadwal_kerja_format.xlsx');
+        } catch (\Throwable $th) {
+            Alert::warning('Warning', 'Internal Server Error, Data Not Found');
+            return redirect()->back();
+        }
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -213,7 +303,6 @@ class JadwalKerjaController extends Controller
             return response()->json(['message' => 'Schedule deleted successfully']);
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Error']);
-
         }
     }
 }

@@ -67,7 +67,7 @@
     </div>
     <ul class="nav nav-pills mb-3">
         <li class="nav-item"><a class="nav-link active" href="{{ route('jurnal-harian.index') }}">Transaksi Beli</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ route('jurnal-harian-jual') }}">Transaksi Jual</a></li>
+        <li class="nav-itkem"><a class="nav-link" href="{{ route('jurnal-harian-jual') }}">Transaksi Jual</a></li>
     </ul>
 
     <div class="card mb-3">
