@@ -10,6 +10,9 @@ use App\Models\Jurnal;
 use App\Models\LogEdit;
 use App\Models\LogEditDetail;
 use App\Models\MasterCurrency;
+use App\Models\MasterCustomer;
+use App\Models\MasterThreshold;
+use App\Models\MasterTerduga;
 use App\Models\ModalTransaksi;
 use App\Models\Transaksi;
 use App\Models\User;
@@ -18,6 +21,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -33,7 +37,7 @@ class TransaksiController extends Controller
         try {
             $today = Carbon::now()->format('Y-m-d');
             $user = Auth::user();
-            $isPegawai = $user->role == 'Pegawai';
+            $isPegawai = $user->role != 'Owner';
 
             // Get pagination size from frontend (default to 10)
             $perPage = $request->input('per_page', 10);
@@ -92,7 +96,6 @@ class TransaksiController extends Controller
             return view('pages.transaksi.index', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'report'));
 
         } catch (\Throwable $th) {
-            dd($th);
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
@@ -125,7 +128,7 @@ class TransaksiController extends Controller
     public function Export_dokumen(Request $request)
     {
         try {
-            if (Auth::user()->role == 'Pegawai') {
+            if (Auth::user()->role != 'Owner') {
                 $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
                     ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency')->where('id_pegawai', Auth::user()->id);
                 if ($request->id_currency) {
@@ -189,7 +192,7 @@ class TransaksiController extends Controller
     public function Export_dokumen_jual(Request $request)
     {
         try {
-            if (Auth::user()->role == 'Pegawai') {
+            if (Auth::user()->role != 'Owner') {
                 $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
                     ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency')->where('id_pegawai', Auth::user()->id);
                 if ($request->id_currency) {
@@ -295,10 +298,143 @@ class TransaksiController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    private function activePassportThreshold($date)
+    {
+        return MasterThreshold::where('is_active', 1)
+            ->whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date)
+            ->orderByDesc('threshold_id')
+            ->first();
+    }
+
+    private function passportThresholdResult($passport, $total, $date = null)
+    {
+        $passport = mb_strtolower(trim((string) $passport));
+        $total = (float) $total;
+        $date = $date ?: Carbon::today()->toDateString();
+        $threshold = $this->activePassportThreshold($date);
+
+        if ($passport === '' || !$threshold) {
+            return [
+                'exceeded' => false,
+                'reason' => $passport === '' ? 'passport_empty' : 'threshold_unavailable',
+                'accumulated' => 0,
+                'projected' => $total,
+                'limit' => null,
+                'threshold' => $threshold,
+            ];
+        }
+
+        $currency = MasterCurrency::find($threshold->currency_id);
+        $currencyName = strtoupper((string) optional($currency)->nama_currency);
+        $rate = $currency && (strpos($currencyName, 'IDR') !== false || strpos($currencyName, 'RUPIAH') !== false)
+            ? 1
+            : (float) optional($currency)->nilai_kurs;
+        $limit = (float) $threshold->nominal * ($rate ?: 1);
+        $accumulated = (float) Transaksi::whereRaw('LOWER(TRIM(nomor_passport)) = ?', [$passport])
+            ->whereDate('tanggal_transaksi', '>=', Carbon::parse($date)->subDays(29)->toDateString())
+            ->whereDate('tanggal_transaksi', '<=', $date)
+            ->sum('total');
+
+        return [
+            'exceeded' => $accumulated + $total > $limit,
+            'reason' => null,
+            'accumulated' => $accumulated,
+            'projected' => $accumulated + $total,
+            'limit' => $limit,
+            'threshold' => $threshold,
+        ];
+    }
+
+    public function passportThreshold(Request $request)
+    {
+        $data = $request->validate([
+            'nomor_passport' => 'nullable|string|max:100',
+            'total' => 'required|numeric|min:0',
+            'tanggal_transaksi' => 'nullable|date',
+        ]);
+        $result = $this->passportThresholdResult(
+            $data['nomor_passport'] ?? null,
+            $data['total'],
+            $data['tanggal_transaksi'] ?? null
+        );
+
+        return response()->json([
+            'exceeded' => $result['exceeded'],
+            'reason' => $result['reason'],
+            'accumulated' => $result['accumulated'],
+            'projected' => $result['projected'],
+            'limit' => $result['limit'],
+            'threshold' => $result['threshold'],
+        ]);
+    }
+
     public function store(Request $request)
     {
+        $passportResult = $this->passportThresholdResult(
+            $request->nomor_passport,
+            $request->total,
+            $request->tanggal_transaksi
+        );
+        if ($passportResult['exceeded']) {
+            $documentValidator = Validator::make($request->all(), [
+                'supporting_document_type' => 'required|string|max:100',
+                'supporting_document_number' => 'required|string|max:100',
+                'supporting_document_date' => 'required|date',
+                'supporting_document_note' => 'required|string|max:1000',
+                'supporting_document_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            ]);
+            if ($documentValidator->fails()) {
+                return response()->json([
+                    'message' => 'Dokumen pendukung wajib diisi karena akumulasi passport melewati batas 30 hari.',
+                    'requires_supporting_document' => true,
+                    'errors' => $documentValidator->errors(),
+                ], 422);
+            }
+        }
+
         try {
             DB::beginTransaction();
+            $customer = $request->customer_id ? MasterCustomer::findOrFail($request->customer_id) : null;
+            if (!$customer && !trim((string) $request->nama_customer)) {
+                DB::rollBack();
+                return response()->json(['message' => 'Customer wajib dipilih.'], 422);
+            }
+            $screeningTerms = collect([$customer ? $customer->name : $request->nama_customer, $customer ? $customer->alias : $request->customer_alias])
+                ->filter()
+                ->flatMap(function ($value) {
+                    return preg_split('/\s*;\s*/', $value);
+                })
+                ->map(function ($term) {
+                    return preg_replace('/\s+/', ' ', trim($term));
+                })
+                ->filter(function ($term) {
+                    return mb_strlen($term) >= 2;
+                })
+                ->unique(function ($term) {
+                    return mb_strtolower($term);
+                })
+                ->values()
+                ->all();
+            $screening = MasterTerduga::query()
+                ->where(function ($query) use ($screeningTerms) {
+                    foreach ($screeningTerms as $term) {
+                        $term = mb_strtolower($term);
+                        $query->orWhereRaw('LOWER(name) LIKE ?', ['%' . $term . '%'])
+                            ->orWhereRaw('LOWER(alias) LIKE ?', ['%' . $term . '%']);
+                    }
+                })
+                ->where(function ($query) {
+                    $query->whereNull('is_clear')->orWhere('is_clear', '!=', 1);
+                })
+                ->whereHas('header', function ($query) {
+                    $query->where('is_active', 1);
+                })
+                ->exists();
+            if ($screening && $request->input('screening_confirmed') !== '1') {
+                DB::rollBack();
+                return response()->json(['message' => 'Customer masuk daftar terduga dan membutuhkan konfirmasi.'], 422);
+            }
             $transaksi = new Transaksi();
             $transaksi->kode_transaksi = $request->kode_transaksi;
             $transaksi->tanggal_transaksi = $request->tanggal_transaksi;
@@ -309,6 +445,15 @@ class TransaksiController extends Controller
             $transaksi->nomor_passport = $request->nomor_passport;
             $transaksi->negara_asal = $request->asal_negara;
             $transaksi->jenis_transaksi = 'Beli';
+            $transaksi->cabang_id = session('cabang_aktif');
+            $transaksi->supporting_document_type = $request->supporting_document_type;
+            $transaksi->supporting_document_number = $request->supporting_document_number;
+            $transaksi->supporting_document_date = $request->supporting_document_date;
+            $transaksi->supporting_document_note = $request->supporting_document_note;
+            if ($request->hasFile('supporting_document_file')) {
+                $transaksi->supporting_document_file = $request->file('supporting_document_file')
+                    ->store('transaksi/dokumen', 'public');
+            }
             $transaksi->save();
 
             // $transaksi->detailTransaksi()->insert($request->detail);
@@ -347,7 +492,6 @@ class TransaksiController extends Controller
             Alert::success('Berhasil', 'Data Transaksi Berhasil Ditambahkan');
             return $transaksi;
         } catch (\Throwable $th) {
-            dd($th);
             DB::rollBack();
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();

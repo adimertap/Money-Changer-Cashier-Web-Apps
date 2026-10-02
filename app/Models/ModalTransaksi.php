@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ModalTransaksi extends Model
-{   
+{
+    use Concerns\BelongsToCabang;
+
     protected $table = "tb_modal_transaksi";
 
     protected $primaryKey = 'id_modal';
@@ -19,7 +21,8 @@ class ModalTransaksi extends Model
         'keterangan_approval',
         'riwayat_modal',
         'pengajuan_tambah',
-        'total_modal_backup'
+        'total_modal_backup',
+        'cabang_id'
     ];
 
     protected $hidden = [

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MasterCurrency extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Concerns\BelongsToCabang;
 
     protected $table = "tb_currency";
 
@@ -23,7 +23,8 @@ class MasterCurrency extends Model
         'keterangan',
         'urutan',
         'last_nilai_jual',
-        'jumlah_valas'
+        'jumlah_valas',
+        'cabang_id'
     ];
 
     protected $hidden = [

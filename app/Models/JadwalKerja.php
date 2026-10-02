@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JadwalKerja extends Model
 {
+    use Concerns\BelongsToCabang;
+
     protected $table = "tb_jadwal_kerja";
 
     protected $primaryKey = 'jadwal_id';
@@ -24,7 +26,8 @@ class JadwalKerja extends Model
         'jam_masuk',
         'jam_keluar',
         'status_absen_in',
-        'status_absen_out'
+        'status_absen_out',
+        'cabang_id'
     ];
 
     protected $hidden = [

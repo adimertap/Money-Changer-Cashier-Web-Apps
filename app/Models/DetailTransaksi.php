@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class DetailTransaksi extends Model
 {
+    use Concerns\BelongsToCabang;
+
     protected $table = "tb_detail_transaksi";
 
     protected $primaryKey = 'id_detail_transaksi';
@@ -17,6 +19,7 @@ class DetailTransaksi extends Model
         'jumlah_currency',
         'jumlah_tukar',
         'total_tukar',
+        'cabang_id',
     ];
 
     protected $hidden =[ 

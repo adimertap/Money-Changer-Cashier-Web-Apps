@@ -55,20 +55,23 @@
                     <div class="card-body p-4">
                         <i class="mb-3">Lengkapi data Customer dibawah Ini</i>
                         <div class="mb-2 mt-3">
-                            <label class="form-label" for="nama_customer">Nama Customer</label>
-                            <input class="form-control form-select-sm  @error('nama_customer') is-invalid @enderror"
-                                name="nama_customer" type="text" placeholder="Input Nama Customer"
-                                value="{{ old('nama_customer') }}" />
-                            @error('nama_customer')
-                            <div class="invalid-feedback">
-                                <strong>{{ $message }}</strong>
+                            <label class="form-label" for="customerSelect">Customer</label>
+                            <div class="input-group customer-picker">
+                                <select class="form-select" id="customerSelect">
+                                    <option value="">Ketik nama untuk mencari customer</option>
+                                </select>
+                                <button class="btn btn-sm btn-outline-primary customer-add-button" type="button" id="addCustomerButton" title="Tambah customer">+</button>
                             </div>
-                            @enderror
+                            <input type="hidden" name="customer_id" id="customer_id">
+                            <input type="hidden" name="nama_customer" id="nama_customer" value="{{ old('nama_customer') }}">
+                            <input type="hidden" name="customer_alias" id="customer_alias">
+                            <input type="hidden" name="screening_confirmed" id="screening_confirmed" value="0">
+                            <small class="text-muted">Pencarian dimuat saat mengetik minimal 2 karakter.</small>
                         </div>
                         <div class="mb-2">
                             <label class="form-label" for="nomor_passport">Nomor Passport</label>
                             <input class="form-control form-select-sm  @error('nomor_passport') is-invalid @enderror"
-                                name="nomor_passport" type="text" placeholder="Input Nomor Passport"
+                                name="nomor_passport" id="nomor_passport" type="text" placeholder="Input Nomor Passport"
                                 value="{{ old('nomor_passport') }}" />
                             @error('nomor_passport')
                             <div class="invalid-feedback">
@@ -79,7 +82,7 @@
                         <div class="mb-4">
                             <label class="form-label" for="asal_negara">Asal Negara</label>
                             <input class="form-control form-select-sm  @error('asal_negara') is-invalid @enderror"
-                                name="asal_negara" type="text" placeholder="Input Asal Negara"
+                                name="asal_negara" id="asal_negara" type="text" placeholder="Input Asal Negara"
                                 value="{{ old('asal_negara') }}" />
                             @error('asal_negara')
                             <div class="invalid-feedback">
@@ -170,6 +173,73 @@
     </form>
 </main>
 
+<div class="modal fade" id="customerCreateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="customerCreateForm">
+                @csrf
+                <div class="modal-header"><h5 class="modal-title">Tambah Customer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Nama <span class="text-danger">*</span></label><input class="form-control" name="name" placeholder="Input nama customer" required></div>
+                        <div class="col-md-6"><label class="form-label">Alias</label><input class="form-control" name="alias" placeholder="Input alias customer"></div>
+                        <div class="col-md-6"><label class="form-label">Country <span class="text-danger">*</span></label><input class="form-control" name="country" placeholder="Input negara asal" required></div>
+                        <div class="col-md-6"><label class="form-label">Passport</label><input class="form-control" name="passport" placeholder="Input nomor passport"></div>
+                        <div class="col-md-6"><label class="form-label">Pekerjaan</label><input class="form-control" name="pekerjaan" placeholder="Input pekerjaan"></div>
+                        <div class="col-md-6"><label class="form-label">NIK</label><input class="form-control" name="nik" placeholder="Input NIK"></div>
+                        <div class="col-12"><label class="form-label">Alamat</label><textarea class="form-control" name="alamat" placeholder="Input alamat customer"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary" type="submit">Simpan</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="passportDocumentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="passportDocumentForm" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Dokumen Pendukung Transaksi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-warning">Akumulasi transaksi passport ini melewati batas 30 hari. Lengkapi dokumen pendukung untuk melanjutkan.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Jenis Dokumen <span class="text-danger">*</span></label>
+                            <input class="form-control" name="supporting_document_type" placeholder="Contoh: Form A atau Surat Pernyataan" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nomor Dokumen <span class="text-danger">*</span></label>
+                            <input class="form-control" name="supporting_document_number" placeholder="Input nomor dokumen" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal Dokumen <span class="text-danger">*</span></label>
+                            <input class="form-control" type="date" name="supporting_document_date" value="{{ date('Y-m-d') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">File Dokumen <span class="text-danger">*</span></label>
+                            <input class="form-control" type="file" name="supporting_document_file" accept=".pdf,.jpg,.jpeg,.png" required>
+                            <small class="text-muted">PDF/JPG/PNG, maksimal 10 MB.</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Keterangan <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="supporting_document_note" placeholder="Input keterangan dokumen pendukung" required></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+                    <button class="btn btn-primary" type="submit" id="passportDocumentSubmit">Lanjutkan Transaksi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modaltambah" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px">
         <div class="modal-content position-relative">
@@ -246,7 +316,83 @@
     </button>
 </template>
 
+<style>
+    .customer-picker {
+        align-items: stretch;
+    }
+
+    .customer-picker .choices {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin-bottom: 0;
+    }
+
+    .customer-picker .choices__inner {
+        min-height: 38px;
+        height: 38px;
+        padding: 7px 8px;
+        font-size: .8rem;
+    }
+
+    .customer-picker .choices__list--single {
+        padding: 2px 16px 2px 0;
+    }
+
+    .customer-add-button {
+        align-self: stretch;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        font-size: .85rem;
+        line-height: 1;
+    }
+</style>
+
 <script>
+    var pendingTransactionData = null;
+
+    function submitTransaction(data, documentData) {
+        var payload = new FormData();
+        Object.keys(data).forEach(function (key) {
+            if (key !== 'detail') payload.append(key, data[key] == null ? '' : data[key]);
+        });
+        data.detail.forEach(function (detail, index) {
+            Object.keys(detail).forEach(function (key) {
+                payload.append('detail[' + index + '][' + key + ']', detail[key]);
+            });
+        });
+        if (documentData) {
+            documentData.forEach(function (value, key) {
+                payload.append(key, value);
+            });
+        }
+
+        $('#button_submit, #passportDocumentSubmit').prop('disabled', true);
+        $.ajax({
+            method: 'post',
+            url: '{{ route('transaksi.store') }}',
+            data: payload,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                window.location.href = '/transaksi/create';
+                window.open('/cetak/' + response.id_transaksi, '_blank');
+            },
+            error: function (response) {
+                $('#button_submit, #passportDocumentSubmit').prop('disabled', false);
+                var message = response.responseJSON && response.responseJSON.message;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Transaksi tidak dapat disimpan',
+                    text: message || 'Terjadi kesalahan saat menyimpan transaksi.'
+                });
+                if (response.status === 422 && pendingTransactionData) {
+                    $('#passportDocumentModal').modal('show');
+                }
+            }
+        });
+    }
+
     function submitdata(event) {
         event.preventDefault()
         var form = $('#form')
@@ -318,6 +464,8 @@
                 } else {
                     var data = {
                         _token: _token,
+                        customer_id: $('#customer_id').val(),
+                        screening_confirmed: $('#screening_confirmed').val(),
                         kode_transaksi: kode_transaksi,
                         tanggal_transaksi: tanggal_transaksi,
                         id_modal: id_modal,
@@ -329,46 +477,23 @@
                         detail: dataform2
                     }
 
-                    console.log(data)
+                    pendingTransactionData = data;
                     $('#button_submit').prop('disabled', true);
-
-                    $.ajax({
-                        method: 'post',
-                        url: '/transaksi',
-                        data: data,
-                        success: function (response) {
-                            window.location.href = '/transaksi/create'
-                            window.open(
-                                '/cetak/' + response.id_transaksi,
-                                '_blank'
-                            );
-
-                            const Toast = Swal.mixin({
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                                didOpen: (toast) => {
-                                    toast.addEventListener('mouseenter', Swal.stopTimer)
-                                    toast.addEventListener('mouseleave', Swal.resumeTimer)
-                                }
-                            })
-
-                            Toast.fire({
-                                icon: 'success',
-                                title: 'Data Masih Diproses Mohon Tunggu'
-                            })
-                        },
-                        error: function (response) {
-                            console.log(response)
-                            $('#button_submit').prop('disabled', false);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Oops...',
-                                text: 'Error! Transaksi Tidak dapat disimpan, Hubungi Developer',
-                            })
+                    $.post('{{ route('api.transaksi.passport-threshold') }}', {
+                        _token: _token,
+                        nomor_passport: nomor_passport,
+                        total: total,
+                        tanggal_transaksi: tanggal_transaksi
+                    }).done(function (result) {
+                        if (!result.exceeded) {
+                            submitTransaction(data, null);
+                            return;
                         }
+                        $('#passportDocumentModal').modal('show');
+                    }).fail(function (response) {
+                        $('#button_submit').prop('disabled', false);
+                        const message = response.responseJSON && response.responseJSON.message;
+                        Swal.fire('Gagal', message || 'Validasi batas passport gagal.', 'error');
                     });
                 }
             
@@ -598,6 +723,159 @@
     }
 
     $(document).ready(function () {
+        let customerSelect;
+        let customerSearchTimer;
+        let screeningConfirmed = false;
+        let skipNextCustomerScreening = false;
+        let clearingCustomer = false;
+
+        function clearCustomer() {
+            screeningConfirmed = false;
+            $('#screening_confirmed').val('0');
+            $('#customer_id, #nama_customer, #customer_alias, #nomor_passport, #asal_negara').val('');
+            if (customerSelect && !clearingCustomer) {
+                clearingCustomer = true;
+                customerSelect.removeActiveItems();
+                clearingCustomer = false;
+            }
+        }
+
+        function showScreeningPrompt(onContinue, onCancel) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Terduga terdeteksi',
+                text: 'Nama atau alias masuk Daftar Terorisme. Lanjutkan transaksi?',
+                showCancelButton: true,
+                confirmButtonText: 'Lanjutkan',
+                cancelButtonText: 'Batal'
+            }).then(function (answer) {
+                if (answer.isConfirmed) return onContinue();
+                clearCustomer();
+                if (onCancel) onCancel();
+            });
+        }
+
+        customerSelect = new Choices('#customerSelect', {
+            searchEnabled: true,
+            shouldSort: false,
+            searchResultLimit: 20,
+            itemSelectText: '',
+            noResultsText: 'Customer tidak ditemukan',
+            noChoicesText: 'Ketik untuk mencari customer'
+        });
+
+        $('#customerSelect').on('search', function (event) {
+            const term = (event.detail && event.detail.value || '').trim();
+            clearTimeout(customerSearchTimer);
+            if (term.length < 2) return;
+            customerSearchTimer = setTimeout(function () {
+                $.get('{{ route('api.customer.search') }}', { q: term })
+                    .done(function (items) {
+                        customerSelect.clearChoices();
+                        customerSelect.setChoices(items.map(function (item) {
+                            return {
+                                value: String(item.customer_id),
+                                label: item.name + (item.alias ? ' - ' + item.alias : ''),
+                                customProperties: item
+                            };
+                        }), 'value', 'label', true);
+                    })
+                    .fail(function () {
+                        Swal.fire('Gagal', 'Pencarian customer gagal.', 'error');
+                    });
+            }, 250);
+        });
+
+        $('#customerSelect').on('change', function () {
+            const selected = customerSelect.getValue(true);
+            const choice = customerSelect.getValue();
+            const item = choice && choice.customProperties;
+            if (clearingCustomer) return;
+            if (!selected || !item) return clearCustomer();
+
+            const skipScreening = skipNextCustomerScreening;
+            skipNextCustomerScreening = false;
+            if (!skipScreening) {
+                screeningConfirmed = false;
+                $('#screening_confirmed').val('0');
+            }
+            $('#customer_id').val(item.customer_id);
+            $('#nama_customer').val(item.name);
+            $('#customer_alias').val(item.alias || '');
+            $('#nomor_passport').val(item.passport || '');
+            $('#asal_negara').val(item.country || '');
+            if (!skipScreening) screenCustomer(item.name, item.alias || '');
+        });
+
+        $('#addCustomerButton').on('click', function () {
+            $('#customerCreateForm')[0].reset();
+            $('#customerCreateModal').modal('show');
+        });
+
+        function screenCustomer(name, alias) {
+            $.post('{{ route('api.customer.screen') }}', {
+                _token: '{{ csrf_token() }}',
+                name: name,
+                alias: alias
+            }).done(function (result) {
+                if (!result.matched) return;
+                showScreeningPrompt(function () {
+                    screeningConfirmed = true;
+                    $('#screening_confirmed').val('1');
+                });
+            }).fail(function () {
+                Swal.fire('Gagal', 'Screening customer gagal.', 'error');
+                clearCustomer();
+            });
+        }
+
+        $('#passportDocumentForm').on('submit', function (event) {
+            event.preventDefault();
+            if (!pendingTransactionData) return;
+            submitTransaction(pendingTransactionData, new FormData(this));
+        });
+
+        $('#customerCreateForm').on('submit', function (event) {
+            event.preventDefault();
+            const form = $(this);
+            const data = Object.fromEntries(new FormData(this).entries());
+            $.post('{{ route('api.customer.screen') }}', data)
+                .done(function (result) {
+                    const save = function () {
+                        $.ajax({
+                            url: '{{ route('api.customer.store') }}',
+                            method: 'POST',
+                            data: data,
+                            success: function (response) {
+                                const item = response.customer;
+                                customerSelect.setChoices([{
+                                    value: String(item.customer_id),
+                                    label: item.name + (item.alias ? ' - ' + item.alias : ''),
+                                    customProperties: item
+                                }], 'value', 'label', false);
+                                $('#customerCreateModal').modal('hide');
+                                skipNextCustomerScreening = true;
+                                customerSelect.setChoiceByValue(String(item.customer_id));
+                                $('#customerSelect').trigger('change');
+                            },
+                            error: function (response) {
+                                const message = response.responseJSON && response.responseJSON.message;
+                                Swal.fire('Gagal', message || 'Customer tidak dapat disimpan.', 'error');
+                            }
+                        });
+                    };
+                    if (!result.matched) return save();
+                    showScreeningPrompt(function () {
+                        screeningConfirmed = true;
+                        $('#screening_confirmed').val('1');
+                        save();
+                    });
+                })
+                .fail(function () {
+                    Swal.fire('Gagal', 'Screening customer gagal.', 'error');
+                });
+        });
+
         $('.jumlah_currency').each(function () {
             $(this).on('input', function () {
                 var harga = $(this).val()

@@ -14,6 +14,14 @@
                             <div>
                                 <h3 class="text-primary mb-1">Welcome Back, {{ Auth::user()->name }}!</h3>
                                 <p>Dashboard Pegawai Khusus untuk Pegawai</p>
+                                <p class="mb-0">
+                                    <span class="fas fa-store text-primary me-1"></span>Cabang:
+                                    @forelse (session('cabangs', []) as $c)
+                                    <span class="badge rounded-pill badge-soft-primary me-1">{{ $c['cabang_name'] }}</span>
+                                    @empty
+                                    <span class="text-500">Belum di-assign ke cabang</span>
+                                    @endforelse
+                                </p>
                             </div>
                             @if(Auth::user()->role == 'Owner')
                             <hr>
@@ -302,6 +310,7 @@
                                     <p class="fs--2 text-500 mb-0">Pukul {{ date('H:i:s', strtotime($item->created_at))
                                         }}</p>
                                     <p class="fs--2 text-500 mb-0">Pegawai {{ $item->Pegawai->nama_panggilan }}</p>
+                                    <p class="fs--2 text-500 mb-0">Cabang {{ $item->Cabang->cabang_name ?? '-' }}</p>
                                     <p class="fs--1 text-primary mb-0">Total Rp. {{ number_format($item->total, 0, ',',
                                         '.') }}</p>
                                 </div>
@@ -352,6 +361,7 @@
                                     <p class="fs--2 text-500 mb-0">Pukul {{ date('H:i:s', strtotime($item->created_at))
                                                         }}</p>
                                     <p class="fs--2 text-500 mb-0">Pegawai {{ $item->Pegawai->nama_panggilan }}</p>
+                                    <p class="fs--2 text-500 mb-0">Cabang {{ $item->Cabang->cabang_name ?? '-' }}</p>
                                     <p class="fs--1 text-primary mb-0">Total Rp. {{ number_format($item->total, 0, ',',
                                                         '.') }}</p>
                                 </div>

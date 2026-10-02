@@ -111,6 +111,7 @@
                                             <div class="mb-3"><button class="btn btn-primary d-block w-100 mt-3"
                                                     type="submit" >Log in</button></div>
                                         </form>
+                                        <p class="fs--1 text-500 text-center mb-0">Version 2.0</p>
                                     </div>
                                 </div>
                             </div>

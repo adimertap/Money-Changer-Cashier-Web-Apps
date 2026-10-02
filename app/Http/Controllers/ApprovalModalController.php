@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Jurnal;
+use App\Models\MasterCabang;
 use App\Models\ModalTransaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,10 +17,26 @@ class ApprovalModalController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $modal = ModalTransaksi::where('status_modal','Pending')->get();           
-        return view('pages.modal.approval', compact('modal'));
+        $isOwner = Auth::user()->role === 'Owner';
+        $allowedCabangIds = $isOwner
+            ? MasterCabang::where('is_active', 1)->pluck('cabang_id')->all()
+            : array_map('intval', array_column(session('cabangs', []), 'cabang_id'));
+        $modal = ($isOwner ? ModalTransaksi::withoutGlobalScope('cabang') : ModalTransaksi::query())
+            ->with(['Pegawai', 'Cabang'])
+            ->where('status_modal', 'Pending')
+            ->when($request->cabang_id && in_array((int) $request->cabang_id, $allowedCabangIds, true), function ($query) use ($request) {
+                $query->where('cabang_id', $request->cabang_id);
+            })
+            ->orderByDesc('created_at')
+            ->get();
+        $cabangs = MasterCabang::where('is_active', 1)
+            ->whereIn('cabang_id', $allowedCabangIds)
+            ->orderBy('cabang_name')
+            ->get();
+
+        return view('pages.modal.approval', compact('modal', 'cabangs'));
     }
 
     /**

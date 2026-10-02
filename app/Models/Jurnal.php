@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Jurnal extends Model
 {
+    use Concerns\BelongsToCabang;
 
     protected $table = "tb_jurnal";
 
@@ -22,7 +23,8 @@ class Jurnal extends Model
         'jumlah_modal',
         'total_tukar',
         'jenis_jurnal',
-        'id_pegawai'
+        'id_pegawai',
+        'cabang_id'
     ];
 
     protected $hidden = [

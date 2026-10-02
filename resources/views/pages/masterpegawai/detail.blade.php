@@ -44,6 +44,14 @@
                         <textarea class="form-control" type="text" value="{{ $item->alamat }}" readonly>{{ $item->alamat }}</textarea>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label d-block">Cabang</label>
+                    @forelse ($item->cabangs as $c)
+                    <span class="badge rounded-pill badge-soft-primary me-1">{{ $c->cabang_name }}</span>
+                    @empty
+                    <span class="fs--1 text-500">Belum di-assign ke cabang</span>
+                    @endforelse
+                </div>
                 <hr class="mt-4">
                 <p class="mb-0 pt-1 mt-2 mb-3">Account Pegawai</p>
                 <div class="row mb-5">

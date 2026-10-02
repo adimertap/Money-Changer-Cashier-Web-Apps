@@ -64,6 +64,7 @@
             <div class="content">
                 @include('layouts.header')
                 @yield('content')
+                @include('layouts.footer')
             </div>
         </div>
         <div class="modal fade" id="modalChangePassword" data-bs-keyboard="false" data-bs-backdrop="static" tabindex="-1"

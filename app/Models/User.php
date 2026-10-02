@@ -48,4 +48,19 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function cabangs()
+    {
+        return $this->belongsToMany(MasterCabang::class, 'tb_master_cabang_user', 'user_id', 'cabang_id')
+            ->withPivot('created_by', 'updated_by')
+            ->withTimestamps();
+    }
+
+    // user yang ter-assign ke cabang aktif di header; null (semua cabang) = tanpa filter
+    public function scopeDiCabangAktif($query)
+    {
+        return $query->when(session('cabang_aktif'), function ($q, $id) {
+            $q->whereHas('cabangs', fn ($c) => $c->where('tb_master_cabang.cabang_id', $id));
+        });
+    }
 }

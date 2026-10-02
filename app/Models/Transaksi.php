@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class Transaksi extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Concerns\BelongsToCabang;
 
     protected $table = "tb_transaksi";
 
@@ -24,7 +24,13 @@ class Transaksi extends Model
         'nama_customer',
         'nomor_passport',
         'negara_asal',
-        'jenis_transaksi'
+        'jenis_transaksi',
+        'cabang_id',
+        'supporting_document_type',
+        'supporting_document_number',
+        'supporting_document_date',
+        'supporting_document_note',
+        'supporting_document_file'
     ];
 
     protected $hidden = [

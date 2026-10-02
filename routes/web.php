@@ -10,6 +10,7 @@ use App\Http\Controllers\JurnalBulananController;
 use App\Http\Controllers\JurnalHarianController;
 use App\Http\Controllers\JurnalKreditDebitController;
 use App\Http\Controllers\LogEditController;
+use App\Http\Controllers\LaporanRekapCabangController;
 use App\Http\Controllers\MasterCurrencyController;
 use App\Http\Controllers\MasterPegawaiController;
 use App\Http\Controllers\ModalController;
@@ -36,6 +37,7 @@ Route::post('/change-password/v2', [\App\Http\Controllers\DashboardController::c
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::post('/change-password', [\App\Http\Controllers\DashboardController::class, 'change_password'])->name('change_password');
+    Route::post('/switch-cabang', [\App\Http\Controllers\DashboardController::class, 'switch_cabang'])->name('switch-cabang');
 
 
 
@@ -45,6 +47,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/report/jadwal/harian', [App\Http\Controllers\Absensi\LaporanAbsensiController::class, 'today'])->name('report-jadwal-harian');
 
     Route::get('/api/jadwal-kerja', [App\Http\Controllers\Absensi\JadwalKerjaController::class, 'getJadwalKerja']);
+    Route::get('/api/cabang/{cabangId}/employees', [App\Http\Controllers\Absensi\JadwalKerjaController::class, 'employeesByCabang']);
     Route::post('/api/jadwal-kerja/download-format', [App\Http\Controllers\Absensi\JadwalKerjaController::class, 'jadwalDownloadFormat'])->name('jadwal.download-format');
     Route::post('/api/jadwal-kerja/upload-excel', [App\Http\Controllers\Absensi\JadwalKerjaController::class, 'jadwalUploadExcel'])->name('jadwal.upload-excel');
 
@@ -55,11 +58,36 @@ Route::group(['middleware' => 'auth'], function () {
         Route::prefix('owner')->middleware(['Owner'])->group(function () {
             // MASTER DATA
             Route::resource('master-pegawai', MasterPegawaiController::class);
+            Route::get('role-hak-akses', [\App\Http\Controllers\RoleHakAksesController::class, 'index'])->name('role-hak-akses.index');
+            Route::post('role-hak-akses', [\App\Http\Controllers\RoleHakAksesController::class, 'store'])->name('role-hak-akses.store');
+            Route::put('role-hak-akses/{role}', [\App\Http\Controllers\RoleHakAksesController::class, 'update'])->name('role-hak-akses.update');
             Route::get('/master-pegawa/reset/{id}', [\App\Http\Controllers\MasterPegawaiController::class, 'reset_password'])->name('master-pegawai-reset');
             Route::put('/master-pegawa/reset/{id}', [\App\Http\Controllers\MasterPegawaiController::class, 'reset_password_post'])->name('master-pegawai-reset-post');
 
 
             Route::resource('shift', MasterShiftController::class);
+            Route::resource('master-cabang', \App\Http\Controllers\MasterCabangController::class)->except(['create', 'edit']);
+            Route::patch('master-cabang/{id}/status', [\App\Http\Controllers\MasterCabangController::class, 'status'])->name('master-cabang.status');
+            Route::resource('master-cabang-user', \App\Http\Controllers\MasterCabangUserController::class)->except(['create', 'edit']);
+            Route::get('master-customer/search', [\App\Http\Controllers\MasterCustomerController::class, 'search'])->name('master-customer.search');
+            Route::post('master-customer/screen', [\App\Http\Controllers\MasterCustomerController::class, 'screen'])->name('master-customer.screen');
+            Route::resource('master-customer', \App\Http\Controllers\MasterCustomerController::class)->except(['create', 'edit']);
+            Route::get('master-terduga', [\App\Http\Controllers\MasterTerdugaController::class, 'index'])->name('master-terduga.index');
+            Route::post('master-terduga', [\App\Http\Controllers\MasterTerdugaController::class, 'store'])->name('master-terduga.store');
+            Route::post('master-terduga/upload', [\App\Http\Controllers\MasterTerdugaController::class, 'upload'])->name('master-terduga.upload');
+            Route::get('master-terduga/{id}/export/excel', [\App\Http\Controllers\MasterTerdugaController::class, 'exportExcel'])->name('master-terduga.export.excel');
+            Route::get('master-terduga/{id}/export/pdf', [\App\Http\Controllers\MasterTerdugaController::class, 'exportPdf'])->name('master-terduga.export.pdf');
+            Route::get('master-terduga/{id}', [\App\Http\Controllers\MasterTerdugaController::class, 'show'])->name('master-terduga.show');
+            Route::get('master-terduga/{id}/edit', [\App\Http\Controllers\MasterTerdugaController::class, 'edit'])->name('master-terduga.edit');
+            Route::put('master-terduga/{id}', [\App\Http\Controllers\MasterTerdugaController::class, 'update'])->name('master-terduga.update');
+            Route::delete('master-terduga/{id}', [\App\Http\Controllers\MasterTerdugaController::class, 'destroy'])->name('master-terduga.destroy');
+            Route::get('master-terduga/{headerId}/detail/create', [\App\Http\Controllers\MasterTerdugaController::class, 'createDetail'])->name('master-terduga.detail.create');
+            Route::post('master-terduga/{headerId}/detail', [\App\Http\Controllers\MasterTerdugaController::class, 'storeDetail'])->name('master-terduga.detail.store');
+            Route::get('master-terduga/{headerId}/detail/{id}/edit', [\App\Http\Controllers\MasterTerdugaController::class, 'editDetail'])->name('master-terduga.detail.edit');
+            Route::put('master-terduga/{headerId}/detail/{id}', [\App\Http\Controllers\MasterTerdugaController::class, 'updateDetail'])->name('master-terduga.detail.update');
+            Route::delete('master-terduga/{headerId}/detail/{id}', [\App\Http\Controllers\MasterTerdugaController::class, 'destroyDetail'])->name('master-terduga.detail.destroy');
+            Route::resource('master-threshold', \App\Http\Controllers\MasterThresholdController::class)->except(['create', 'edit']);
+            Route::patch('master-threshold/{id}/status', [\App\Http\Controllers\MasterThresholdController::class, 'status'])->name('master-threshold.status');
             Route::post('/delete-pegawai', [\App\Http\Controllers\MasterPegawaiController::class, 'hapus'])->name('master-pegawai-delete');
             Route::get('/master-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'index'])->name('master-currency');
             Route::post('/tambah-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'store'])->name('master-currency-store');
@@ -81,7 +109,17 @@ Route::group(['middleware' => 'auth'], function () {
         Route::resource('jurnal-debit-kredit', JurnalKreditDebitController::class);
         Route::post('/delete-jurnal', [\App\Http\Controllers\JurnalKreditDebitController::class, 'hapus'])->name('jurnal-delete');
 
+        // LAPORAN REKAP CABANG
+        Route::get('/laporan-rekap-cabang', [LaporanRekapCabangController::class, 'index'])->name('laporan-rekap-cabang.index');
+        Route::get('/laporan-rekap-cabang/download', [LaporanRekapCabangController::class, 'download'])->name('laporan-rekap-cabang.download');
+
+        // CUSTOMER AJAX UNTUK TRANSAKSI
+        Route::get('/api/customer/search', [\App\Http\Controllers\MasterCustomerController::class, 'search'])->name('api.customer.search');
+        Route::post('/api/customer/screen', [\App\Http\Controllers\MasterCustomerController::class, 'screen'])->name('api.customer.screen');
+        Route::post('/api/customer', [\App\Http\Controllers\MasterCustomerController::class, 'store'])->name('api.customer.store');
+
         // TRANSAKSI
+        Route::post('/api/transaksi/passport-threshold', [TransaksiController::class, 'passportThreshold'])->name('api.transaksi.passport-threshold');
         Route::resource('transaksi', TransaksiController::class);
         Route::get('transaksi/getkurs/{id_currency}', [\App\Http\Controllers\TransaksiController::class, 'getkurs']);
         Route::get('/edit/getkurs/{id_currency}', [\App\Http\Controllers\TransaksiController::class, 'getkursedit']);

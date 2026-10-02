@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
+use App\Services\MenuAccessService;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
 class LoginController extends Controller
@@ -29,6 +30,16 @@ class LoginController extends Controller
 
     protected function authenticated($request, $user)
     {
+       // cabang yang di-assign ke user, dipakai header & dashboard
+       $cabangs = $user->cabangs()->where('is_active', 1)->get(['tb_master_cabang.cabang_id', 'cabang_name'])->toArray();
+       session([
+           'cabangs' => $cabangs,
+           // Owner default semua cabang (null), Pegawai default cabang pertama
+           'cabang_aktif' => $user->role === 'Owner' ? null : ($cabangs[0]['cabang_id'] ?? null),
+       ]);
+
+       app(MenuAccessService::class)->loadIntoSession($user);
+
        $tes = $user->role;
        if($tes == "Owner"){
             return redirect('/');

@@ -63,7 +63,7 @@
         </div>
         <div class="card-body">
             <div id="tableExample2"
-                data-list='{"valueNames":["no","name","email","namapanggilan","role","jeniskelamin"],"page":20,"pagination":true}'>
+                data-list='{"valueNames":["no","name","email","namapanggilan","role","jeniskelamin","cabang"],"page":20,"pagination":true}'>
                 <div class="table-responsive scrollbar">
                     <table class="table table-bordered table-striped fs--1 mb-0">
                         <thead class="bg-200 text-900">
@@ -75,6 +75,7 @@
                                 <th class="text-center">No. Telephone</th>
                                 <th class="sort text-center" data-sort="jeniskelamin">Jenis Kelamin</th>
                                 <th class="sort text-center" data-sort="role">Role</th>
+                                <th class="sort text-center" data-sort="cabang">Cabang</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
@@ -88,6 +89,13 @@
                                 <td>{{ $item->phone_number }}</td>
                                 <td class="jeniskelamin">{{ $item->jenis_kelamin }}</td>
                                 <td class="role">{{ $item->role }}</td>
+                                <td class="cabang">
+                                    @forelse ($item->cabangs as $c)
+                                    <span class="badge badge-soft-primary">{{ $c->cabang_name }}</span>
+                                    @empty
+                                    <span class="text-500">-</span>
+                                    @endforelse
+                                </td>
                                 <td class="text-center">
                                     <a href="{{ route('master-pegawai.show', $item->id) }}" class="btn p-0"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"

@@ -2,140 +2,99 @@
 
 namespace App\Http\Controllers\Absensi;
 
-use App\Http\Controllers\Controller;
-use App\Models\MasterShift;
 use Alert;
+use App\Http\Controllers\Controller;
+use App\Models\MasterCabang;
+use App\Models\MasterShift;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class MasterShiftController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    private function cabangIds()
+    {
+        if (Auth::user()->role === 'Owner') {
+            return MasterCabang::where('is_active', 1)->pluck('cabang_id')->all();
+        }
+
+        return array_map('intval', array_column(session('cabangs', []), 'cabang_id'));
+    }
+
+    private function cabangs()
+    {
+        return MasterCabang::where('is_active', 1)
+            ->whereIn('cabang_id', $this->cabangIds())
+            ->orderBy('cabang_name')
+            ->get();
+    }
+
+    private function rules()
+    {
+        return [
+            'shift_name' => 'required|string|max:100',
+            'shift_in' => 'required|date_format:H:i',
+            'shift_out' => 'required|date_format:H:i',
+            'cabang_id' => ['required', 'integer', Rule::in($this->cabangIds())],
+        ];
+    }
+
     public function index()
     {
-        try {
-            $shift = MasterShift::get();
-            return view('absensi.shift', compact('shift'));
-        } catch (\Throwable $th) {
-            return $th;
-        }
+        $shift = MasterShift::with('Cabang')->get();
+        $cabangs = $this->cabangs();
+
+        return view('absensi.shift', compact('shift', 'cabangs'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        //
+        // Form is rendered by index().
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        try {       
-            DB::beginTransaction();
-            $item = new MasterShift();
-            $item->shift_name = $request->shift_name;
-            $item->shift_in = $request->shift_in;
-            $item->shift_out = $request->shift_out;
-            $item->save();
-            DB::commit();
-            Alert::success('Success', 'Data Berhasil Ditambahkan');
-            return redirect()->back();
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            Alert::warning('Warning', 'Internal Server Error, Data Not Found');
-            return redirect()->back();
-        }
+        $data = $request->validate($this->rules());
+
+        DB::transaction(function () use ($data) {
+            MasterShift::create($data);
+        });
+
+        Alert::success('Success', 'Data Berhasil Ditambahkan');
+        return redirect()->back();
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
-        try {
-            $item = MasterShift::find($id);
-            if (!$item) {
-                return 404;
-            }
-            return response()->json($item);
-        } catch (\Throwable $th) {
-            Alert::warning('Warning', 'Internal Server Error, Data Not Found');
-            return redirect()->back();
+        $item = MasterShift::with('Cabang')->find($id);
+        if (!$item) {
+            return response()->json(404, 404);
         }
+
+        return response()->json($item);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
-       
+        // Form is rendered by index().
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
-        try {       
-            DB::beginTransaction();
-            $item = MasterShift::find($id);
-            $item->shift_name = $request->shift_name;
-            $item->shift_in = $request->shift_in;
-            $item->shift_out = $request->shift_out;
-            $item->save();
-            DB::commit();
-            Alert::success('Success', 'Data Berhasil DiUpdate');
-            return redirect()->back();
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            Alert::warning('Warning', 'Internal Server Error');
-            return redirect()->back()->withErrors($request->errors())->withInput();
-        }
+        $data = $request->validate($this->rules());
+        $item = MasterShift::findOrFail($id);
+        $item->update($data);
+
+        Alert::success('Success', 'Data Berhasil DiUpdate');
+        return redirect()->back();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
-        try {
-            DB::beginTransaction();
-            $item = MasterShift::find($id);
-            $item->delete();
-            DB::commit();
-            Alert::success('Success', 'Data berhasil dihapus');
-            return redirect()->back();
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            Alert::warning('Warning', 'Internal Server Error');
-            return redirect()->back();
-        }
+        MasterShift::findOrFail($id)->delete();
+
+        Alert::success('Success', 'Data berhasil dihapus');
+        return redirect()->back();
     }
 }

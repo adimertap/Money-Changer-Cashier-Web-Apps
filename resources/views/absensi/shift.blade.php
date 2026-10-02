@@ -26,6 +26,7 @@
                                 <th class="sort text-center" data-sort="nama">Nama Shift</th>
                                 <th class="sort text-center" data-sort="in">Shift In</th>
                                 <th class="sort text-center" data-sort="out">Shift Out</th>
+                                <th class="sort text-center" data-sort="cabang">Cabang</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
@@ -36,6 +37,7 @@
                                 <td class="nama">{{ $item->shift_name }}</td>
                                 <td class="in">{{ $item->shift_in }}</td>
                                 <td class="out">{{ $item->shift_out }}</td>
+                                <td class="cabang">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                 <td>
                                     <button class="btn p-0 ms-2 editBtn" value="{{ $item->shift_id }}" type="button"
                                         data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Shift"><span
@@ -79,6 +81,18 @@
                     </div>
                     <div class="p-4 pb-0">
                         <p class="text-word-break fs--1">Lengkapi Form berikut ini</p>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label" for="cabang_id">Cabang</label><span class="mr-4 mb-3" style="color: red">*</span>
+                            <select class="form-select @error('cabang_id') is-invalid @enderror" name="cabang_id" id="shiftCabang" required>
+                                <option value="">Pilih Cabang</option>
+                                @foreach ($cabangs as $cabang)
+                                <option value="{{ $cabang->cabang_id }}" {{ (string) old('cabang_id', session('cabang_aktif')) === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                            @error('cabang_id')
+                            <div class="invalid-feedback"><strong>{{ $message }}</strong></div>
+                            @enderror
+                        </div>
                         <div class="col-md-12 mb-3">
                             <label class="form-label" for="shift_name">Nama Shift Kerja</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
@@ -157,12 +171,14 @@
                         $('input[name="shift_name"]').val(response.shift_name);
                         $('input[name="shift_in"]').val(response.shift_in);
                         $('input[name="shift_out"]').val(response.shift_out);
+                        $('#shiftCabang').val(response.cabang_id);
 
                         if (response.shift_id) {
                             let url = "{{ route('shift.update', ':id')}}"
                             url = url.replace(':id', id)
                             $('#shiftForm').attr('action', url);
                             $('#shiftForm').attr('method', 'POST');
+                            $('#shiftForm input[name="_method"]').remove();
                             $('#shiftForm').append('<input type="hidden" name="_method" value="PUT">');
                         }
                     }
@@ -196,6 +212,11 @@
         $('input[name="shift_name"]').val("");
         $('input[name="shift_in"]').val("");
         $('input[name="shift_out"]').val("");
+        $('#shiftCabang').val('{{ session('cabang_aktif') ?: optional($cabangs->first())->cabang_id }}');
+        $('#shiftForm input[name="_method"]').remove();
+        $('#shiftForm').attr('action', "{{ route('shift.store') }}");
+        $('#btnModal').text('Tambah Data');
+        $('#modalTitle').text('Tambah Data Shift Kerja');
         $('#modal-tambah').modal('show');
     }
 </script>

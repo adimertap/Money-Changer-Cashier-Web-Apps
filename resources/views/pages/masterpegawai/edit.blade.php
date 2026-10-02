@@ -51,9 +51,9 @@
                         <label class="form-label" for="role">Role Pegawai</label>
                         <select name="role" id="role" class="form-select" value="{{ old('role') }}"
                             class="form-control">
-                            <option value="{{ $item->role }}">{{ $item->role }}</option>
-                            <option value="Owner">Owner</option>
-                            <option value="Pegawai">Pegawai</option>
+                            @foreach ($roles as $role)
+                            <option value="{{ $role->name }}" {{ old('role', $item->role) === $role->name ? 'selected' : '' }}>{{ $role->name }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-8">
@@ -62,6 +62,22 @@
                             placeholder="Input Alamat Lengkap Pegawai"
                             value="{{ $item->alamat }}">{{ $item->alamat }}</textarea>
                     </div>
+                </div>
+                @php($selected = old('cabang_ids', $item->cabangs->pluck('cabang_id')->all()))
+                <div class="mb-3">
+                    <label class="form-label d-block">Cabang</label>
+                    @forelse ($cabang as $c)
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="cabang_ids[]" id="cabang-{{ $c->cabang_id }}"
+                            value="{{ $c->cabang_id }}" {{ in_array($c->cabang_id, $selected) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="cabang-{{ $c->cabang_id }}">{{ $c->cabang_name }}</label>
+                    </div>
+                    @empty
+                    <p class="fs--1 text-500 mb-0">Belum ada cabang aktif</p>
+                    @endforelse
+                    @error('cabang_ids.*')
+                    <div class="text-danger fs--1"><strong>{{ $message }}</strong></div>
+                    @enderror
                 </div>
                 <hr class="mt-4">
                 <p class="mb-0 pt-1 mt-2 mb-0">Account Pegawai 1</p>

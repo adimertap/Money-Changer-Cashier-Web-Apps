@@ -30,7 +30,7 @@ class TransaksiJualController extends Controller
         try {
             $today = Carbon::now()->format('Y-m-d');
             $user = Auth::user();
-            $isPegawai = $user->role == 'Pegawai';
+            $isPegawai = $user->role != 'Owner';
 
             $transaksiQuery = Transaksi::where('tanggal_transaksi', $today)
                 ->where('jenis_transaksi', 'Jual')

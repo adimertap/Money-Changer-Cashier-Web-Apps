@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MasterCabang;
 use App\Models\MasterCurrency;
 use App\Models\ModalTransaksi;
 use App\Models\Transaksi;
@@ -20,7 +21,7 @@ class DashboardController extends Controller
             $month = Carbon::now()->format('m');
             $bulan_ini = Carbon::now()->format('M Y');
             $currency = MasterCurrency::count();
-            $pegawai = User::count();
+            $pegawai = User::diCabangAktif()->count();
             $currentMonth = date('m');
             $currentYear = date('Y');
 
@@ -57,7 +58,7 @@ class DashboardController extends Controller
             $jumlah_seluruh = Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
 
 
-            $transaksi = Transaksi::with('detailTransaksi')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))
+            $transaksi = Transaksi::with('detailTransaksi', 'Cabang')->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))
                 ->orderBy('created_at', 'DESC')
                 ->take(5)->get();
 
@@ -93,7 +94,7 @@ class DashboardController extends Controller
             ->where('jenis_transaksi','Jual')
             ->sum('total');
 
-            $transaksi_pegawai_money = Transaksi::with('detailTransaksi')->where('id_pegawai', Auth::user()->id)
+            $transaksi_pegawai_money = Transaksi::with('detailTransaksi', 'Cabang')->where('id_pegawai', Auth::user()->id)
                 ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))
                 ->orderBy('created_at', 'DESC')
                 ->take(5)->get();
@@ -159,6 +160,22 @@ class DashboardController extends Controller
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
+    }
+
+    public function switch_cabang(Request $request)
+    {
+        $id = $request->input('cabang_id') ?: null;
+        $isOwner = Auth::user()->role === 'Owner';
+        $allowed = $isOwner
+            ? MasterCabang::where('is_active', 1)->pluck('cabang_id')->all()
+            : array_column(session('cabangs', []), 'cabang_id');
+
+        // null (semua cabang) hanya untuk Owner
+        if ($id === null ? !$isOwner : !in_array((int) $id, $allowed, true)) {
+            abort(403);
+        }
+        session(['cabang_aktif' => $id === null ? null : (int) $id]);
+        return redirect()->back();
     }
 
     public function change_password_v2()

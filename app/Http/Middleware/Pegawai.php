@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +19,7 @@ class Pegawai
     public function handle(Request $request, Closure $next)
     {
         $pegawai_role = User::where('id', Auth::user()->id)->first()->role;
-        if($pegawai_role == 'Pegawai'){
+        if($pegawai_role != 'Owner'){
             return $next($request);
         }
 

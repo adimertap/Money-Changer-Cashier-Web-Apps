@@ -111,6 +111,14 @@
                             </div>
                         </div>
                         <div class="col-md-12 mb-3">
+                            <label class="form-label" for="jadwalCabang">Cabang</label><span class="mr-4 mb-3" style="color: red">*</span>
+                            <select id="jadwalCabang" name="cabang_id" class="form-select" required>
+                                @foreach ($cabangs as $cabang)
+                                <option value="{{ $cabang->cabang_id }}" {{ (int) $activeCabang === (int) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
                             <label class="form-label" for="pegawai">Pegawai</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
                             <select type="text" id="pegawai" name="pegawai" class="form-select"
@@ -127,11 +135,11 @@
                             <label class="form-label" for="shift_name">Shift Kerja</label>
                             <span class="mr-4 mb-3" style="color: red">*</span>
                             @foreach ($shift as $item)
-                            <div class="form-check">
+                            <div class="form-check shift-option" data-cabang="{{ $item->cabang_id }}">
                                 <input class="form-check-input" type="radio" name="shift" value="{{ $item->shift_id }}"
                                     id="shift_{{ $item->shift_id }}">
                                 <label class="form-check-label" for="shift_{{ $item->shift_id }}">
-                                    {{ $item->shift_name }}, In: {{ $item->shift_in }}, Out: {{ $item->shift_out }}
+                                    {{ $item->shift_name }}{{ $item->Cabang ? ' - ' . $item->Cabang->cabang_name : '' }}, In: {{ $item->shift_in }}, Out: {{ $item->shift_out }}
                                 </label>
                             </div>
                             @endforeach
@@ -259,7 +267,15 @@
                             </div>
                         </div>
                         <div class="col-md-12 mb-3">
-                            <label class="form-label" for="pegawai">Pegawai</label><span class="mr-4 mb-3"
+                            <label class="form-label" for="jadwalCabangEdit">Cabang</label><span class="mr-4 mb-3" style="color: red">*</span>
+                            <select id="jadwalCabangEdit" name="cabang_id" class="form-select" required>
+                                @foreach ($cabangs as $cabang)
+                                <option value="{{ $cabang->cabang_id }}" {{ (int) $activeCabang === (int) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label" for="pegawaiEdit">Pegawai</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
                             <select type="text" id="pegawaiEdit" name="pegawai" class="form-select"
                                 value="{{ old('pegawai') }}">
@@ -275,11 +291,11 @@
                             <label class="form-label" for="shift_name">Shift Kerja</label>
                             <span class="mr-4 mb-3" style="color: red">*</span>
                             @foreach ($shift as $item)
-                            <div class="form-check">
+                            <div class="form-check shift-edit-option" data-cabang="{{ $item->cabang_id }}">
                                 <input class="form-check-input" type="radio" name="shiftEdit"
                                     value="{{ $item->shift_id }}" id="edit_shift_{{ $item->shift_id }}">
-                                <label class="form-check-label" for="shift_{{ $item->shift_id }}">
-                                    {{ $item->shift_name }}, In: {{ $item->shift_in }}, Out: {{ $item->shift_out }}
+                                <label class="form-check-label" for="edit_shift_{{ $item->shift_id }}">
+                                    {{ $item->shift_name }}{{ $item->Cabang ? ' - ' . $item->Cabang->cabang_name : '' }}, In: {{ $item->shift_in }}, Out: {{ $item->shift_out }}
                                 </label>
                             </div>
                             @endforeach
@@ -322,13 +338,35 @@
         $('#modal-tambah').modal('show');
     }
 
+    const defaultCabang = '{{ $activeCabang }}';
+    const cabangEmployeesUrl = '{{ url('/api/cabang') }}';
+
+    function loadEmployees(cabangId, selector, selectedId) {
+        $.get(cabangEmployeesUrl + '/' + cabangId + '/employees', function (items) {
+            const select = $(selector).empty().append('<option value="">Pilih Pegawai</option>');
+            items.forEach(function (item) {
+                select.append(new Option(item.name, item.id, false, String(item.id) === String(selectedId)));
+            });
+            select.trigger('change');
+        });
+    }
+
+    function filterShifts(cabangId, selector, selectedId) {
+        $(selector).each(function () {
+            const visible = String($(this).data('cabang')) === String(cabangId);
+            $(this).toggle(visible);
+            $(this).find('input').prop('checked', visible && String($(this).find('input').val()) === String(selectedId));
+        });
+    }
+
     function updateTukar(tanggal, jadwalId, user, shift) {
         var datePart = tanggal.split(' ')[0];
         $('#jadwalIdEdit').val(jadwalId);
         $('#startDateEdit').prop('readonly', false);
         $('#startDateEdit').val(datePart);
-        $('#pegawaiEdit').val(user).trigger('change');
-        $('input[name="shiftEdit"][value="' + shift + '"]').prop('checked', true);
+        $('#jadwalCabangEdit').val(defaultCabang);
+        filterShifts(defaultCabang, '.shift-edit-option', shift);
+        loadEmployees(defaultCabang, '#pegawaiEdit', user);
         $('#modal-edit').modal('show');
     }
 
@@ -381,6 +419,14 @@
 
     $(document).ready(function() {
         const tes = $('#datatable').DataTable();
+        loadEmployees($('#jadwalCabang').val(), '#pegawai');
+        loadEmployees($('#jadwalCabangEdit').val(), '#pegawaiEdit');
+        $('#jadwalCabang, #jadwalCabangEdit').on('change', function () {
+            const edit = this.id === 'jadwalCabangEdit';
+            loadEmployees(this.value, edit ? '#pegawaiEdit' : '#pegawai');
+            filterShifts(this.value, edit ? '.shift-edit-option' : '.shift-option');
+        });
+        $('#jadwalCabang, #jadwalCabangEdit').trigger('change');
 
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -406,9 +452,10 @@
                         // Populate modal with fetched data
                         $('#jadwalIdEdit').val(data.id)
                         $('#startDateEdit').val(formattedStartDate);
-                        $('#pegawaiEdit').val(data.pegawai).trigger('change');
+                        $('#jadwalCabangEdit').val(data.cabang_id);
+                        filterShifts(data.cabang_id, '.shift-edit-option', data.shift);
+                        loadEmployees(data.cabang_id, '#pegawaiEdit', data.pegawai);
                         // $('#keteranganEdit').html(data.keterangan)
-                        $('input[name="shiftEdit"][value="' + data.shift + '"]').prop('checked', true);
                         $('#modal-edit').modal('show');
                     }
                     , error: function(xhr, status, error) {
@@ -434,6 +481,7 @@
                                         extendedProps: {
                                             shift_in: jadwal.shift.shift_in
                                             , shift_out: jadwal.shift.shift_out
+                                            , cabang_id: jadwal.cabang_id
                                         }
                                     });
                                 }

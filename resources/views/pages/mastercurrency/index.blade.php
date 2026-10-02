@@ -377,7 +377,7 @@
                                 <label class="form-label" for="urutan">Urutan Kurs</label><span class="mr-4 mb-3"
                                     style="color: red">*</span>
                                 <select class="form-select" name="urutan" type="number"
-                                    placeholder="Urutan" id="{{ $item->id_currency }}" step="1"
+                                    placeholder="Urutan" id="urutan" step="1"
                                     value="{{ old('urutan') }}" required>
                                     <option value="">Urutan</option>
                                     <option value="1">1</option>

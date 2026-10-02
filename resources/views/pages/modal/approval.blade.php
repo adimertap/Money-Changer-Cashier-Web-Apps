@@ -25,6 +25,15 @@
                     <h5 class="mb-0" data-anchor="data-anchor">Approval Modal</h5>
                     <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Modal</p>
                 </div>
+                <div class="col-auto align-self-center">
+                    <label class="form-label mb-1" for="approvalCabangFilter">Cabang</label>
+                    <select class="form-select form-select-sm" id="approvalCabangFilter">
+                        <option value="">Semua Cabang</option>
+                        @foreach ($cabangs as $cabang)
+                        <option value="{{ $cabang->cabang_id }}" {{ (string) request('cabang_id') === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
         <div class="card-body">
@@ -37,6 +46,7 @@
                                 <th class="sort text-center" data-sort="no">No.</th>
                                 <th class="sort text-center" data-sort="tanggal_modal">Tanggal</th>
                                 <th class="sort text-center" data-sort="pegawai">Pegawai</th>
+                                <th class="sort text-center" data-sort="cabang">Cabang</th>
                                 <th class="sort text-center" data-sort="jumlah_modal">Total Modal</th>
                                 <th class="sort text-center" data-sort="pengajuan_tambah">Tambahan</th>
                                 <th class="sort text-center" data-sort="status_modal">Status Modal</th>
@@ -48,7 +58,8 @@
                             <tr role="row" class="odd">
                                 <th scope="row" class="no">{{ $loop->iteration}}.</th>
                                 <td class="tanggal_modal">{{ date('d-M-Y', strtotime($item->tanggal_modal)) }}</td>
-                                <td class="pegawai">{{ $item->Pegawai->name }}</td>
+                                <td class="pegawai">{{ optional($item->Pegawai)->name ?: '-' }}</td>
+                                <td class="cabang">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                 <td class="jumlah_modal">Rp. {{ number_format($item->riwayat_modal, 0, ',', '.') }}</td>
                                 <td class="pengajuan_tambah">
                                     @if ($item->pengajuan_tambah != null)
@@ -306,6 +317,16 @@
     }
 
     $(document).ready(function () {
+        $('#approvalCabangFilter').on('change', function () {
+            const params = new URLSearchParams(window.location.search);
+            if (this.value) {
+                params.set('cabang_id', this.value);
+            } else {
+                params.delete('cabang_id');
+            }
+            window.location.href = '?' + params.toString();
+        });
+
         $('.terimaModalBtn').click(function (e) {
             e.preventDefault();
 

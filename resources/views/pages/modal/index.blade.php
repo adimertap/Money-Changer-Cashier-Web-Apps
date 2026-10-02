@@ -62,7 +62,7 @@
     <div class="card mb-3">
         <div class="card-header">
             <h5 class="mb-0">
-                @if (Auth::user()->role == 'Pegawai')
+                @if (Auth::user()->role != 'Owner')
                     <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Modal Anda Hari Ini</h5>
                     <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Modal</p>
                     @else
@@ -70,8 +70,17 @@
                     <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Modal</p>
                     @endif
             </h5>
-            <div class="d-flex justify-content-end">
-                <label for="perPageSelect" class="me-2">Show</label>
+            <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
+                <div id="cabangFilterWrapper" class="d-flex align-items-center gap-2">
+                    <label for="cabangFilter" class="mb-0">Cabang</label>
+                    <select id="cabangFilter" class="form-select w-auto">
+                        <option value="">Semua Cabang</option>
+                        @foreach ($cabangs as $cabang)
+                        <option value="{{ $cabang->cabang_id }}" {{ (string) request('cabang_id') === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <label for="perPageSelect" class="mb-0">Show</label>
                 <select id="perPageSelect" class="form-select w-auto">
                     <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
                     <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20</option>
@@ -88,6 +97,7 @@
                                 <th class="sort text-center" data-sort="no">No.</th>
                                 <th class="sort text-center" data-sort="tanggal_modal">Tanggal</th>
                                 <th class="sort text-center" data-sort="pegawai">Pegawai</th>
+                                <th class="sort text-center" data-sort="cabang">Cabang</th>
                                 <th class="sort text-center" data-sort="jumlah_modal">Jumlah Awal Modal</th>
                                 <th class="sort text-center" data-sort="sisa_modal">Sisa Modal</th>
                                 <th class="sort text-center" data-sort="status_modal">Status Pengajuan</th>
@@ -100,7 +110,8 @@
                             <tr role="row" class="odd">
                                 <td class="text-center">{{ $modal->firstItem() + $index }}</td>
                                 <td class="tanggal_modal">{{ date('d-M-Y', strtotime($item->tanggal_modal)) }}</td>
-                                <td class="pegawai">{{ $item->Pegawai->name }}</td>
+                                <td class="pegawai">{{ optional($item->Pegawai)->name ?: '-' }}</td>
+                                <td class="cabang">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                 <td class="jumlah_modal text-center">Rp. {{ number_format($item->jumlah_modal, 0, ',',
                                     '.') }}</td>
                                 <td class="sisa_modal text-center"><span id="{{ $item->pengajuan_tambah }}">Rp. {{
@@ -165,7 +176,7 @@
                     </table>
                 </div>
                 <div class="d-flex justify-content-center mt-3">
-                    {{ $modal->appends(['per_page' => request('per_page')])->links('pagination::bootstrap-4') }}
+                    {{ $modal->appends(request()->only(['per_page', 'cabang_id']))->links('pagination::bootstrap-4') }}
                 </div>
             </div>
         </div>
@@ -538,9 +549,16 @@
         var table = $('#example').DataTable({
             paging:false
         });
-        $('#perPageSelect').on('change', function () {
-            var perPage = $(this).val();
-            window.location.href = '?per_page=' + perPage;
+        $('#perPageSelect, #cabangFilter').on('change', function () {
+            const params = new URLSearchParams(window.location.search);
+            params.set('per_page', $('#perPageSelect').val());
+            if ($('#cabangFilter').val()) {
+                params.set('cabang_id', $('#cabangFilter').val());
+            } else {
+                params.delete('cabang_id');
+            }
+            params.delete('page');
+            window.location.href = '?' + params.toString();
         });
         table.on('click', '.editModalBtn', function () {
             var id = $(this).val();

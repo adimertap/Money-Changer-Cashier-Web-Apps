@@ -7,6 +7,7 @@ use App\Mail\MailModal;
 use App\Mail\MailModalTambah;
 use App\Mail\MailTransfer;
 use App\Models\Jurnal;
+use App\Models\MasterCabang;
 use App\Models\ModalTransaksi;
 use App\Models\RiwayatModal;
 use App\Models\User;
@@ -28,13 +29,27 @@ class ModalController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            if(Auth::user()->role == 'Owner'){
-                $modalQuery = ModalTransaksi::orderBy('created_at', 'DESC');
-            }else{
-                $modalQuery = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))
-                ->orWhere('riwayat_modal','>', '0')->orderBy('created_at', 'DESC');
-            }
-            $modal = $modalQuery->paginate($perPage);
+            $cabangId = $request->input('cabang_id');
+            $isOwner = Auth::user()->role === 'Owner';
+            $allowedCabangIds = $isOwner
+                ? MasterCabang::where('is_active', 1)->pluck('cabang_id')->all()
+                : array_map('intval', array_column(session('cabangs', []), 'cabang_id'));
+            $modalQuery = ($isOwner ? ModalTransaksi::withoutGlobalScope('cabang') : ModalTransaksi::query())
+                ->when(!$isOwner, function ($query) {
+                    $query->where(function ($query) {
+                        $query->where('tanggal_modal', Carbon::now()->format('Y-m-d'))
+                            ->orWhere('riwayat_modal', '>', 0);
+                    });
+                })
+                ->when($cabangId && in_array((int) $cabangId, $allowedCabangIds, true), function ($query) use ($cabangId) {
+                    $query->where('cabang_id', $cabangId);
+                })
+                ->orderByDesc('created_at');
+            $modal = $modalQuery->with(['Pegawai', 'Cabang'])->paginate($perPage)->withQueryString();
+            $cabangs = MasterCabang::where('is_active', 1)
+                ->whereIn('cabang_id', $allowedCabangIds)
+                ->orderBy('cabang_name')
+                ->get();
 
             $modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->get();
             $modal_tf = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
@@ -43,7 +58,7 @@ class ModalController extends Controller
             if(count($modal_today) == 0){
                 Alert::warning('Modal Belum Diinput', 'Anda Belum Menginputkan Modal Hari Ini, Lakukan Inputan atau Transfer');
             }
-            return view('pages.modal.index', compact('modal','modal_today','today','jumlah_modal_today','modal_tf'));
+            return view('pages.modal.index', compact('modal','modal_today','today','jumlah_modal_today','modal_tf','cabangs','cabangId'));
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Error Server');
         }

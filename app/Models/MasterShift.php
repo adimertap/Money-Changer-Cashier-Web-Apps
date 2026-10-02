@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class MasterShift extends Model
 {
+    use Concerns\BelongsToCabang;
+
     protected $table = "tb_master_shift";
 
     protected $primaryKey = 'shift_id';
@@ -15,6 +17,7 @@ class MasterShift extends Model
         'shift_name',
         'shift_in',
         'shift_out',
+        'cabang_id',
     ];
 
     protected $hidden = [

@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MasterCabang;
+use App\Models\Role;
 use App\Models\User;
+use App\Services\MenuAccessService;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class MasterPegawaiController extends Controller
@@ -17,8 +22,8 @@ class MasterPegawaiController extends Controller
      */
     public function index()
     {
-        $pegawai = User::get();
-        $jumlah = User::where('role','Pegawai')->count();
+        $pegawai = User::with('cabangs')->diCabangAktif()->get();
+        $jumlah = $pegawai->where('role', '!=', 'Owner')->count();
 
         return view('pages.masterpegawai.index', compact('pegawai','jumlah'));
     }
@@ -63,7 +68,24 @@ class MasterPegawaiController extends Controller
      */
     public function create()
     {
-        return view('pages.masterpegawai.create');
+        $cabang = MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get();
+        $roles = Role::orderBy('name')->get();
+        return view('pages.masterpegawai.create', compact('cabang', 'roles'));
+    }
+
+    private function roleRules()
+    {
+        return ['required', 'string', 'exists:roles,name'];
+    }
+
+    private function syncCabang(User $pegawai, Request $request)
+    {
+        $request->validate([
+            'cabang_ids' => 'nullable|array',
+            'cabang_ids.*' => 'integer|exists:tb_master_cabang,cabang_id',
+        ]);
+        $pivot = ['created_by' => Auth::id(), 'updated_by' => Auth::id()];
+        $pegawai->cabangs()->syncWithPivotValues($request->input('cabang_ids', []), $pivot);
     }
 
     /**
@@ -74,6 +96,7 @@ class MasterPegawaiController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate(['role' => $this->roleRules()]);
         $tes = User::where('email', $request->email)->first();
         if(empty($tes)){
             $pegawai = new User;
@@ -86,7 +109,10 @@ class MasterPegawaiController extends Controller
             $pegawai->email = $request->email;
             $pegawai->password = bcrypt($request->password);
             $pegawai->email_verified_at = Carbon::now();
-            $pegawai->save();
+            DB::transaction(function () use ($pegawai, $request) {
+                $pegawai->save();
+                $this->syncCabang($pegawai, $request);
+            });
             event(new Registered($pegawai));
 
             Alert::success('Success Title', 'Data Pegawai Berhasil Ditambahkan');
@@ -107,7 +133,7 @@ class MasterPegawaiController extends Controller
      */
     public function show($id)
     {
-        $item = User::find($id);
+        $item = User::with('cabangs')->findOrFail($id);
         return view('pages.masterpegawai.detail',compact('item'));
     }
 
@@ -119,8 +145,10 @@ class MasterPegawaiController extends Controller
      */
     public function edit($id)
     {
-        $item = User::find($id);
-        return view('pages.masterpegawai.edit', compact('item'));
+        $item = User::with('cabangs')->findOrFail($id);
+        $cabang = MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get();
+        $roles = Role::orderBy('name')->get();
+        return view('pages.masterpegawai.edit', compact('item', 'cabang', 'roles'));
     }
 
     /**
@@ -132,7 +160,8 @@ class MasterPegawaiController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $pegawai = User::find($id);
+        $request->validate(['role' => $this->roleRules()]);
+        $pegawai = User::findOrFail($id);
         $pegawai->name = $request->name;
         $pegawai->nama_panggilan = $request->nama_panggilan;
         $pegawai->jenis_kelamin = $request->jenis_kelamin;
@@ -140,7 +169,18 @@ class MasterPegawaiController extends Controller
         $pegawai->alamat = $request->alamat;
         $pegawai->role = $request->role;
         $pegawai->email = $request->email;
-        $pegawai->update();
+        DB::transaction(function () use ($pegawai, $request) {
+            $pegawai->update();
+            $this->syncCabang($pegawai, $request);
+        });
+        if ($pegawai->id === Auth::id()) {
+            $cabangs = $pegawai->cabangs()->where('is_active', 1)->get(['tb_master_cabang.cabang_id', 'cabang_name'])->toArray();
+            session([
+                'cabangs' => $cabangs,
+                'cabang_aktif' => $pegawai->role === 'Owner' ? null : ($cabangs[0]['cabang_id'] ?? null),
+            ]);
+            app(MenuAccessService::class)->loadIntoSession($pegawai);
+        }
         Alert::success('Success Title', 'Data Pegawai Berhasil Diedit');
         return redirect()->route('master-pegawai.index');
 
