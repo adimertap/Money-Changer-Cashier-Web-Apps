@@ -21,3 +21,6 @@ history
 /storage/framework/views/*opencode.json
 
 opencode.json
+
+.DS_Store
+.opencode/
