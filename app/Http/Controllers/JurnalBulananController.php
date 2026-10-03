@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\DetailTransaksi;
+use App\Models\MasterCabang;
 use App\Models\Transaksi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -41,20 +42,30 @@ class JurnalBulananController extends Controller
     //         return redirect()->back();
     //     }
     // }
-    public function index()
+    public function index(Request $request)
     {
         try {
+            $request->validate([
+                'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+            ]);
+            $cabang = MasterCabang::where('is_active', 1)
+                ->orderBy('cabang_name')
+                ->get(['cabang_id', 'cabang_name']);
 
-            $transaksi = Transaksi::selectRaw(
-                'SUM(CASE WHEN jenis_transaksi = "Beli" THEN total ELSE 0 END) as grand_total,
-                SUM(CASE WHEN jenis_transaksi = "Jual" THEN total ELSE 0 END) as jual_total,
-                DATE_FORMAT(tanggal_transaksi, "%m") as month,
-                YEAR(tanggal_transaksi) as year'
-            )
-            ->groupBy('year', 'month')
-            ->orderByRaw("FIELD(month, '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12')")
-            ->orderBy('year', 'DESC')
-            ->get();
+            $transaksiQuery = Transaksi::with('Cabang')
+                ->selectRaw(
+                    'SUM(total) as grand_total,
+                    DATE_FORMAT(tanggal_transaksi, "%m") as month,
+                    YEAR(tanggal_transaksi) as year,
+                    cabang_id'
+                )
+                ->when($request->filled('cabang_id'), function ($query) use ($request) {
+                    $query->where('cabang_id', $request->cabang_id);
+                })
+                ->groupBy('year', 'month', 'cabang_id')
+                ->orderBy('year', 'DESC')
+                ->orderByRaw("FIELD(month, '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12')");
+            $transaksi = $transaksiQuery->get();
             $months = [
                 '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
                 '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
@@ -62,19 +73,19 @@ class JurnalBulananController extends Controller
             ];
             $years = $transaksi->pluck('year')->unique()->sort()->values()->all();
             $data = [];
-            foreach ($months as $num => $name) {
-                $data[$num] = [
-                    'month_name' => $name,
-                    'totals' => array_fill_keys($years, 0)
-                ];
-            }
-
-            // Populate transaction totals
             foreach ($transaksi as $item) {
-                $data[$item->month]['totals'][$item->year] = $item->grand_total;
+                $key = $item->year . '-' . $item->month . '-' . ($item->cabang_id ?: 'all');
+                $data[$key] = [
+                    'month_name' => $months[$item->month],
+                    'year' => $item->year,
+                    'cabang_id' => $item->cabang_id,
+                    'cabang_name' => optional($item->Cabang)->cabang_name ?: 'Semua Cabang',
+                    'totals' => array_fill_keys($years, 0),
+                ];
+                $data[$key]['totals'][$item->year] = $item->grand_total;
             }
 
-            return view('pages.jurnal.bulan.index', compact('data', 'years'));
+            return view('pages.jurnal.bulan.index', compact('data', 'years', 'cabang'));
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
@@ -110,26 +121,41 @@ class JurnalBulananController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request,$month)
+    public function show(Request $request, $month)
     {
         try {
-            $transaksi = Transaksi::whereMonth('tanggal_transaksi', '=', $month)
-            ->selectRaw('DATE_FORMAT(tanggal_transaksi, "%M") as month, SUM(total) as grand_total, tanggal_transaksi, COUNT(id_transaksi) as jumlah_transaksi, jenis_transaksi as jenis',)
-            ->groupBy('tanggal_transaksi')
-            ->orderBy('tanggal_transaksi', 'DESC')
-            ->get();
+            $request->validate([
+                'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+            ]);
+            $cabang = MasterCabang::where('is_active', 1)
+                ->orderBy('cabang_name')
+                ->get(['cabang_id', 'cabang_name']);
 
-        $transaksi_seluruh = Transaksi::with('Pegawai')->whereMonth('tanggal_transaksi', '=', $month);
-        if ($request->from) {
-            $transaksi_seluruh->where('tanggal_transaksi', '>=', $request->from);
-        }
-        if ($request->to) {
-            $transaksi_seluruh->where('tanggal_transaksi', '<=', $request->to);
-        }
-        $transaksi_seluruh = $transaksi_seluruh->orderBy('tanggal_transaksi', 'DESC')->get();
-        $bulan = $month;
+            $transaksiQuery = Transaksi::with('Cabang')->whereMonth('tanggal_transaksi', '=', $month)
+                ->when($request->filled('cabang_id'), function ($query) use ($request) {
+                    $query->where('cabang_id', $request->cabang_id);
+                });
+            $transaksi = $transaksiQuery
+                ->selectRaw('DATE_FORMAT(tanggal_transaksi, "%M") as month, SUM(total) as grand_total, tanggal_transaksi, COUNT(id_transaksi) as jumlah_transaksi, jenis_transaksi as jenis, cabang_id')
+                ->groupBy('tanggal_transaksi', 'jenis_transaksi', 'cabang_id')
+                ->orderBy('tanggal_transaksi', 'DESC')
+                ->get();
 
-        return view('pages.jurnal.bulan.detail', compact('transaksi', 'transaksi_seluruh', 'bulan'));
+            $transaksi_seluruh = Transaksi::with(['Pegawai', 'Cabang'])
+                ->whereMonth('tanggal_transaksi', '=', $month)
+                ->when($request->filled('cabang_id'), function ($query) use ($request) {
+                    $query->where('cabang_id', $request->cabang_id);
+                });
+            if ($request->from) {
+                $transaksi_seluruh->where('tanggal_transaksi', '>=', $request->from);
+            }
+            if ($request->to) {
+                $transaksi_seluruh->where('tanggal_transaksi', '<=', $request->to);
+            }
+            $transaksi_seluruh = $transaksi_seluruh->orderBy('tanggal_transaksi', 'DESC')->get();
+            $bulan = $month;
+
+            return view('pages.jurnal.bulan.detail', compact('transaksi', 'transaksi_seluruh', 'bulan', 'cabang'));
 
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
@@ -146,15 +172,31 @@ class JurnalBulananController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($tanggal_transaksi)
+    public function edit(Request $request, $tanggal_transaksi)
     {
-        $transaksi = Transaksi::where('tanggal_transaksi', $tanggal_transaksi)->get();
+        $request->validate([
+            'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+        ]);
+        $transaksi = Transaksi::with('Cabang')
+            ->where('tanggal_transaksi', $tanggal_transaksi)
+            ->when($request->filled('cabang_id'), function ($query) use ($request) {
+                $query->where('cabang_id', $request->cabang_id);
+            })
+            ->get();
         return view('pages.jurnal.bulan.detailtanggal', compact('transaksi'));
     }
 
-    public function DetailTransaksi($id)
+    public function DetailTransaksi(Request $request, $id)
     {
-        $transaksi = Transaksi::with('Pegawai','detailTransaksi.Currency')->find($id);
+        $request->validate([
+            'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+        ]);
+        $transaksi = Transaksi::with('Pegawai','Cabang','detailTransaksi.Currency')
+            ->where('id_transaksi', $id)
+            ->when($request->filled('cabang_id'), function ($query) use ($request) {
+                $query->where('cabang_id', $request->cabang_id);
+            })
+            ->firstOrFail();
         $detail = DetailTransaksi::where('id_transaksi', $id)->get();
         return view('pages.jurnal.bulan.detailtransaksi', compact('transaksi','detail'));
     }

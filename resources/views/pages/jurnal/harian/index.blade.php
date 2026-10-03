@@ -14,7 +14,7 @@
                 </div>
                 <div class="col-6 col-md-6 border-200 border-md-200 border-bottom border-md-end pb-4 ps-3">
                     <h6 class="pb-1 text-700">Total Transaksi Pembelian</h6>
-                    <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ number_format($total, 0, ',', '.') }}</p>
+                    <p class="font-sans-serif lh-1 mb-1 fs-2">Rp. {{ floor((float)$total) == (float)$total ? number_format($total, 0, ',', '.') : number_format($total, 2, ',', '.') }}</p>
                     <div class="d-flex align-items-center">
                         <h6 class="fs--1 text-500 mb-0"></h6>
                     </div>
@@ -46,14 +46,23 @@
                                     <label class="small">Start Date</label>
                                     <input class="form-control datetimepicker" id="from_date" type="date"
                                         name="from_date" placeholder="From Date"
+                                        value="{{ request('from') }}"
                                         data-options='{"disableMobile":true}' />
                                 </div>
                                 <div class="col-md-4">
                                     <label class="small">End Date</label>
                                     <input class="form-control datetimepicker" id="to_date" type="date" name="to_date"
-                                        placeholder="To Date" data-options='{"disableMobile":true}' />
+                                        placeholder="To Date" value="{{ request('to') }}"
+                                        data-options='{"disableMobile":true}' />
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="small">Cabang</label>
+                                    <select class="form-select" id="cabang_id" name="cabang_id">
+                                        <option value="">Semua Cabang</option>
+                                        @foreach ($cabang as $item)
+                                        <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                                        @endforeach
+                                    </select>
                                     <button type="button" name="filter" onclick="filter_tanggal(event)"
                                         class="btn btn-primary px-3 py-1 mt-4">Filter</button>
                                     <a href="{{ route('jurnal-harian.index') }}" class="btn btn-danger px-3 py-1 mt-4">Reset</a>
@@ -66,8 +75,8 @@
         </div>
     </div>
     <ul class="nav nav-pills mb-3">
-        <li class="nav-item"><a class="nav-link active" href="{{ route('jurnal-harian.index') }}">Transaksi Beli</a></li>
-        <li class="nav-itkem"><a class="nav-link" href="{{ route('jurnal-harian-jual') }}">Transaksi Jual</a></li>
+        <li class="nav-item"><a class="nav-link active" href="{{ route('jurnal-harian.index', request()->only(['from', 'to', 'cabang_id'])) }}">Transaksi Beli</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ route('jurnal-harian-jual', request()->only(['from', 'to', 'cabang_id'])) }}">Transaksi Jual</a></li>
     </ul>
 
     <div class="card mb-3">
@@ -82,6 +91,7 @@
                                 <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal & Waktu</th>
                                 <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
+                                <th class="sort text-center fs--1" data-sort="cabang">Cabang</th>
                                 <th class="sort text-center fs--1" data-sort="nama_customer">Cust</th>
                                 <th class="sort text-center fs--1" data-sort="nomor_passport">Passport</th>
                                 <th class="sort text-center fs--1" data-sort="negara_asal">Negara Asal</th>
@@ -97,10 +107,11 @@
                                 <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
                                 <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s', strtotime($item->created_at)) }} </td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
+                                <td class="text-center cabang fs--1">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                 <td class="text-center nama_customer fs--1">{{ $item->nama_customer }}</td>
                                 <td class="text-center nomor_passport fs--1">{{ $item->nomor_passport }}</td>
                                 <td class="text-center negara_asal fs--1">{{ $item->negara_asal }}</td>
-                                <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}
+                                <td class="text-center total text-center fs--1">Rp. {{ floor((float)$item->total) == (float)$item->total ? number_format($item->total, 0, ',', '.') : number_format($item->total, 2, ',', '.') }}
                                 </td>
                                 <td class="text-center status text-center fs--1">
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
@@ -119,14 +130,14 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="10" class="text-center">No data available</td>
+                                <td colspan="11" class="text-center">No data available</td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
                 <div class="d-flex justify-content-center">
-                    {{ $transaksi->links('layouts.pagination') }}
+                    {{ $transaksi->withQueryString()->links('layouts.pagination') }}
                 </div>
             </div>
         </div>
@@ -191,6 +202,17 @@
                         </div>
                         <div class="row mb-3 mt-3">
                             <div class="col-12">
+                                <label for="cabang_export">Filter by Cabang</label>
+                                <select class="form-select js-choice" id="cabang_export" name="cabang_id">
+                                    <option value="">Semua Cabang</option>
+                                    @foreach ($cabang as $item)
+                                    <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3 mt-3">
+                            <div class="col-12">
                                 <label for="currency">Filter by Pegawai</label>
                                 <select class="form-select js-choice" id="pegawai" name="id_pegawai"
                                     data-options='{"removeItemButton":true,"placeholder":true}'>
@@ -225,6 +247,7 @@
         var form1 = $('#form1');
         var tanggal_mulai = form1.find('input[name="from_date"]').val();
         var tanggal_selesai = form1.find('input[name="to_date"]').val();
+        var cabang_id = form1.find('select[name="cabang_id"]').val();
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -240,7 +263,12 @@
             icon: 'info',
             title: 'Mohon Tunggu, Sedang diproses ...'
         });
-        window.location.href = '/owner/jurnal-harian?from=' + tanggal_mulai + '&to=' + tanggal_selesai;
+        var params = new URLSearchParams({
+            from: tanggal_mulai,
+            to: tanggal_selesai,
+            cabang_id: cabang_id || ''
+        });
+        window.location.href = '/owner/jurnal-harian?' + params.toString();
     }
 </script>
 

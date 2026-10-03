@@ -15,7 +15,7 @@
                 <table class="table table-bordered table-striped fs--1 mb-0" id="customerTable">
                     <thead class="bg-200 text-900">
                         <tr>
-                            <th>No.</th><th>Nama</th><th>Country</th><th>Passport</th><th>Pekerjaan</th><th>Cabang Terdaftar</th><th>Actions</th>
+                            <th>No.</th><th>Nama</th><th>Country</th><th>Passport</th><th>Cabang Terdaftar</th><th>Status</th><th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -25,14 +25,38 @@
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->country ?: '-' }}</td>
                             <td>{{ $item->passport ?: '-' }}</td>
-                            <td>{{ $item->pekerjaan ?: '-' }}</td>
                             <td>{{ optional($item->cabang)->cabang_name ?: '-' }}</td>
+                            <td class="text-center">
+                                @if ($item->getKey() !== null)
+                                    <form method="POST" action="{{ route('master-customer.status', ['id' => $item->getKey()]) }}" class="d-inline-flex gap-2 align-items-center">
+                                        @csrf @method('PATCH')
+                                        <label class="form-check-label small">
+                                            <input class="form-check-input" type="radio" name="is_active" value="1" onchange="this.form.submit()" {{ (bool) $item->is_active ? 'checked' : '' }}>
+                                            Aktif
+                                        </label>
+                                        <label class="form-check-label small">
+                                            <input class="form-check-input" type="radio" name="is_active" value="0" onchange="this.form.submit()" {{ !(bool) $item->is_active ? 'checked' : '' }}>
+                                            Nonaktif
+                                        </label>
+                                    </form>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td class="text-center text-nowrap">
-                                <button class="btn p-0 editCustomer" value="{{ $item->customer_id }}" title="Edit"><span class="fas fa-edit"></span></button>
-                                <button class="btn p-0 ms-2" type="button" onclick="hapusCustomer({{ $item->customer_id }})" title="Delete"><span class="fas fa-trash-alt"></span></button>
-                                <form id="delete-customer-{{ $item->customer_id }}" action="{{ route('master-customer.destroy', $item->customer_id) }}" method="POST" class="d-none">
-                                    @csrf @method('DELETE')
-                                </form>
+                                @if ($item->getKey() !== null)
+                                    <button class="btn btn-sm btn-outline-primary editCustomer" value="{{ $item->getKey() }}" title="Edit" type="button">
+                                        <span class="fas fa-edit me-1"></span>Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger ms-2" type="button" onclick="hapusCustomer({{ $item->getKey() }})" title="Delete">
+                                        <span class="fas fa-trash-alt me-1"></span>Delete
+                                    </button>
+                                    <form id="delete-customer-{{ $item->getKey() }}" action="{{ route('master-customer.destroy', ['master_customer' => $item->getKey()]) }}" method="POST" class="d-none">
+                                        @csrf @method('DELETE')
+                                    </form>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
                             </td>
                         </tr>
                         @empty
@@ -71,10 +95,12 @@
                             @error('country')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6"><label class="form-label">Passport</label><input class="form-control" name="passport" id="customerPassport" value="{{ old('passport') }}"></div>
-                        <div class="col-md-6"><label class="form-label">Pekerjaan</label><input class="form-control" name="pekerjaan" id="customerPekerjaan" value="{{ old('pekerjaan') }}"></div>
                         <div class="col-md-6"><label class="form-label">NIK</label><input class="form-control" name="nik" id="customerNik" value="{{ old('nik') }}"></div>
-                        <div class="col-md-6"><label class="form-label">Tanggal Terdaftar</label><input class="form-control" type="date" name="tanggal_terdaftar" id="customerTanggal" value="{{ old('tanggal_terdaftar') }}"></div>
-                        <div class="col-12"><label class="form-label">Alamat</label><textarea class="form-control" name="alamat" id="customerAlamat">{{ old('alamat') }}</textarea></div>
+                        <div class="col-md-6">
+                            <label class="form-label d-block">Status</label>
+                            <label class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_active" value="1" checked> Aktif</label>
+                            <label class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_active" value="0"> Nonaktif</label>
+                        </div>
                         <div class="col-md-6">
                             <label class="form-label">Cabang Terdaftar</label>
                             <select class="form-select" name="cabang_terdaftar" id="customerCabang"><option value="">Pilih Cabang</option>@foreach ($cabang as $c)<option value="{{ $c->cabang_id }}">{{ $c->cabang_name }}</option>@endforeach</select>
@@ -106,9 +132,10 @@
                 $('#customerMethod').val('PUT'); $('#customerEditId').val(id);
                 $('#customerTitle').text('Edit Customer'); $('#customerSubmit').text('Edit Data');
                 $('#customerName').val(item.name); countryChoices.setChoiceByValue(item.country || '');
-                $('#customerPassport').val(item.passport); $('#customerPekerjaan').val(item.pekerjaan);
-                $('#customerNik').val(item.nik); $('#customerTanggal').val(item.tanggal_terdaftar);
-                $('#customerAlamat').val(item.alamat); $('#customerCabang').val(item.cabang_terdaftar);
+                $('#customerPassport').val(item.passport);
+                $('#customerNik').val(item.nik);
+                $('input[name="is_active"][value="' + (item.is_active ? '1' : '0') + '"]').prop('checked', true);
+                $('#customerCabang').val(item.cabang_terdaftar);
                 $('#customerModal').modal('show');
             });
         });

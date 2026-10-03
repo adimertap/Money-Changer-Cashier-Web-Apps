@@ -30,11 +30,13 @@
                                 @endif
 
                                 <h4 class="text-primary jumlah_modal mb-2" id="jumlah_modal"
-                                    data-countup="jumlah_modal">
+                                    data-countup="jumlah_modal"
+                                    data-base-modal="{{ !empty($modal) ? (float)$modal->riwayat_modal : 0 }}"
+                                    data-sisa-modal="{{ !empty($modal) ? (float)$modal->riwayat_modal : 0 }}">
                                     @if ($modal == '')
 
                                     @else
-                                    Rp. {{ number_format($modal->riwayat_modal) }}
+                                    Rp. {{ number_format($modal->riwayat_modal, 0, ',', '.') }}
                                     @endif
 
                                 </h4>
@@ -54,42 +56,98 @@
                 <div class="card">
                     <div class="card-body p-4">
                         <i class="mb-3">Lengkapi data Customer dibawah Ini</i>
-                        <div class="mb-2 mt-3">
+
+                        @if (Auth::user()->role === 'Owner')
+                        <div class="mb-3 mt-3">
+                            <label class="form-label" for="transaction_cabang_id">Cabang</label>
+                            <select class="form-select" id="transaction_cabang_id" name="cabang_id" required>
+                                <option value="">Pilih Cabang</option>
+                                @foreach ($cabangs as $cabang)
+                                <option value="{{ $cabang->cabang_id }}" {{ (string) $selectedCabangId === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @else
+                        <input type="hidden" name="cabang_id" value="{{ $selectedCabangId }}">
+                        @endif
+
+                        {{-- Dropdown customer (langsung memuat semua customer cabang) --}}
+                        <div class="mb-2 customer-picker">
                             <label class="form-label" for="customerSelect">Customer</label>
-                            <div class="input-group customer-picker">
-                                <select class="form-select" id="customerSelect">
-                                    <option value="">Ketik nama untuk mencari customer</option>
+                            <div class="input-group">
+                                <select class="form-select js-choice" id="customerSelect" size="1"
+                                    data-options='{"removeItemButton":true,"placeholder":true,"shouldSort":false,"searchPlaceholderValue":"Cari nama, alias, passport, NIK, atau negara","noResultsText":"Customer tidak ditemukan"}'>
+                                    <option value="">Pilih Customer</option>
+                                    @foreach ($customers as $customer)
+                                    <option value="{{ $customer->customer_id }}">{{ $customer->name }}{{ $customer->alias ? ' - ' . $customer->alias : '' }}{{ $customer->passport ? ' [' . $customer->passport . ']' : '' }}</option>
+                                    @endforeach
                                 </select>
-                                <button class="btn btn-sm btn-outline-primary customer-add-button" type="button" id="addCustomerButton" title="Tambah customer">+</button>
+                                <button class="btn btn-sm btn-outline-primary customer-add-button" type="button" id="addCustomerButton" title="Tambah customer manual">+</button>
                             </div>
-                            <input type="hidden" name="customer_id" id="customer_id">
-                            <input type="hidden" name="nama_customer" id="nama_customer" value="{{ old('nama_customer') }}">
-                            <input type="hidden" name="customer_alias" id="customer_alias">
-                            <input type="hidden" name="screening_confirmed" id="screening_confirmed" value="0">
-                            <small class="text-muted">Pencarian dimuat saat mengetik minimal 2 karakter.</small>
+                            <small class="text-muted">Seluruh customer aktif pada cabang terpilih ditampilkan.</small>
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label" for="nomor_passport">Nomor Passport</label>
-                            <input class="form-control form-select-sm  @error('nomor_passport') is-invalid @enderror"
-                                name="nomor_passport" id="nomor_passport" type="text" placeholder="Input Nomor Passport"
-                                value="{{ old('nomor_passport') }}" />
-                            @error('nomor_passport')
-                            <div class="invalid-feedback">
-                                <strong>{{ $message }}</strong>
+
+                        {{-- Tombol untuk kembali ke pencarian (awalnya tersembunyi) --}}
+                        <div class="mb-3" id="toggleCustomerForm" style="display: none;">
+                            <button class="btn btn-outline-secondary btn-sm" type="button" id="backToSearchButton">
+                                <i class="fas fa-arrow-left me-1"></i>Kembali ke Pencarian Customer
+                            </button>
+                        </div>
+
+                        {{-- Form manual untuk customer baru (awalnya tersembunyi) --}}
+                        <div id="customerForm" style="display: none;">
+                            <div class="mb-2">
+                                <label class="form-label" for="nama_customer_input">Nama Customer <span class="text-danger">*</span></label>
+                                <input class="form-control form-select-sm @error('nama_customer') is-invalid @enderror"
+                                    name="nama_customer" id="nama_customer_input" type="text" placeholder="Input Nama Customer"
+                                    value="{{ old('nama_customer') }}" />
+                                @error('nama_customer')
+                                <div class="invalid-feedback">
+                                    <strong>{{ $message }}</strong>
+                                </div>
+                                @enderror
                             </div>
-                            @enderror
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label" for="asal_negara">Asal Negara</label>
-                            <input class="form-control form-select-sm  @error('asal_negara') is-invalid @enderror"
-                                name="asal_negara" id="asal_negara" type="text" placeholder="Input Asal Negara"
-                                value="{{ old('asal_negara') }}" />
-                            @error('asal_negara')
-                            <div class="invalid-feedback">
-                                <strong>{{ $message }}</strong>
+                            <div class="mb-2">
+                                <label class="form-label" for="nomor_passport">Nomor Passport</label>
+                                <input class="form-control form-select-sm @error('nomor_passport') is-invalid @enderror"
+                                    name="nomor_passport" id="nomor_passport" type="text" placeholder="Input Nomor Passport"
+                                    value="{{ old('nomor_passport') }}" />
+                                @error('nomor_passport')
+                                <div class="invalid-feedback">
+                                    <strong>{{ $message }}</strong>
+                                </div>
+                                @enderror
                             </div>
-                            @enderror
+                            <div class="mb-3">
+                                <label class="form-label" for="asal_negara_select">Asal Negara</label>
+                                <select class="form-select form-select-sm @error('asal_negara') is-invalid @enderror"
+                                    name="asal_negara" id="asal_negara_select">
+                                    <option value="">Pilih Asal Negara</option>
+                                    @foreach ($countries as $code => $country)
+                                        <option value="{{ $country }}" {{ old('asal_negara') === $country ? 'selected' : '' }}>
+                                            {{ $country }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('asal_negara')
+                                <div class="invalid-feedback">
+                                    <strong>{{ $message }}</strong>
+                                </div>
+                                @enderror
+                            </div>
+                            <div class="mb-4">
+                                <button class="btn btn-warning btn-sm" type="button" id="validateTerdugaButton">
+                                    <i class="fas fa-search me-1"></i>Validate Terduga
+                                </button>
+                                <div id="validationResult" class="mt-2" style="display: none;"></div>
+                            </div>
                         </div>
+
+                        {{-- Input hidden untuk kompatibilitas dengan sistem lama --}}
+                        <input type="hidden" name="customer_id" id="customer_id">
+                        <input type="hidden" name="nama_customer" id="nama_customer_hidden" value="{{ old('nama_customer') }}">
+                        <input type="hidden" name="customer_alias" id="customer_alias_hidden">
+                        <input type="hidden" name="screening_confirmed" id="screening_confirmed" value="0">
                     </div>
 
                 </div>
@@ -276,7 +334,7 @@
                                 style="color: red">*</span>
                             <div class="input-group"><span class="input-group-text">Rp. </span>
                                 <input class="form-control jumlah_currency" id="jumlah_currency" name="jumlah_currency"
-                                    type="number" min="1000" placeholder="Input Harga Currency"
+                                    type="number" step="any" min="0" placeholder="Input Harga Currency"
                                     value="{{ old('jumlah_currency') }}" readonly />
                             </div>
                             <p class="fs--1"> <b>Ket:</b> Nilai kurs akan otomatis terisi setelah memilih Jenis Kurs</p>
@@ -285,7 +343,7 @@
                         <div class="col-md-12 mb-1">
                             <label class="form-label" for="jumlah_tukar">Jumlah Penukaran</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
-                            <input class="form-control" id="jumlah_tukar" name="jumlah_tukar" type="number" min="1"
+                            <input class="form-control" id="jumlah_tukar" name="jumlah_tukar" type="number" step="any" min="0.0001"
                                 placeholder="Input Jumlah Penukaran" value="{{ old('jumlah_tukar') }}" required />
                         </div>
                         <p class="text-primary fs--1"> Calculate (IDR):
@@ -329,13 +387,18 @@
 
     .customer-picker .choices__inner {
         min-height: 38px;
-        height: 38px;
-        padding: 7px 8px;
-        font-size: .8rem;
+        padding: 6px 10px;
+        font-size: .85rem;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
     }
 
     .customer-picker .choices__list--single {
         padding: 2px 16px 2px 0;
+    }
+
+    .customer-picker .choices__list--dropdown {
+        z-index: 1050;
     }
 
     .customer-add-button {
@@ -350,6 +413,7 @@
 
 <script>
     var pendingTransactionData = null;
+    var initialModalAmount = @json($modal ? (float) $modal->riwayat_modal : 0);
 
     function submitTransaction(data, documentData) {
         var payload = new FormData();
@@ -380,288 +444,286 @@
             },
             error: function (response) {
                 $('#button_submit, #passportDocumentSubmit').prop('disabled', false);
-                var message = response.responseJSON && response.responseJSON.message;
+                var errorData = response.responseJSON || {};
+                if (response.status === 422 && errorData.requires_screening_confirmation && pendingTransactionData) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Terduga Terdeteksi!',
+                        text: 'Customer terdeteksi sebagai terduga. Ingin simpan transaksi?',
+                        showCancelButton: true,
+                        confirmButtonText: 'Simpan',
+                        cancelButtonText: 'Batal'
+                    }).then(function (answer) {
+                        if (answer.isConfirmed) {
+                            pendingTransactionData.screening_confirmed = '1';
+                            submitTransaction(pendingTransactionData, documentData);
+                        } else {
+                            resetTransactionForm('Transaksi dibatalkan karena terduga terdeteksi.');
+                        }
+                    });
+                    return;
+                }
                 Swal.fire({
                     icon: 'error',
                     title: 'Transaksi tidak dapat disimpan',
-                    text: message || 'Terjadi kesalahan saat menyimpan transaksi.'
+                    text: errorData.message || 'Terjadi kesalahan saat menyimpan transaksi.'
                 });
-                if (response.status === 422 && pendingTransactionData) {
+                if (response.status === 422 && pendingTransactionData && errorData.requires_supporting_document) {
                     $('#passportDocumentModal').modal('show');
                 }
             }
         });
     }
 
-    function submitdata(event) {
-        event.preventDefault()
-        var form = $('#form')
-        var _token = form.find('input[name="_token"]').val()
-        var kode_transaksi = form.find('input[name="kode_transaksi"]').val()
-        var tanggal_transaksi = form.find('input[name="tanggal_transaksi"]').val()
-        var id_transaksi = form.find('input[name="id_transaksi"]').val()
-        var id_modal = form.find('input[name="id_modal"]').val()
-        var dataform2 = []
-        var grand_total = $('#grand_total').html()
-        var check_grand = grand_total.includes("Rp.");
-        var nama_customer = form.find('input[name="nama_customer"]').val()
-        var nomor_passport = form.find('input[name="nomor_passport"]').val()
-        var asal_negara = form.find('input[name="asal_negara"]').val()
+    function formatCurrencyIdr(val) {
+        var num = parseFloat(val) || 0;
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: num % 1 !== 0 ? 2 : 0,
+            maximumFractionDigits: 2
+        }).format(num);
+    }
 
-        if (check_grand == true) {
+    function formatNumberDec(val, maxDec) {
+        var num = parseFloat(val) || 0;
+        maxDec = maxDec || 4;
+        return new Intl.NumberFormat('id-ID', {
+            minimumFractionDigits: num % 1 !== 0 ? 2 : 0,
+            maximumFractionDigits: maxDec
+        }).format(num);
+    }
+
+    function recalculateTotals() {
+        var grandTotal = 0;
+        var detail = $('#konfirmasi').children();
+        for (let index = 0; index < detail.length; index++) {
+            var row = $(detail[index]);
+            var totalSpan = row.find('.val-total');
+            var valTotal = 0;
+            if (totalSpan.length && totalSpan.data('total') !== undefined) {
+                valTotal = parseFloat(totalSpan.data('total'));
+            } else {
+                var rawText = row.children().eq(4).text().replace(/[^\d,-]/g, '').replace(',', '.');
+                valTotal = parseFloat(rawText) || 0;
+            }
+            grandTotal += valTotal;
+        }
+        grandTotal = Math.round(grandTotal * 100) / 100;
+
+        $('#grand_total').data('raw-total', grandTotal).html(formatCurrencyIdr(grandTotal));
+
+        var baseModal = parseFloat($('#jumlah_modal').data('base-modal') !== undefined ? $('#jumlah_modal').data('base-modal') : initialModalAmount);
+        var sisaModal = Math.round((baseModal - grandTotal) * 100) / 100;
+        $('#jumlah_modal').data('sisa-modal', sisaModal).html(formatCurrencyIdr(sisaModal));
+
+        return {
+            grandTotal: grandTotal,
+            sisaModal: sisaModal
+        };
+    }
+
+    function submitdata(event) {
+        event.preventDefault();
+        var form = $('#form');
+        var _token = form.find('input[name="_token"]').val();
+        var kode_transaksi = form.find('input[name="kode_transaksi"]').val();
+        var tanggal_transaksi = form.find('input[name="tanggal_transaksi"]').val();
+        var id_transaksi = form.find('input[name="id_transaksi"]').val();
+        var id_modal = form.find('input[name="id_modal"]').val();
+        var dataform2 = [];
+        var nama_customer = form.find('input[name="nama_customer"]').val();
+        var customer_alias = form.find('input[name="customer_alias"]').val();
+        var nomor_passport = form.find('input[name="nomor_passport"]').val();
+        var asal_negara = form.find('select[name="asal_negara"]').val();
+
+        var detail = $('#konfirmasi').children();
+        for (let index = 0; index < detail.length; index++) {
+            var row = $(detail[index]);
+            var spanCurrency = row.find('span[id]');
+            var id_currency = spanCurrency.attr('id') || spanCurrency.data('currency-id');
+
+            var valKurs = row.find('.val-kurs').data('kurs');
+            if (valKurs === undefined) {
+                valKurs = parseFloat(row.children().eq(2).text().replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+            }
+
+            var valJumlah = row.find('.val-jumlah').data('jumlah');
+            if (valJumlah === undefined) {
+                valJumlah = parseFloat(row.children().eq(3).text().replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+            }
+
+            var valTotal = row.find('.val-total').data('total');
+            if (valTotal === undefined) {
+                valTotal = parseFloat(row.children().eq(4).text().replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+            }
+
+            if (id_currency) {
+                dataform2.push({
+                    currency_id: id_currency,
+                    id_transaksi: id_transaksi,
+                    jumlah_currency: valKurs,
+                    jumlah_tukar: valJumlah,
+                    total_tukar: valTotal
+                });
+            }
+        }
+
+        if (dataform2.length === 0) {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
                 text: 'Transaksi Kosong! Tambah Transaksi Terlebih Dahulu',
-            })
-        } else {
-            var total = grand_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
-            var check_1 = $('#check_1').is(":checked")
-            var check_2 = $('#check_2').is(":checked")
-
-            var modal = $('#jumlah_modal').html()
-            var jumlah_modal = modal.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
-
-          
-                var detail = $('#konfirmasi').children()
-                for (let index = 0; index < detail.length; index++) {
-                    var children = $(detail[index]).children()
-
-                    var td_currency = children[1]
-                    var span = $(td_currency).children()[0]
-                    var id_currency = $(span).attr('id')
-
-                    var td_jumlah_currency = children[2]
-                    var jumlah_currency_trim = $(td_jumlah_currency).html()
-                    var jumlah_currency = jumlah_currency_trim.split('Rp&nbsp;')[1].replace(',', '.').replace('.', '')
-                        .trim()
-
-                    var td_jumlah_tukar = children[3]
-                    var jumlah_tukar = $(td_jumlah_tukar).html()
-
-                    var total_tukar = children[4]
-                    var total_tukar_trim = $(total_tukar).html()
-                    var total_tukar = total_tukar_trim.split('Rp&nbsp;')[1].replace(',', '.').replace('.', '').replace(
-                        '.', '').trim()
-
-                    dataform2.push({
-                        currency_id: id_currency,
-                        id_transaksi: id_transaksi,
-                        jumlah_currency: jumlah_currency,
-                        jumlah_tukar: jumlah_tukar,
-                        total_tukar: total_tukar
-                    })
-
-
-                }
-
-                if (dataform2.length == 0) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Transaksi Kosong!, Isi Transaksi Terlebih Dahulu',
-                    })
-                } else {
-                    var data = {
-                        _token: _token,
-                        customer_id: $('#customer_id').val(),
-                        screening_confirmed: $('#screening_confirmed').val(),
-                        kode_transaksi: kode_transaksi,
-                        tanggal_transaksi: tanggal_transaksi,
-                        id_modal: id_modal,
-                        total: total,
-                        jumlah_modal: jumlah_modal,
-                        nama_customer: nama_customer,
-                        nomor_passport: nomor_passport,
-                        asal_negara: asal_negara,
-                        detail: dataform2
-                    }
-
-                    pendingTransactionData = data;
-                    $('#button_submit').prop('disabled', true);
-                    $.post('{{ route('api.transaksi.passport-threshold') }}', {
-                        _token: _token,
-                        nomor_passport: nomor_passport,
-                        total: total,
-                        tanggal_transaksi: tanggal_transaksi
-                    }).done(function (result) {
-                        if (!result.exceeded) {
-                            submitTransaction(data, null);
-                            return;
-                        }
-                        $('#passportDocumentModal').modal('show');
-                    }).fail(function (response) {
-                        $('#button_submit').prop('disabled', false);
-                        const message = response.responseJSON && response.responseJSON.message;
-                        Swal.fire('Gagal', message || 'Validasi batas passport gagal.', 'error');
-                    });
-                }
-            
+            });
+            return;
         }
+
+        var totals = recalculateTotals();
+        var total = totals.grandTotal;
+        var jumlah_modal = totals.sisaModal;
+
+        var data = {
+            _token: _token,
+            customer_id: $('#customer_id').val(),
+            cabang_id: form.find('select[name="cabang_id"], input[name="cabang_id"]').val(),
+            screening_confirmed: $('#screening_confirmed').val(),
+            kode_transaksi: kode_transaksi,
+            tanggal_transaksi: tanggal_transaksi,
+            id_modal: id_modal,
+            total: total,
+            jumlah_modal: jumlah_modal,
+            nama_customer: nama_customer,
+            customer_alias: customer_alias,
+            nomor_passport: nomor_passport,
+            asal_negara: asal_negara,
+            detail: dataform2
+        };
+
+        pendingTransactionData = data;
+        $('#button_submit').prop('disabled', true);
+        $.post('{{ route('api.transaksi.passport-threshold') }}', {
+            _token: _token,
+            nomor_passport: nomor_passport,
+            total: total,
+            tanggal_transaksi: tanggal_transaksi
+        }).done(function (result) {
+            if (!result.exceeded) {
+                submitTransaction(data, null);
+                return;
+            }
+            $('#passportDocumentModal').modal('show');
+        }).fail(function (response) {
+            $('#button_submit').prop('disabled', false);
+            const message = response.responseJSON && response.responseJSON.message;
+            Swal.fire('Gagal', message || 'Validasi batas passport gagal.', 'error');
+        });
     }
 
     function tambahdata(event, id_sparepart) {
-        var form = $('#form1')
-        var currency = $('#currency').html()
-        var id_currency = $('#currency').val()
-        var jumlah_currency = form.find('input[name="jumlah_currency"]').val()
-        var jumlah_tukar = form.find('input[name="jumlah_tukar"]').val()
-        var total_tukar = jumlah_tukar * jumlah_currency;
+        var form = $('#form1');
+        var currencySelect = $('#currency');
+        var id_currency = currencySelect.val();
+        var currencyName = currencySelect.find('option:selected').text() || currencySelect.text();
+        var jumlah_currency = parseFloat(form.find('input[name="jumlah_currency"]').val());
+        var jumlah_tukar = parseFloat(form.find('input[name="jumlah_tukar"]').val());
 
-
-        var harga_currency = new Intl.NumberFormat('id', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-        }).format(jumlah_currency);
-
-
-        var detail_asu = $('#konfirmasi').children()
-        for (let index = 0; index < detail_asu.length; index++) {
-            var children = $(detail_asu[index]).children()
-
-            var td_currency_asu = children[1]
-            var span_asu = $(td_currency_asu).children()[0]
-            var id_asu = $(span_asu).attr('id')
-        }
-
-
-        var total_tukar_rp = new Intl.NumberFormat('id', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-        }).format(jumlah_tukar * jumlah_currency)
-
-        if (currency == "" | currency == "Pilih Currency") {
+        if (!id_currency || currencyName === "" || currencyName === "Pilih Kurs Terlebih Dahulu") {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
                 text: 'Currency Tidak Boleh Kosong!',
-            })
-        } else if (id_asu == id_currency) {
+            });
+            return;
+        }
+
+        var isDuplicate = false;
+        var detailRows = $('#konfirmasi').children();
+        for (let index = 0; index < detailRows.length; index++) {
+            var span_asu = $(detailRows[index]).find('span[id]');
+            if (span_asu.attr('id') == id_currency) {
+                isDuplicate = true;
+                break;
+            }
+        }
+        if (isDuplicate) {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
                 text: 'Currency Tersebut Sudah Ada, Hapus Dahulu jika ingin menambahkan!',
-            })
+            });
+            return;
+        }
 
-        } else if (jumlah_currency == "" | jumlah_currency == 0) {
+        if (isNaN(jumlah_currency) || jumlah_currency <= 0) {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
                 text: 'Harga Currency Tidak Boleh Bernilai 0 atau Kosong!',
-            })
-        } else if (jumlah_tukar == "" | jumlah_tukar == 0) {
+            });
+            return;
+        }
+
+        if (isNaN(jumlah_tukar) || jumlah_tukar <= 0) {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
                 text: 'Jumlah Tukar Tidak Boleh Bernilai 0 atau Kosong!',
-            })
-        } else {
-            // PENGURANGAN MODAL
-            var jumlah_modal = $('#jumlah_modal').html()
-            var check_modal = jumlah_modal.includes("Rp.")
-            if (check_modal == true) {
-                var jumlah_modal_trim = jumlah_modal.split('Rp.')[1].replace(',', '').replace(',', '').trim()
-                var jumlah_total_fix = parseInt(jumlah_modal_trim) - parseInt(total_tukar)
-            } else {
-                var jumlah_modal_trim = jumlah_modal.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
-                var jumlah_total_fix = parseInt(jumlah_modal_trim) - parseInt(total_tukar)
-            }
-
-            // JIKA TRANSAKSI LEBIH DARI MODAL
-            if (total_tukar > jumlah_modal_trim) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Mohon Maaf Modal Anda Kurang Dari Transaksi, Lakukan Penambahan!',
-                })
-            } else {
-                // PENGURANGAN MODAL
-                var jumlah_total_idr = new Intl.NumberFormat('id', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                }).format(jumlah_total_fix)
-                $('#jumlah_modal').html(jumlah_total_idr)
-
-                // PAYABLE TOTAL
-                // // var payable_total = $('#payable_total').html()
-                // var check_payable = payable_total.includes("Rp.");
-                // if (check_payable == true) {
-                //     var payable_total_trim = payable_total.split('Rp')[1].replace('.', '').replace('.', '').trim()
-                //     var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
-                // } else {
-                //     var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
-                //     var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
-                // }
-                // var payable_total_idr = new Intl.NumberFormat('id', {
-                //     style: 'currency',
-                //     currency: 'IDR',
-                //     minimumFractionDigits: 0,
-                // }).format(payable_total_fix)
-                // $('#payable_total').html(payable_total_idr)
-
-                // GRAND TOTAL
-                var grand_total = $('#grand_total').html()
-                var check_grand = grand_total.includes("Rp.");
-                if (check_grand == true) {
-                    var grand_total_trim = grand_total.split('Rp')[1].replace('.', '').replace('.', '').trim()
-                    var grand_total_fix = parseInt(grand_total_trim) + parseInt(total_tukar)
-                } else {
-                    var grand_total_trim = grand_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
-                    var grand_total_fix = parseInt(grand_total_trim) + parseInt(total_tukar)
-                }
-                var grand_total_idr = new Intl.NumberFormat('id', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                }).format(grand_total_fix)
-                $('#grand_total').html(grand_total_idr)
-
-
-
-                var table = $('#dataTableKonfirmasi').DataTable()
-                var row = $(`#${id_currency.trim()}`).parent().parent()
-                table.row(row).remove().draw();
-
-                // DRAW DATATABLE
-                $('#dataTableKonfirmasi').DataTable().row.add([
-                    total_tukar_rp, `<span id=${id_currency}>${currency}</span>`, harga_currency, jumlah_tukar,
-                    total_tukar_rp, total_tukar_rp
-                ]).draw();
-
-                // CLOSE DAN RESET MODAL
-                $('#btn-close-modal').click();
-                $('#form1')[0].reset();
-                var tes = 0;
-                var tes_fix = new Intl.NumberFormat('id', {
-                    style: 'currency',
-                    currency: 'IDR'
-                }).format(tes)
-                $('#detailjumlahcurrency').html(tes_fix)
-
-                const Toast = Swal.mixin({
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer)
-                        toast.addEventListener('mouseleave', Swal.resumeTimer)
-                    }
-                })
-
-                Toast.fire({
-                    icon: 'success',
-                    title: 'Berhasil Menambahkan Data Transaksi'
-                })
-            }
-
-
-
+            });
+            return;
         }
+
+        var total_tukar = Math.round((jumlah_tukar * jumlah_currency) * 100) / 100;
+
+        var baseModal = parseFloat($('#jumlah_modal').data('base-modal') !== undefined ? $('#jumlah_modal').data('base-modal') : initialModalAmount);
+        var currentGrandTotal = parseFloat($('#grand_total').data('raw-total')) || 0;
+        var projectedTotal = Math.round((currentGrandTotal + total_tukar) * 100) / 100;
+
+        if (projectedTotal > baseModal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Mohon Maaf Modal Anda Kurang Dari Transaksi, Lakukan Penambahan!',
+            });
+            return;
+        }
+
+        var harga_currency_display = `<span class="val-kurs" data-kurs="${jumlah_currency}">${formatCurrencyIdr(jumlah_currency)}</span>`;
+        var jumlah_tukar_display = `<span class="val-jumlah" data-jumlah="${jumlah_tukar}">${formatNumberDec(jumlah_tukar)}</span>`;
+        var total_tukar_display = `<span class="val-total" data-total="${total_tukar}">${formatCurrencyIdr(total_tukar)}</span>`;
+
+        var table = $('#dataTableKonfirmasi').DataTable();
+        table.row.add([
+            total_tukar_display,
+            `<span id="${id_currency}" data-currency-id="${id_currency}">${currencyName}</span>`,
+            harga_currency_display,
+            jumlah_tukar_display,
+            total_tukar_display,
+            total_tukar_display
+        ]).draw();
+
+        recalculateTotals();
+
+        // Close and reset modal
+        $('#btn-close-modal').click();
+        $('#form1')[0].reset();
+        $('#detailjumlahcurrency').html(formatCurrencyIdr(0));
+
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: 'Berhasil Menambahkan Data Transaksi'
+        });
     }
 
     function hapusdata(element) {
@@ -675,70 +737,113 @@
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                var table = $('#dataTableKonfirmasi').DataTable()
-                var row = $(element).parent().parent()
+                var table = $('#dataTableKonfirmasi').DataTable();
+                var row = $(element).closest('tr');
                 table.row(row).remove().draw();
-                var table = $('#dataTable').DataTable()
-
-                var jumlah = $(row.children()[4]).text()
-                var jumlah_trim = jumlah.split('Rp')[1].replace('.', '').replace('.', '').trim()
-
-                // // PAYABLE 
-                // var payable_total = $('#payable_total').html()
-                // var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '')
-                //     .trim()
-                // var payable_total_fix = parseInt(payable_total_trim) - parseInt(jumlah_trim)
-                // var payable_total_idr = new Intl.NumberFormat('id', {
-                //     style: 'currency',
-                //     currency: 'IDR',
-                //     minimumFractionDigits: 0,
-                // }).format(payable_total_fix)
-                // $('#payable_total').html(payable_total_idr)
-
-                // GRAND TOTAL
-                var grand_total = $('#grand_total').html()
-                var grand_total_trim = grand_total.split('Rp&nbsp;')[1].replace('.', '').replace('.', '').trim()
-                var grand_total_fix = parseInt(grand_total_trim) - parseInt(jumlah_trim)
-                var grand_total_idr = new Intl.NumberFormat('id', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                }).format(grand_total_fix)
-                $('#grand_total').html(grand_total_idr)
-
-                // MODAL
-                var jumlah_modal = $('#jumlah_modal').html()
-                var jumlah_modal_trim = jumlah_modal.split('Rp&nbsp;')[1].replace('.', '').replace('.', '')
-                    .trim()
-                var jumlah_total_fix = parseInt(jumlah_modal_trim) + parseInt(jumlah_trim)
-                var jumlah_total_idr = new Intl.NumberFormat('id', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                }).format(jumlah_total_fix)
-                $('#jumlah_modal').html(jumlah_total_idr)
+                recalculateTotals();
             }
-        })
-
+        });
     }
 
     $(document).ready(function () {
-        let customerSelect;
-        let customerSearchTimer;
+        let customerChoicesInstance = null;
         let screeningConfirmed = false;
         let skipNextCustomerScreening = false;
         let clearingCustomer = false;
+        const customersData = @json($customers->keyBy('customer_id'));
+
+        function initCustomerChoices() {
+            const el = document.getElementById('customerSelect');
+            if (!el) return;
+            if (el.closest('.choices')) {
+                console.log('[CustomerSelect] sudah diinisialisasi oleh theme.js');
+                return;
+            }
+            if (typeof Choices !== 'undefined') {
+                try {
+                    customerChoicesInstance = new Choices(el, {
+                        removeItemButton: true,
+                        placeholder: true,
+                        shouldSort: false,
+                        searchPlaceholderValue: 'Cari nama, alias, passport, NIK, atau negara',
+                        noResultsText: 'Customer tidak ditemukan',
+                        itemSelectText: ''
+                    });
+                    console.log('[CustomerSelect] diinisialisasi manual via Choices');
+                } catch (err) {
+                    console.error('[CustomerSelect] Gagal inisialisasi Choices:', err);
+                }
+            } else {
+                console.warn('[CustomerSelect] Choices belum siap');
+            }
+        }
+
+        initCustomerChoices();
+        $(window).on('load', initCustomerChoices);
 
         function clearCustomer() {
             screeningConfirmed = false;
             $('#screening_confirmed').val('0');
-            $('#customer_id, #nama_customer, #customer_alias, #nomor_passport, #asal_negara').val('');
-            if (customerSelect && !clearingCustomer) {
+            $('#customer_id, #nama_customer_hidden, #customer_alias_hidden, #nomor_passport, #asal_negara_select').val('');
+            // Clear visible fields juga
+            $('#nama_customer_input').val('');
+            if (!clearingCustomer) {
                 clearingCustomer = true;
-                customerSelect.removeActiveItems();
+                if (customerChoicesInstance) {
+                    try {
+                        customerChoicesInstance.removeActiveItems();
+                    } catch (e) {
+                        console.warn(e);
+                    }
+                } else {
+                    const removeBtn = document.querySelector('.customer-picker .choices__button');
+                    if (removeBtn) {
+                        removeBtn.click();
+                    } else {
+                        $('#customerSelect').val('');
+                    }
+                }
                 clearingCustomer = false;
             }
         }
+
+        window.resetTransactionForm = function (message) {
+            var table = $('#dataTableKonfirmasi').DataTable();
+            table.clear().draw();
+            $('#form1')[0].reset();
+            clearCustomer();
+            $('#customerForm').hide();
+            $('.customer-picker').show();
+            $('#addCustomerButton').show();
+            $('#toggleCustomerForm').hide();
+            $('#validationResult').empty().hide();
+            $('#grand_total').html(new Intl.NumberFormat('id', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(0));
+            $('#jumlah_modal').html(new Intl.NumberFormat('id', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(initialModalAmount));
+            $('#detailjumlahcurrency').html(new Intl.NumberFormat('id', {
+                style: 'currency',
+                currency: 'IDR'
+            }).format(0));
+            $('#passportDocumentModal').modal('hide');
+            $('#passportDocumentForm')[0].reset();
+            pendingTransactionData = null;
+            $('#button_submit, #passportDocumentSubmit').prop('disabled', false);
+
+            if (message) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Transaksi Dibatalkan',
+                    text: message
+                });
+            }
+        };
 
         function showScreeningPrompt(onContinue, onCancel) {
             Swal.fire({
@@ -755,43 +860,17 @@
             });
         }
 
-        customerSelect = new Choices('#customerSelect', {
-            searchEnabled: true,
-            shouldSort: false,
-            searchResultLimit: 20,
-            itemSelectText: '',
-            noResultsText: 'Customer tidak ditemukan',
-            noChoicesText: 'Ketik untuk mencari customer'
-        });
-
-        $('#customerSelect').on('search', function (event) {
-            const term = (event.detail && event.detail.value || '').trim();
-            clearTimeout(customerSearchTimer);
-            if (term.length < 2) return;
-            customerSearchTimer = setTimeout(function () {
-                $.get('{{ route('api.customer.search') }}', { q: term })
-                    .done(function (items) {
-                        customerSelect.clearChoices();
-                        customerSelect.setChoices(items.map(function (item) {
-                            return {
-                                value: String(item.customer_id),
-                                label: item.name + (item.alias ? ' - ' + item.alias : ''),
-                                customProperties: item
-                            };
-                        }), 'value', 'label', true);
-                    })
-                    .fail(function () {
-                        Swal.fire('Gagal', 'Pencarian customer gagal.', 'error');
-                    });
-            }, 250);
+        $('#transaction_cabang_id').on('change', function () {
+            const cabangId = $(this).val();
+            if (cabangId) window.location.href = '{{ route('transaksi.create') }}?cabang_id=' + encodeURIComponent(cabangId);
         });
 
         $('#customerSelect').on('change', function () {
-            const selected = customerSelect.getValue(true);
-            const choice = customerSelect.getValue();
-            const item = choice && choice.customProperties;
+            const selected = $(this).val();
             if (clearingCustomer) return;
-            if (!selected || !item) return clearCustomer();
+            if (!selected) return clearCustomer();
+            const item = customersData[selected];
+            if (!item) return;
 
             const skipScreening = skipNextCustomerScreening;
             skipNextCustomerScreening = false;
@@ -800,16 +879,23 @@
                 $('#screening_confirmed').val('0');
             }
             $('#customer_id').val(item.customer_id);
-            $('#nama_customer').val(item.name);
-            $('#customer_alias').val(item.alias || '');
+            $('#nama_customer_hidden').val(item.name);
+            $('#customer_alias_hidden').val(item.alias || '');
             $('#nomor_passport').val(item.passport || '');
-            $('#asal_negara').val(item.country || '');
+            $('#asal_negara_select').val(item.country || '').trigger('change');
             if (!skipScreening) screenCustomer(item.name, item.alias || '');
+
+            // Sembunyikan form manual jika memilih dari dropdown
+            $('#customerForm').hide();
+            $('#toggleCustomerForm').hide();
         });
 
         $('#addCustomerButton').on('click', function () {
-            $('#customerCreateForm')[0].reset();
-            $('#customerCreateModal').modal('show');
+            // Tampilkan form manual dan sembunyikan dropdown
+            $('#customerForm').show();
+            $('.customer-picker').hide();
+            $(this).hide();
+            $('#toggleCustomerForm').show();
         });
 
         function screenCustomer(name, alias) {
@@ -839,6 +925,8 @@
             event.preventDefault();
             const form = $(this);
             const data = Object.fromEntries(new FormData(this).entries());
+            const cabangId = $('#transaction_cabang_id').val() || $('input[name="cabang_id"]').val();
+            if (cabangId) data.cabang_terdaftar = cabangId;
             $.post('{{ route('api.customer.screen') }}', data)
                 .done(function (result) {
                     const save = function () {
@@ -848,15 +936,23 @@
                             data: data,
                             success: function (response) {
                                 const item = response.customer;
-                                customerSelect.setChoices([{
-                                    value: String(item.customer_id),
-                                    label: item.name + (item.alias ? ' - ' + item.alias : ''),
-                                    customProperties: item
-                                }], 'value', 'label', false);
+                                customersData[item.customer_id] = item;
+                                const label = item.name + (item.alias ? ' - ' + item.alias : '') + (item.passport ? ' [' + item.passport + ']' : '');
+                                if (customerChoicesInstance) {
+                                    const newCustomerChoice = {
+                                        value: String(item.customer_id),
+                                        label: label,
+                                        customProperties: item
+                                    };
+                                    customerChoicesInstance.setChoices([newCustomerChoice], 'value', 'label', false);
+                                    skipNextCustomerScreening = true;
+                                    customerChoicesInstance.setChoiceByValue(String(item.customer_id));
+                                } else {
+                                    $('#customerSelect').append(new Option(label, item.customer_id, true, true));
+                                }
                                 $('#customerCreateModal').modal('hide');
                                 skipNextCustomerScreening = true;
-                                customerSelect.setChoiceByValue(String(item.customer_id));
-                                $('#customerSelect').trigger('change');
+                                $('#customerSelect').val(String(item.customer_id)).trigger('change');
                             },
                             error: function (response) {
                                 const message = response.responseJSON && response.responseJSON.message;
@@ -913,19 +1009,10 @@
 
 
         $('#jumlah_tukar').on('input', function () {
-            var value = $(this).val()
-            var nilai_kurs = $('.jumlah_currency').val()
-            var calculate = parseFloat(value) * parseFloat(nilai_kurs)
-            // var hasil_calc = calculate.toFixed(2)
-
-            var hasil_calc = new Intl.NumberFormat('id', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(calculate);
-
-            $('#detailjumlahcurrency').html(hasil_calc)
+            var value = parseFloat($(this).val()) || 0;
+            var nilai_kurs = parseFloat($('.jumlah_currency').val()) || 0;
+            var calculate = Math.round((value * nilai_kurs) * 100) / 100;
+            $('#detailjumlahcurrency').html(formatCurrencyIdr(calculate));
         });
 
         var template = $('#template_delete_button').html()
@@ -948,6 +1035,110 @@
                 }
             ]
         });
+
+        // Tombol kembali ke pencarian customer - menggunakan event delegation
+        $(document).on('click', '#backToSearchButton', function() {
+            $('#customerForm').hide();
+            $('.customer-picker').show();
+            $('#addCustomerButton').show();
+            $('#toggleCustomerForm').hide();
+            clearCustomer();
+        });
+
+        // Sync input visible dengan input hidden
+        $('#nama_customer_input').on('input', function() {
+            $('#nama_customer_hidden').val($(this).val());
+            // Untuk kompatibilitas, isi customer_alias dengan nilai yang sama
+            $('#customer_alias_hidden').val($(this).val());
+        });
+
+        // Negara dirender dari countries.json oleh controller dan dibuat searchable.
+        if (typeof Choices !== 'undefined') {
+            try {
+                new Choices('#asal_negara_select', {
+                    searchEnabled: true,
+                    shouldSort: false,
+                    itemSelectText: '',
+                    noResultsText: 'Negara tidak ditemukan',
+                    noChoicesText: 'Ketik untuk mencari negara'
+                });
+            } catch (e) {
+                console.warn('Init asal_negara_select Choices failed:', e);
+            }
+        }
+
+        // Validasi terduga (hanya dari nama, cek ke name dan alias di tabel)
+        $('#validateTerdugaButton').on('click', function() {
+            const nama = $('#nama_customer_input').val().trim();
+
+            if (!nama) {
+                Swal.fire('Peringatan', 'Nama customer harus diisi.', 'warning');
+                return;
+            }
+
+            const button = $(this);
+            const originalText = button.html();
+            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Validating...');
+
+            $.ajax({
+                url: '{{ route('api.transaksi.validate-terduga') }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    nama: nama,
+                    alias: ''  // Tidak perlu alias input terpisah
+                },
+                success: function(response) {
+                    const resultDiv = $('#validationResult');
+                    resultDiv.show();
+
+                    if (response.terduga) {
+                        resultDiv.html(`
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Terduga Terdeteksi!</strong><br>
+                                ${response.message}<br>
+                                <small>Term yang dicari: ${response.search_terms.join(', ')}</small>
+                            </div>
+                        `);
+                        $('#screening_confirmed').val('0');
+                        showScreeningPrompt(function () {
+                            screeningConfirmed = true;
+                            $('#screening_confirmed').val('1');
+                        }, function () {
+                            resetTransactionForm('Transaksi dibatalkan karena terduga terdeteksi.');
+                        });
+                    } else {
+                        resultDiv.html(`
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Aman</strong><br>
+                                ${response.message}<br>
+                                <small>Term yang dicari: ${response.search_terms.join(', ')}</small>
+                            </div>
+                        `);
+                        $('#screening_confirmed').val('1');
+                        screeningConfirmed = true;
+                    }
+                },
+                error: function(xhr) {
+                    Swal.fire('Error', 'Terjadi kesalahan saat validasi.', 'error');
+                },
+                complete: function() {
+                    button.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+
+        // Set nilai awal dari hidden fields ke visible fields jika ada data old
+        @if(old('nama_customer'))
+            // Jika ada data old, tampilkan form manual
+            $('#customerForm').show();
+            $('.customer-picker').hide();
+            $('#addCustomerButton').hide();
+            $('#toggleCustomerForm').show();
+            $('#nama_customer_input').val('{{ old('nama_customer') }}');
+        @endif
     });
 </script>
 

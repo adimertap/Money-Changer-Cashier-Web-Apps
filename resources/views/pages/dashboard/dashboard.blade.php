@@ -14,6 +14,17 @@
                             <div>
                                 <h3 class="text-primary mb-1">Welcome Back, {{ Auth::user()->name }}!</h3>
                                 <p>Dashboard Pegawai Khusus untuk Pegawai</p>
+                                @if(Auth::user()->role == 'Owner')
+                                <form method="GET" action="{{ route('dashboard') }}" class="mt-3 d-flex align-items-center gap-2">
+                                    <label class="mb-0" for="dashboardCabang">Cabang</label>
+                                    <select class="form-select form-select-sm w-auto" id="dashboardCabang" name="cabang_id" onchange="this.form.submit()">
+                                        <option value="">Semua Cabang</option>
+                                        @foreach($cabangs as $cabang)
+                                        <option value="{{ $cabang->cabang_id }}" {{ (string) $cabangId === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </form>
+                                @else
                                 <p class="mb-0">
                                     <span class="fas fa-store text-primary me-1"></span>Cabang:
                                     @forelse (session('cabangs', []) as $c)
@@ -22,6 +33,7 @@
                                     <span class="text-500">Belum di-assign ke cabang</span>
                                     @endforelse
                                 </p>
+                                @endif
                             </div>
                             @if(Auth::user()->role == 'Owner')
                             <hr>

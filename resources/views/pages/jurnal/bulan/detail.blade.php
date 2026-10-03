@@ -10,6 +10,21 @@
                 <div class="col-lg-12">
                     <h5>Seluruh Transaksi Bulan {{ $bulan }}</h5>
                     <p class="mt-2">Pilih Tanggal Awal dan Pilih Tanggal Akhir</p>
+                    <form method="get" class="row g-2 mt-3">
+                        <div class="col-md-5">
+                            <label class="small" for="cabang_id">Filter by Cabang</label>
+                            <select class="form-select" id="cabang_id" name="cabang_id">
+                                <option value="">Semua Cabang</option>
+                                @foreach ($cabang as $item)
+                                <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3 align-self-end">
+                            <button class="btn btn-primary" type="submit">Filter</button>
+                            <a class="btn btn-danger" href="{{ route('jurnal-bulanan.show', $bulan) }}">Reset</a>
+                        </div>
+                    </form>
                     <hr>
                     <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button">
                         <span class="fas fa-arrow-down me-1"></span>Download Transaksi Bulan {{ $bulan }}(.excel)
@@ -37,9 +52,10 @@
                                     <tr>
                                         <th class="sort text-center fs--1" data-sort="no">No.</th>
                                         <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal Transaksi</th>
+                                        <th class="sort text-center fs--1" data-sort="cabang">Cabang</th>
                                         <th class="sort text-center fs--1" data-sort="jumlah_transaksi">Jumlah Transaksi</th>
-                                        <th class="sort text-center fs--1" data-sort="jumlah_transaksi">Jenis Transaksi</th>
                                         <th class="sort text-center fs--1" data-sort="grand_total">Total</th>
+                                        <th class="sort text-center fs--1" data-sort="jenis">Jenis Transaksi</th>
                                         <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
@@ -48,12 +64,13 @@
                                     <tr role="row" class="odd">
                                         <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                         <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
+                                        <td class="text-center cabang fs--1">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                         <td class="text-center jumlah_transaksi fs--1">{{ $item->jumlah_transaksi }}</td>
                                         <td class="text-center grand_total text-center fs--1">Rp. {{ number_format($item->grand_total, 0, ',', '.') }}</td>
                                         <td class="text-center jumlah_transaksi fs--1">{{ $item->jenis }}</td>
 
                                         <td class="text-center fs--1">
-                                            <a href="{{ route('jurnal-bulanan.edit', $item->tanggal_transaksi) }}"
+                                            <a href="{{ route('jurnal-bulanan.edit', [$item->tanggal_transaksi, 'cabang_id' => request('cabang_id')]) }}"
                                                 class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
                                                 data-bs-placement="top" title="Detail"><span class="text-700 fas fa-eye"></span>
                                             </a>
@@ -78,6 +95,7 @@
                                         <th class="sort text-center fs--1" data-sort="no">No.</th>
                                         <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
                                         <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
+                                        <th class="sort text-center fs--1" data-sort="cabang">Cabang</th>
                                         <th class="sort text-center fs--1" data-sort="nama_customer">Customer</th>
                                         <th class="sort text-center fs--1" data-sort="nomor_passport">Passport</th>
                                         <th class="sort text-center fs--1" data-sort="negara_asal">Negara Asal</th>
@@ -92,13 +110,14 @@
                                         <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
                                         <td class="text-center pegawai fs--1">{{ $item->Pegawai->name }}</td>
                                         <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
+                                        <td class="text-center cabang fs--1">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                         <td class="text-center nama_customer fs--1">{{ $item->nama_customer }}</td>
                                         <td class="text-center nomor_passport fs--1">{{ $item->nomor_passport }}</td>
                                         <td class="text-center negara_asal fs--1">{{ $item->negara_asal }}</td>
                                         <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
                                         <td class="text-center total fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
                                         <td class="text-center fs--1">
-                                            <a href="{{ route('bulanan-transaksi', $item->id_transaksi) }}"
+                                            <a href="{{ route('bulanan-transaksi', [$item->id_transaksi, 'cabang_id' => request('cabang_id')]) }}"
                                                 class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
                                                 data-bs-placement="top" title="Detail"><span class="text-700 fas fa-eye"></span>
                                             </a>

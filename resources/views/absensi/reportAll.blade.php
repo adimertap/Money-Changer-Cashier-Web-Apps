@@ -10,9 +10,18 @@
     <div class="mt-4">
         <div class="card mb-3 mt-3">
             <div class="card-header">
-                <div class="d-flex justify-content-between">
-                    <h5 class="mb-0" data-anchor="data-anchor">Laporan Absensi, Pilih User
-                    </h5>
+                <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                    <h5 class="mb-0" data-anchor="data-anchor">Laporan Absensi, Pilih User</h5>
+                    <form method="get" class="d-flex align-items-center gap-2">
+                        <label for="userReportCabang" class="mb-0">Cabang</label>
+                        <select id="userReportCabang" name="cabang_id" class="form-select w-auto">
+                            <option value="">Semua Cabang</option>
+                            @foreach ($cabangs ?? [] as $cabang)
+                            <option value="{{ $cabang->cabang_id }}" {{ (string) ($cabangId ?? request('cabang_id')) === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                            @endforeach
+                        </select>
+                        <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+                    </form>
                 </div>
             </div>
             <div class="card-body">
@@ -36,7 +45,7 @@
                                     </td>
                                     <td class="in">{{ $item->role }}</td>
                                     <td class="text-center">
-                                        <a href="{{ route('jadwal-laporan.index', ['userid' => $item->id]) }}" class="btn btn-xs btn-primary" style="font-size: 12px!important" type="button">Report Absensi</a>
+                                        <a href="{{ route('jadwal-laporan.index', ['userid' => $item->id, 'cabang_id' => $cabangId]) }}" class="btn btn-xs btn-primary" style="font-size: 12px!important" type="button">Report Absensi</a>
                                     </td>
                                 </tr>
                                 @endforeach

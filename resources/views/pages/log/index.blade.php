@@ -38,6 +38,7 @@
                             <tr>
                                 <th class="sort text-center fs--1" data-sort="no">No.</th>
                                 <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
+                                <th class="sort text-center fs--1" data-sort="cabang">Cabang</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal_edit">Tanggal Edit</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal Transaksi</th>
                                 <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
@@ -50,7 +51,8 @@
                             @forelse ($log as $item)
                             <tr role="row" class="odd">
                                 <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
-                                <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
+                                <td class="text-start pegawai fs--1">{{ optional($item->Pegawai)->name ?: '-' }}</td>
+                                <td class="text-center cabang fs--1">{{ optional(optional($item->Modal)->Cabang)->cabang_name ?: '-' }}</td>
                                 <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y',
                                     strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s',
                                     strtotime($item->created_at)) }} </td>
@@ -160,6 +162,17 @@
                                     name="to_date_export" placeholder="To Date" data-options='{"disableMobile":true}' />
                             </div>
                         </div>
+                        @if(Auth::user()->role === 'Owner')
+                        <div class="col-12 mt-3">
+                            <label class="form-label" for="cabang_id">Cabang</label>
+                            <select name="cabang_id" id="cabang_id" class="form-select">
+                                <option value="">Semua Cabang</option>
+                                @foreach($cabangs as $cabang)
+                                <option value="{{ $cabang->cabang_id }}" {{ (string) $cabangId === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                         <div class="col-12 mt-3">
                             <label class="form-label" for="jenis_log">Jenis Log</label>
                             <select name="jenis_log" id="jenis_log" class="form-select" value="{{ old('jenis_log') }}">
@@ -236,6 +249,7 @@
         var tanggal_mulai = form1.find('input[name="from_date_export"]').val()
         var tanggal_selesai = form1.find('input[name="to_date_export"]').val()
         var jenis_log = form1.find('select[name="jenis_log"]').val()
+        var cabang_id = form1.find('select[name="cabang_id"]').val()
 
         const Toast = Swal.mixin({
             toast: true,
@@ -252,7 +266,9 @@
             icon: 'info',
             title: 'Mohon Tunggu, Sedang diproses ...'
         })
-        window.location.href = '/log-edit?from=' + tanggal_mulai + '&to=' + tanggal_selesai + '&jenis=' + jenis_log
+        var params = new URLSearchParams({ from: tanggal_mulai, to: tanggal_selesai, jenis: jenis_log });
+        if (cabang_id) params.set('cabang_id', cabang_id);
+        window.location.href = '/log-edit?' + params.toString()
     }
 
 </script>

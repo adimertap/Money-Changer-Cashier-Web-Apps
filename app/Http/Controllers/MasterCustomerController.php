@@ -6,8 +6,6 @@ use App\Models\MasterCabang;
 use App\Models\MasterCustomer;
 use App\Models\MasterTerduga;
 use Illuminate\Http\Request;
-use ResourceBundle;
-use Locale;
 use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -19,10 +17,7 @@ class MasterCustomerController extends Controller
             'name' => 'required|string|max:255',
             'country' => 'required|string|max:150',
             'passport' => 'nullable|string|max:100',
-            'pekerjaan' => 'nullable|string|max:100',
             'nik' => 'nullable|string|max:100',
-            'tanggal_terdaftar' => 'nullable|date',
-            'alamat' => 'nullable|string|max:150',
             'is_terduga' => 'nullable|boolean',
             'kode_densus' => 'nullable|string|max:100',
             'alias' => 'nullable|string|max:255',
@@ -31,21 +26,26 @@ class MasterCustomerController extends Controller
         ];
     }
 
-    public function index()
+    private function statusRules()
     {
-        $customer = MasterCustomer::with('cabang')->orderBy('name')->get();
-        $cabang = MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get();
-        $countries = collect(ResourceBundle::getLocales(''))
-            ->map(function ($locale) {
-                $parts = explode('_', $locale);
-                return end($parts);
+        return ['is_active' => ['required', 'boolean']];
+    }
+
+    public function index(Request $request)
+    {
+        $customer = MasterCustomer::with('cabang')
+            ->when(session('cabang_aktif'), function ($query, $cabangId) {
+                $query->where('cabang_terdaftar', $cabangId);
             })
-            ->filter(fn ($code) => strlen($code) === 2 && ctype_alpha($code))
-            ->unique()
-            ->mapWithKeys(fn ($code) => [$code => Locale::getDisplayRegion('und_' . strtoupper($code), 'en')])
-            ->filter()
-            ->sort()
-            ->all();
+            ->orderBy('name')
+            ->get();
+        $cabang = MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get();
+        $countries = [];
+        $countriesPath = base_path('countries.json');
+        if (is_file($countriesPath)) {
+            $countries = json_decode(file_get_contents($countriesPath), true) ?: [];
+        }
+        asort($countries);
 
         return view('pages.mastercustomer.index', compact('customer', 'cabang', 'countries'));
     }
@@ -53,9 +53,13 @@ class MasterCustomerController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate($this->rules());
+        $data['nik'] = $data['nik'] ?? null;
         $data['created_by'] = Auth::id();
         $data['is_active'] = $data['is_active'] ?? 1;
         $data['cabang_terdaftar'] = $data['cabang_terdaftar'] ?? session('cabang_aktif');
+        if (!$data['cabang_terdaftar'] && Auth::user()->role !== 'Owner') {
+            abort(422, 'Cabang customer wajib ditentukan.');
+        }
         $customer = MasterCustomer::create($data);
 
         if ($request->ajax() || $request->expectsJson()) {
@@ -152,9 +156,19 @@ class MasterCustomerController extends Controller
     public function update(Request $request, $id)
     {
         $data = $request->validate($this->rules());
+        $data['nik'] = $data['nik'] ?? null;
         $data['updated_by'] = Auth::id();
         MasterCustomer::findOrFail($id)->update($data);
         Alert::success('Berhasil', 'Data Customer Berhasil Diedit');
+        return redirect()->back();
+    }
+
+    public function status(Request $request, $id)
+    {
+        $data = $request->validate($this->statusRules());
+        MasterCustomer::findOrFail($id)->update(['is_active' => (bool) $data['is_active']]);
+
+        Alert::success('Berhasil', 'Status Customer Berhasil Diubah');
         return redirect()->back();
     }
 

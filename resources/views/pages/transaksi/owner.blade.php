@@ -43,7 +43,7 @@
                     <div class="row flex-between-center">
                         <div class="col d-md-flex d-lg-block flex-between-center">
                             <h6 class="mb-md-0 mb-lg-2">Total Transaksi Hari Ini</h6>
-                            <span class="badge rounded-pill badge-soft-success">Rp. {{ number_format($total_transaksi)}}</span>
+                            <span class="badge rounded-pill badge-soft-success">Rp. {{ floor((float)$total_transaksi) == (float)$total_transaksi ? number_format($total_transaksi, 0, ',', '.') : number_format($total_transaksi, 2, ',', '.') }}</span>
                         </div>
                     </div>
                 </div>
@@ -51,12 +51,23 @@
         </div>
     </div>
     <ul class="nav nav-pills mb-3">
-        <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi.index') }}">Transaksi Beli Hari Ini</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ route('transaksi-jual.index') }}">Transaksi Jual Hari Ini</a></li>
+        <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi.index', request()->only(['cabang_id', 'per_page'])) }}">Transaksi Beli Hari Ini</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ route('transaksi-jual.index', request()->only(['cabang_id', 'per_page'])) }}">Transaksi Jual Hari Ini</a></li>
     </ul>
     <div class="card mb-3">
         <div class="card-header">
             <h5 class="mb-0">Rekapan Data Transaksi Customer Anda Hari Ini</h5>
+            <form method="get" class="d-flex justify-content-end align-items-center gap-2 mt-2">
+                <label for="list_cabang_id">Cabang</label>
+                <select id="list_cabang_id" name="cabang_id" class="form-select w-auto">
+                    <option value="">Semua Cabang</option>
+                    @foreach ($cabang as $item)
+                    <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                    @endforeach
+                </select>
+                <button class="btn btn-primary" type="submit">Filter</button>
+                <a class="btn btn-danger" href="{{ route('transaksi.index') }}">Reset</a>
+            </form>
             <div class="d-flex justify-content-end">
                 <label for="perPageSelect" class="me-2">Show</label>
                 <select id="perPageSelect" class="form-select w-auto">
@@ -78,9 +89,10 @@
                                 <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
                                 <th class="sort text-center fs--1" data-sort="nama_customer">Cust</th>
                                 <th class="sort text-center fs--1" data-sort="nomor_passport">Passport</th>
+                                <th class="sort text-center fs--1" data-sort="cabang">Cabang</th>
                                 <th class="sort text-center fs--1" data-sort="total">Total Transaksi</th>
-                                <th class="sort text-center fs--1" data-sort="print">Print</th>
                                 <th class="sort text-center fs--1" data-sort="status">Status</th>
+                                <th class="sort text-center fs--1" data-sort="print">Print</th>
                                 <th class="text-center" style="width: 60px">Actions</th>
                             </tr>
                         </thead>
@@ -95,8 +107,8 @@
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
                                 <td class="text-center nama_customer fs--1">{{ $item->nama_customer }}</td>
                                 <td class="text-center nomor_passport fs--1">{{ $item->nomor_passport }}</td>
-                                <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0,
-                                    ',', '.') }}</td>
+                                <td class="text-center cabang fs--1">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
+                                <td class="text-center total text-center fs--1">Rp. {{ floor((float)$item->total) == (float)$item->total ? number_format($item->total, 0, ',', '.') : number_format($item->total, 2, ',', '.') }}</td>
                                 <td class="text-center status text-center fs--1">
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
                                 </td>
@@ -121,7 +133,7 @@
                     </table>
                 </div>
                 <div class="d-flex justify-content-center mt-3">
-                    {{ $transaksi->appends(['per_page' => request('per_page')])->links('pagination::bootstrap-4') }}
+                    {{ $transaksi->withQueryString()->links('pagination::bootstrap-4') }}
                 </div>
 
             </div>
@@ -333,6 +345,17 @@
                         </div>
                         <div class="row mb-3 mt-3">
                             <div class="col-12">
+                                <label for="cabang_id">Filter by Cabang</label>
+                                <select class="form-select js-choice" id="cabang_id" name="cabang_id">
+                                    <option value="">Semua Cabang</option>
+                                    @foreach ($cabang as $item)
+                                    <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3 mt-3">
+                            <div class="col-12">
                                 <label for="currency">Filter by Currency</label>
                                 <select class="form-select js-choice" id="id_currency" name="id_currency" data-options='{"removeItemButton":true,"placeholder":true, "shouldSort":false}'>
                                     <option value="">Pilih Currency</option>
@@ -397,8 +420,9 @@
 
 
         $('#perPageSelect').on('change', function () {
-            var perPage = $(this).val();
-            window.location.href = '?per_page=' + perPage;
+            var params = new URLSearchParams(window.location.search);
+            params.set('per_page', $(this).val());
+            window.location.href = '?' + params.toString();
         });
 
 

@@ -20,6 +20,7 @@
                 <span class="fas fa-user text-success me-2" data-fa-transform="down-5"></span>
                 <div class="flex-1">
                     <p class="mb-0">Pegawai: {{ $transaksi->Pegawai->name }}</p>
+                    <p class="mb-0">Cabang: {{ optional($transaksi->Cabang)->cabang_name ?: '-' }}</p>
                     <p class="fs--1 mb-0 text-600">{{ date_format($transaksi->created_at,"d M Y H:i:s") }}</p>
                 </div>
             </div>

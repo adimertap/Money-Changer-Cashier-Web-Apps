@@ -54,8 +54,8 @@
         </div>
     </div>
     <ul class="nav nav-pills mb-3">
-        <li class="nav-item"><a class="nav-link" href="{{ route('transaksi.index') }}">Transaksi Beli Hari Ini</a></li>
-        <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi-jual.index') }}">Transaksi Jual Hari Ini</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ route('transaksi.index', request()->only(['cabang_id', 'per_page'])) }}">Transaksi Beli Hari Ini</a></li>
+        <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi-jual.index', request()->only(['cabang_id', 'per_page'])) }}">Transaksi Jual Hari Ini</a></li>
     </ul>
     <div class="card mb-3">
         <div class="card-header">
@@ -64,6 +64,17 @@
                     <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Transaksi Jual Valas Hari Ini
                     </h5>
                     <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Transaksi</p>
+                    <form method="get" class="d-flex justify-content-end align-items-center gap-2 mt-2">
+                        <label for="list_cabang_id">Cabang</label>
+                        <select id="list_cabang_id" name="cabang_id" class="form-select w-auto">
+                            <option value="">Semua Cabang</option>
+                            @foreach ($cabang as $item)
+                            <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                            @endforeach
+                        </select>
+                        <button class="btn btn-primary" type="submit">Filter</button>
+                        <a class="btn btn-danger" href="{{ route('transaksi-jual.index') }}">Reset</a>
+                    </form>
                 </div>
             </div>
         </div>
@@ -78,9 +89,10 @@
                                 <th class="sort text-center fs--1" data-sort="pegawai">Pegawai</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Tanggal & Waktu</th>
                                 <th class="sort text-center fs--1" data-sort="kode_transaksi">Kode Transaksi</th>
+                                <th class="sort text-center fs--1" data-sort="cabang">Cabang</th>
                                 <th class="sort text-center fs--1" data-sort="total">Total Transaksi</th>
-                                <th class="sort text-center fs--1" data-sort="print">Print</th>
                                 <th class="sort text-center fs--1" data-sort="status">Status</th>
+                                <th class="sort text-center fs--1" data-sort="print">Print</th>
                                 <th class="text-center" style="width: 60px">Actions</th>
                             </tr>
                         </thead>
@@ -93,6 +105,7 @@
                                     strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s',
                                     strtotime($item->created_at)) }}</td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
+                                <td class="text-center cabang fs--1">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                 <td class="text-center total text-center fs--1">Rp. {{ number_format($item->total, 0,
                                     ',', '.') }}</td>
                                 <td class="text-center status text-center fs--1">
@@ -343,6 +356,17 @@
                                         name="radio_input" />
                                     <label class="form-check-label" for="flexRadioDefault2">Export PDF</label>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3 mt-3">
+                            <div class="col-12">
+                                <label for="cabang_export">Filter by Cabang</label>
+                                <select class="form-select js-choice" id="cabang_export" name="cabang_id">
+                                    <option value="">Semua Cabang</option>
+                                    @foreach ($cabang as $item)
+                                    <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-3 mt-3">

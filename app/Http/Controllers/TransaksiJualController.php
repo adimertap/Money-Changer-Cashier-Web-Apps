@@ -14,6 +14,7 @@ use App\Models\DetailTransaksi;
 use App\Models\LogEdit;
 use App\Models\LogEditDetail;
 use App\Models\MasterCurrency;
+use App\Models\MasterCabang;
 use App\Models\ModalTransaksi;
 use Illuminate\Support\Facades\DB;
 
@@ -28,17 +29,30 @@ class TransaksiJualController extends Controller
     {
 
         try {
+            $request->validate([
+                'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+            ]);
+
             $today = Carbon::now()->format('Y-m-d');
             $user = Auth::user();
             $isPegawai = $user->role != 'Owner';
 
-            $transaksiQuery = Transaksi::where('tanggal_transaksi', $today)
+            $transaksiQuery = Transaksi::with('Cabang')
+                ->where('tanggal_transaksi', $today)
                 ->where('jenis_transaksi', 'Jual')
+                ->when($request->filled('cabang_id'), function ($query) use ($request) {
+                    $query->where('cabang_id', $request->cabang_id);
+                })
                 ->orderBy('updated_at', 'DESC');
             $jurnalQuery = Jurnal::join('tb_currency', 'tb_jurnal.id_currency', 'tb_currency.id_currency')
                 ->where('tanggal_jurnal', $today);
             $jurnalQuery2 = Jurnal::join('tb_currency', 'tb_jurnal.id_currency', 'tb_currency.id_currency')
                 ->where('tanggal_jurnal', $today);
+
+            if ($request->filled('cabang_id')) {
+                $jurnalQuery->where('tb_jurnal.cabang_id', $request->cabang_id);
+                $jurnalQuery2->where('tb_jurnal.cabang_id', $request->cabang_id);
+            }
 
             if ($isPegawai) {
                 $transaksiQuery->where('id_pegawai', $user->id);
@@ -51,6 +65,9 @@ class TransaksiJualController extends Controller
             $count = $transaksiQuery->count();
             $total_transaksi = $transaksiQuery->sum('total');
             $currency = MasterCurrency::orderBy('jenis_kurs', 'ASC')->get();
+            $cabang = MasterCabang::where('is_active', 1)
+                ->orderBy('cabang_name')
+                ->get(['cabang_id', 'cabang_name']);
 
             $report = $jurnalQuery->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs, jenis_kurs as jenis')
                 ->where('jenis_jurnal', 'Kredit Jual')
@@ -76,13 +93,13 @@ class TransaksiJualController extends Controller
                         ->where('jenis_jurnal', 'Kredit Jual')
                         ->groupBy('nama_currency', 'jenis_kurs','kurs','id_pegawai')
                         ->get();
-                    return view('pages.TransaksiJual.owner', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'pegawai', 'report'));
+                    return view('pages.TransaksiJual.owner', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'pegawai', 'report', 'cabang'));
                 }
 
-                return view('pages.TransaksiJual.owner', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'pegawai', 'report'));
+                return view('pages.TransaksiJual.owner', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'pegawai', 'report', 'cabang'));
             }
 
-            return view('pages.TransaksiJual.index', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'report'));
+            return view('pages.TransaksiJual.index', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'report', 'cabang'));
         } catch (\Throwable $th) {
             dd($th);
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
@@ -158,6 +175,7 @@ class TransaksiJualController extends Controller
             $transaksi->total = $request->total;
             $transaksi->id_pegawai = Auth::user()->id;
             $transaksi->jenis_transaksi = 'Jual';
+            $transaksi->cabang_id = session('cabang_aktif');
             if ($modal) {
                 $transaksi->id_modal = $modal->id_modal;
             }
@@ -182,6 +200,7 @@ class TransaksiJualController extends Controller
                 $jurnal->total_tukar = $key['total_tukar'];
                 $jurnal->jenis_jurnal = 'Kredit Jual';
                 $jurnal->id_pegawai = Auth::user()->id;
+                $jurnal->cabang_id = $transaksi->cabang_id;
                 $jurnal->save();
 
                 $cry = MasterCurrency::where('id_currency', $key['currency_id'])->first();

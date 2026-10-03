@@ -36,7 +36,11 @@
                     @method('PUT')
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">{{ $role->name }}</h6>
-                        <button class="btn btn-sm btn-primary" type="submit">Simpan {{ $role->name }}</button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-primary" type="submit">Simpan {{ $role->name }}</button>
+                            <button class="btn btn-sm btn-outline-danger" type="submit"
+                                form="delete-role-{{ $role->id }}">Hapus</button>
+                        </div>
                     </div>
                     <div class="card-body">
                         @foreach ($menus as $group => $groupMenus)
@@ -60,6 +64,12 @@
                             </div>
                         @endforeach
                     </div>
+                </form>
+                <form id="delete-role-{{ $role->id }}"
+                    method="POST" action="{{ route('role-hak-akses.destroy', $role->name) }}"
+                    onsubmit="return confirm('Hapus role {{ addslashes($role->name) }} beserta seluruh hak aksesnya?');">
+                    @csrf
+                    @method('DELETE')
                 </form>
             @endforeach
         </div>

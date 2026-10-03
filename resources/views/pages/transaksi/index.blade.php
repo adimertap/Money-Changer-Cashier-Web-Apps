@@ -45,7 +45,7 @@
                     <div class="col d-md-flex d-lg-block flex-between-center">
                         <h6 class="mb-md-0 mb-lg-2">Total Transaksi Hari Ini</h6>
                         <span class="badge rounded-pill badge-soft-success">Rp.
-                            {{ number_format($total_transaksi) }}</span>
+                            {{ floor((float)$total_transaksi) == (float)$total_transaksi ? number_format($total_transaksi, 0, ',', '.') : number_format($total_transaksi, 2, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -54,14 +54,25 @@
 </div>
 
 <ul class="nav nav-pills mb-3">
-    <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi.index') }}">Transaksi Beli Hari Ini</a>
+    <li class="nav-item"><a class="nav-link active" href="{{ route('transaksi.index', request()->only(['cabang_id', 'per_page'])) }}">Transaksi Beli Hari Ini</a>
     </li>
-    <li class="nav-item"><a class="nav-link" href="{{ route('transaksi-jual.index') }}">Transaksi Jual Hari Ini</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ route('transaksi-jual.index', request()->only(['cabang_id', 'per_page'])) }}">Transaksi Jual Hari Ini</a></li>
 </ul>
 
 <div class="card mb-3">
     <div class="card-header">
         <h5 class="mb-0">Rekapan Data Transaksi Customer Anda Hari Ini</h5>
+        <form method="get" class="d-flex justify-content-start align-items-center gap-2 mt-2">
+            <label for="list_cabang_id">Cabang</label>
+            <select id="list_cabang_id" name="cabang_id" class="form-select w-auto">
+                <option value="">Semua Cabang</option>
+                @foreach ($cabang as $item)
+                <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                @endforeach
+            </select>
+            <button class="btn btn-primary" type="submit">Filter</button>
+            <a class="btn btn-danger" href="{{ route('transaksi.index') }}">Reset</a>
+        </form>
         <div class="d-flex justify-content-end">
             <label for="perPageSelect" class="me-2">Show</label>
             <select id="perPageSelect" class="form-select w-auto">
@@ -83,6 +94,7 @@
                         <th class="text-center">Kode Transaksi</th>
                         <th class="text-center">Cust.</th>
                         <th class="text-center">Passport</th>
+                        <th class="text-center">Cabang</th>
                         <th class="text-center">Total Transaksi</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Actions</th>
@@ -100,7 +112,8 @@
                             <td class="text-center">{{ $item->kode_transaksi }}</td>
                             <td class="text-center">{{ $item->nama_customer }}</td>
                             <td class="text-center">{{ $item->nomor_passport }}</td>
-                            <td class="text-center">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
+                            <td class="text-center">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
+                            <td class="text-center">Rp. {{ floor((float)$item->total) == (float)$item->total ? number_format($item->total, 0, ',', '.') : number_format($item->total, 2, ',', '.') }}</td>
                             <td class="text-center">
                                 <span class="badge rounded-pill badge-soft-success">Lunas</span>
                             </td>
@@ -124,14 +137,14 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center">No data available</td>
+                            <td colspan="10" class="text-center">No data available</td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
             <div class="d-flex justify-content-center mt-3">
-                {{ $transaksi->appends(['per_page' => request('per_page')])->links('pagination::bootstrap-4') }}
+                {{ $transaksi->withQueryString()->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
@@ -335,6 +348,17 @@
                         </div>
                         <div class="row mb-3 mt-3">
                             <div class="col-12">
+                                <label for="cabang_id">Filter by Cabang</label>
+                                <select class="form-select js-choice" id="cabang_id" name="cabang_id">
+                                    <option value="">Semua Cabang</option>
+                                    @foreach ($cabang as $item)
+                                    <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3 mt-3">
+                            <div class="col-12">
                                 <label for="currency">Filter by Currency</label>
                                 <select class="form-select js-choice" id="id_currency" name="id_currency"
                                     data-options='{"removeItemButton":true,"placeholder":true, "shouldSort":false}'>
@@ -374,8 +398,9 @@
         $('#datatableReport').DataTable();
         $('#datatableReport2').DataTable();
         $('#perPageSelect').on('change', function () {
-            var perPage = $(this).val();
-            window.location.href = '?per_page=' + perPage;
+            var params = new URLSearchParams(window.location.search);
+            params.set('per_page', $(this).val());
+            window.location.href = '?' + params.toString();
         });
 
     })

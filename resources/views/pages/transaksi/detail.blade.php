@@ -51,6 +51,18 @@
   @endif
 
 
+  @php
+    $formatAngka = function ($val, $maxDec = 4) {
+        $floatVal = (float) $val;
+        if (floor($floatVal) == $floatVal) {
+            return number_format($floatVal, 0, ',', '.');
+        }
+        $str = (string) $floatVal;
+        $decimalPart = substr(strrchr($str, '.'), 1) ?: '';
+        $numDec = max(2, min(strlen($decimalPart), $maxDec));
+        return number_format($floatVal, $numDec, ',', '.');
+    };
+  @endphp
   <div class="card mt-3 mb-3">
     <div class="card-body">
       <div class="table-responsive fs--1">
@@ -68,11 +80,10 @@
             @forelse ($detail as $item)
             <tr role="row" class="odd align-middle">
               <th scope="row" class="align-middle">{{ $loop->iteration}}.</th>
-              <td class="align-middle text-center">{{ $item->Currency->nama_currency }}, {{ $item->Currency->jenis_kurs
-                }}</td>
-              <td class="align-middle text-center">Rp. {{ number_format($item->jumlah_currency, 0, ',', '.') }}</td>
-              <td class="align-middle text-center">{{ $item->jumlah_tukar }}</td>
-              <td class="align-middle text-end">Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>
+              <td class="align-middle text-center">{{ optional($item->Currency)->nama_currency }}, {{ optional($item->Currency)->jenis_kurs }}</td>
+              <td class="align-middle text-center">Rp. {{ $formatAngka($item->jumlah_currency) }}</td>
+              <td class="align-middle text-center">{{ $formatAngka($item->jumlah_tukar) }}</td>
+              <td class="align-middle text-end">Rp. {{ $formatAngka($item->total_tukar) }}</td>
             </tr>
             @empty
 
@@ -86,7 +97,7 @@
             <tbody>
               <tr class="border-bottom">
                 <th class="text-900">Total:</th>
-                <td class="fw-semi-bold">Rp. {{ number_format($transaksi->total, 0, ',', '.') }}</td>
+                <td class="fw-semi-bold">Rp. {{ $formatAngka($transaksi->total) }}</td>
               </tr>
             </tbody>
           </table>

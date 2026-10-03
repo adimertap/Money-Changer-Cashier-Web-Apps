@@ -26,6 +26,26 @@ class RoleHakAksesController extends Controller
         return view('pages.rolehakakses.index', compact('roles', 'editableRoles', 'menus', 'roleMenus'));
     }
 
+    public static function canDeleteRole(bool $isSystem): bool
+    {
+        return ! $isSystem;
+    }
+
+    public function destroy($role)
+    {
+        $roleModel = Role::where('name', $role)->firstOrFail();
+        abort_unless(self::canDeleteRole((bool) $roleModel->is_system), 403);
+
+        DB::transaction(function () use ($role, $roleModel) {
+            RoleMenu::where('role', $role)->delete();
+            $roleModel->delete();
+        });
+
+        return redirect()
+            ->route('role-hak-akses.index')
+            ->with('success', 'Role dan hak akses berhasil dihapus.');
+    }
+
     public function store(Request $request)
     {
         $request->merge(['name' => trim((string) $request->input('name'))]);

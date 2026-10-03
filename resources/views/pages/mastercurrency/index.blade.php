@@ -54,11 +54,28 @@
     </div>
     <div class="card mb-3">
         <div class="card-header">
-            <div class="row flex-between-end">
+            <div class="row flex-between-end align-items-end g-2">
                 <div class="col-auto align-self-center">
                     <h5 class="mb-0" data-anchor="data-anchor">Data Currency</h5>
                     <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Currency</p>
                 </div>
+                {{--
+                Branch filter intentionally disabled: currency is a global master
+                and applies to every branch.
+                @if(Auth::user()->role === 'Owner')
+                <div class="col-auto">
+                    <form method="GET" action="{{ route('master-currency') }}" class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0" for="currencyCabangFilter">Cabang</label>
+                        <select class="form-select form-select-sm" name="cabang_id" id="currencyCabangFilter" onchange="this.form.submit()">
+                            <option value="">Semua Cabang</option>
+                            @foreach($cabangs as $cabang)
+                            <option value="{{ $cabang->cabang_id }}" {{ (string) $cabangId === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
+                @endif
+                --}}
             </div>
         </div>
         <div class="card-body">
@@ -71,6 +88,12 @@
                                 <th class="sort text-center" data-sort="no">No.</th>
                                 <th class="sort text-center" data-sort="nama_currency">Nama Currency</th>
                                 <th class="sort text-center" data-sort="country">Country</th>
+                                {{--
+                                Branch column intentionally disabled: currency is global for every branch.
+                                @if(is_null($cabangId))
+                                <th class="sort text-center" data-sort="cabang">Cabang</th>
+                                @endif
+                                --}}
                                 <th class="sort text-center" data-sort="jenis">Jenis</th>
                                 <th class="sort text-center" data-sort="kurs">Kurs (Rp)</th>
                                 <th class="sort text-center" data-sort="keterangan">Keterangan</th>
@@ -82,10 +105,17 @@
                         </thead>
                         <tbody class="list">
                             @forelse ($currency as $item)
+                            {{-- data-cabang-id intentionally disabled: currency is global. --}}
                             <tr role="row" class="odd">
                                 <th scope="row" class="no">{{ $loop->iteration}}.</th>
                                 <td class="nama_currency">{{ $item->nama_currency }}</td>
                                 <td class="country">{{ $item->country }}</td>
+                                {{--
+                                Branch cell intentionally disabled: currency is global for every branch.
+                                @if(is_null($cabangId))
+                                <td class="cabang text-center">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
+                                @endif
+                                --}}
                                 <td class="jenis text-center">
                                     @if($item->jenis_kurs == 'Lembar')
                                     <span class="badge badge-soft-primary">{{ $item->jenis_kurs }}</span>
@@ -164,6 +194,12 @@
                                         <th class="sort text-center" data-sort="no">No.</th>
                                         <th class="sort text-center" data-sort="enama_currency">Currency</th>
                                         <th class="sort text-center" data-sort="enama_country">Country</th>
+                                        {{--
+                                        Branch column intentionally disabled: currency is global for every branch.
+                                        @if(is_null($cabangId))
+                                        <th class="sort text-center" data-sort="ecabang">Cabang</th>
+                                        @endif
+                                        --}}
                                         <th class="sort text-center" data-sort="ejenis">Jenis</th>
                                         <th class="sort text-center" data-sort="ekurs">Kurs(Rp)</th>
                                         <th class="sort text-center" data-sort="eketerangan">Keterangan.</th>
@@ -186,6 +222,12 @@
                                             type="text" placeholder="Country" id="{{ $item->id_currency }}"
                                             value="{{ $item->country }}" />
                                         </td>
+                                        {{--
+                                        Branch cell intentionally disabled: currency is global for every branch.
+                                        @if(is_null($cabangId))
+                                        <td class="ecabang text-center">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
+                                        @endif
+                                        --}}
                                         <td class="ejenis text-center">
                                             <select class="form-select form-select-sm jenis_edit" name="jenis_edit"
                                                 type="text" placeholder="Jenis" id="{{ $item->id_currency }}" value="{{ $item->urutan }}">
@@ -283,7 +325,7 @@
                                 <br>
                                 - Pastikan urutan tidak ada angka duplicat atau sama</p>
                         </div>
-                        <div class="col-auto mt-4">
+                                <div class="col-auto mt-4">
                             <a href="{{ route('master-currency') }}" class="btn btn-secondary" type="button">Kembali</a>
                         </div>
                     </div>
@@ -310,6 +352,26 @@
                     </div>
                     <div class="p-4 pb-0">
                         <p class="text-word-break fs--1">Lengkapi Form Currency berikut ini</p>
+                        {{--
+                        Branch selector intentionally disabled: currency is global for every branch.
+                        @if(Auth::user()->role === 'Owner')
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label" for="currency_cabang_id">Cabang Operasional</label><span class="mr-4 mb-3" style="color: red">*</span>
+                            <select class="form-select @error('cabang_id') is-invalid @enderror" name="cabang_id" id="currency_cabang_id" required>
+                                <option value="">Pilih Cabang</option>
+                                @foreach($cabangs as $cabang)
+                                <option value="{{ $cabang->cabang_id }}" {{ (string) old('cabang_id', $cabangId) === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                            @error('cabang_id')
+                            <div class="invalid-feedback"><strong>{{ $message }}</strong></div>
+                            @enderror
+                        </div>
+                        @else
+                        <input type="hidden" name="cabang_id" value="{{ $cabangId }}">
+                        <div class="alert alert-info py-2">Currency akan ditambahkan ke cabang aktif.</div>
+                        @endif
+                        --}}
                         <div class="col-md-12 mb-3">
                             <label class="form-label" for="nama_currency">Nama Kurs</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
@@ -456,6 +518,7 @@
                                 <div class="d-flex">
                                     <div class="flex-1">
                                         <input type="hidden" name="currency_delete_id" id="id_currency">
+                                        {{-- <input type="hidden" name="cabang_id" id="delete_currency_cabang_id"> --}}
                                         <h5 class="mb-2 fs-0">Confirmation</h5>
                                         <p class="text-word-break fs--1">Apakah Anda Yakin Menghapus Data Currency ini?
                                         </p>
@@ -489,7 +552,8 @@
                     </div>
                     <div class="p-4 pb-0">
                         <input type="hidden" name="edit_currency_id" id="edit_currency_id">
-                        <p class="text-word-break fs--1">Lengkapi Form Currency berikut ini</p>
+                        {{-- <input type="hidden" name="cabang_id" id="edit_currency_cabang_id"> --}}
+                        <p class="text-word-break fs--1">Bendera adalah master global dan berlaku untuk semua cabang.</p>
                         <div class="row mb-3">
                             <div class="col-2 bg-soft-info mt-3">
                                 <img id="img-flag" src="" alt="flag" height="50" />
@@ -522,6 +586,7 @@
 
                 var dataReq = {
                     id: id,
+                    // cabang_id intentionally omitted: currency is global.
                     jenis: jenis,
                     "_token": $('#token_edit').val()
                 }
@@ -568,6 +633,7 @@
 
                 var dataReq = {
                     id: id,
+                    // cabang_id intentionally omitted: currency is global.
                     country: country,
                     "_token": $('#token_edit').val()
                 }
@@ -614,6 +680,7 @@
 
                 var dataReq = {
                     id: id,
+                    // cabang_id intentionally omitted: currency is global.
                     nama: nama,
                     "_token": $('#token_edit').val()
                 }
@@ -659,6 +726,7 @@
                 var urutan = $(this).val()
                 var dataReq = {
                     id: id,
+                    // cabang_id intentionally omitted: currency is global.
                     urutan: urutan,
                     "_token": $('#token_edit').val()
                 }
@@ -711,12 +779,14 @@
                     var yak = "-";
                         var dataReq = {
                         id: id,
+                        // cabang_id intentionally omitted: currency is global.
                         keterangan: yak,
                         "_token": $('#token_edit').val()
                     }
                 }else{
                     var dataReq = {
                         id: id,
+                        // cabang_id intentionally omitted: currency is global.
                         keterangan: keterangan,
                         "_token": $('#token_edit').val()
                     }
@@ -774,6 +844,7 @@
                     url: '/owner/update-nilai-kurs',
                     data: {
                         "id": id,
+                        // cabang_id intentionally omitted: currency is global.
                         "nilai_kurs": kurs_store,
                         "_token": $('#token_edit').val()
                     },
@@ -852,15 +923,14 @@
 
         table.on('click', '.editCurrencyBtn', function () {
             var id = $(this).val();
-            $('#edit_currency_id').val(id)
-
-            $tr = $(this).closest('tr');
-            if ($($tr).hasClass('clid')) {
+            var $tr = $(this).closest('tr');
+            if ($tr.hasClass('clid')) {
                 $tr = $tr.prev('.parent')
             }
 
-            var data = table.row($tr).data();
-            var tes = $(data[7]).attr('src');
+            $('#edit_currency_id').val(id)
+
+            var tes = $tr.find('td.flag img, td.eflag img').attr('src');
 
             if(tes != undefined){
                 $('#img-flag').attr("src",tes);

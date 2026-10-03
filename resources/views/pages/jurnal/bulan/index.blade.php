@@ -9,7 +9,20 @@
             <div class="row">
                 <div class="col-lg-6">
                     <h5>Jurnal Bulanan</h5>
-                    <p class="mt-2">Data Transaksi dikelompokan berdasarkan bulan</p>
+                    <p class="mt-2">Data Transaksi dikelompokan berdasarkan bulan dan cabang</p>
+                    <form method="get" class="mt-3">
+                        <label class="small" for="cabang_id">Filter by Cabang</label>
+                        <div class="d-flex gap-2">
+                            <select class="form-select" id="cabang_id" name="cabang_id">
+                                <option value="">Semua Cabang</option>
+                                @foreach ($cabang as $item)
+                                <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                            <button class="btn btn-primary" type="submit">Filter</button>
+                            <a class="btn btn-danger" href="{{ route('jurnal-bulanan.index') }}">Reset</a>
+                        </div>
+                    </form>
                     <hr>
                 </div>
             </div>
@@ -24,6 +37,7 @@
                             <tr>
                                 <th class="text-center" data-sort="no">No.</th>
                                 <th>Bulan</th>
+                                <th>Cabang</th>
                                 @foreach ($years as $year)
                                     <th class="text-center">{{ $year }}</th>
                                 @endforeach
@@ -33,7 +47,8 @@
                             @forelse ($data as $month)
                             <tr>
                                 <th scope="row" class="no">{{ $loop->iteration}}.</th>
-                                <td>{{ $month['month_name'] }}</td>
+                                <td>{{ $month['month_name'] }} {{ $month['year'] }}</td>
+                                <td>{{ $month['cabang_name'] }}</td>
                                 @foreach ($years as $year)
                                     <td class="text-center">Rp. {{ number_format($month['totals'][$year], 0, ',', '.') }}</td>
                                 @endforeach

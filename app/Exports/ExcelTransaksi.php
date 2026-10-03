@@ -9,12 +9,13 @@ use Illuminate\Contracts\Support\Responsable;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Events\AfterSheet;
 
 class ExcelTransaksi implements FromCollection, Responsable, ShouldAutoSize,
-WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
+WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell, WithColumnFormatting
 {
     use Exportable;
     public $transaksi;
@@ -37,7 +38,7 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
         return [
             'C' => 30,
             'E' => 30,  
-            'I' => 25,          
+            'J' => 25,          
         ];
     }
 
@@ -59,24 +60,33 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
 
     public function map($transaksi): array
     {
-            return[
-                $transaksi->kode_transaksi,
-                $transaksi->tanggal_transaksi,
-                $transaksi->Pegawai->name,
-                $transaksi->nama_customer,
-                $transaksi->nomor_passport,
-                $transaksi->negara_asal,
-                $transaksi->nama_currency,
-                $transaksi->jumlah_currency,
-                $transaksi->jumlah_tukar,
-                $transaksi->total_tukar,
-            ];
-            
+        $jumlahTukar = (float) $transaksi->jumlah_tukar;
+        return [
+            $transaksi->kode_transaksi,
+            $transaksi->tanggal_transaksi,
+            optional($transaksi->Pegawai)->name,
+            $transaksi->nama_customer,
+            $transaksi->nomor_passport,
+            $transaksi->negara_asal,
+            $transaksi->nama_currency,
+            (float) $transaksi->jumlah_currency,
+            floor($jumlahTukar) == $jumlahTukar ? (int) $jumlahTukar : $jumlahTukar,
+            round((float) $transaksi->total_tukar),
+        ];
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'H' => '#,##0',
+            'I' => '#,##0',
+            'J' => '#,##0',
+        ];
     }
 
     public function registerEvents(): array
     {
-        return[
+        return [
             AfterSheet::class => function(AfterSheet $event){
                 $event->sheet->getStyle('A2:J2')->applyFromArray([
                     'font' => [
@@ -86,6 +96,23 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
                         'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
                     ],
                 ]);
+                $lastRow = $this->transaksi->count() + 2;
+                $event->sheet->getStyle('H3:J' . $lastRow)->applyFromArray([
+                    'alignment' => [
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT,
+                    ],
+                ]);
+
+                for ($row = 3; $row <= $lastRow; $row++) {
+                    $kursVal = $event->sheet->getCell('H' . $row)->getValue();
+                    if (is_numeric($kursVal) && floor((float)$kursVal) != (float)$kursVal) {
+                        $event->sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('#,##0.00##');
+                    }
+                    $jtVal = $event->sheet->getCell('I' . $row)->getValue();
+                    if (is_numeric($jtVal) && floor((float)$jtVal) != (float)$jtVal) {
+                        $event->sheet->getStyle('I' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+                    }
+                }
             }
         ];
     }

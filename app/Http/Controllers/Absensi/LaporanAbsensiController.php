@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Absensi;
 
 use App\Http\Controllers\Controller;
 use App\Models\JadwalKerja;
+use App\Models\MasterCabang;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -11,6 +12,39 @@ use Illuminate\Support\Facades\Auth;
 
 class LaporanAbsensiController extends Controller
 {
+    private function allowedCabangIds()
+    {
+        if (Auth::user()->role === 'Owner') {
+            return MasterCabang::where('is_active', 1)->pluck('cabang_id')->map(function ($id) {
+                return (int) $id;
+            })->all();
+        }
+
+        return session('cabang_aktif') ? [(int) session('cabang_aktif')] : [];
+    }
+
+    private function resolveCabangId(Request $request, $required = false)
+    {
+        $cabangId = $request->input('cabang_id');
+        if ($cabangId === null || $cabangId === '') {
+            if ($required && Auth::user()->role !== 'Owner') {
+                return session('cabang_aktif');
+            }
+            return null;
+        }
+
+        abort_unless(in_array((int) $cabangId, $this->allowedCabangIds(), true), 403, 'Cabang tidak valid.');
+        return (int) $cabangId;
+    }
+
+    private function cabangs()
+    {
+        return MasterCabang::whereIn('cabang_id', $this->allowedCabangIds())
+            ->where('is_active', 1)
+            ->orderBy('cabang_name')
+            ->get(['cabang_id', 'cabang_name']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -18,7 +52,12 @@ class LaporanAbsensiController extends Controller
      */
     public function index(Request $request)
     {
+        $request->validate(['cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id']);
+        $cabangId = $this->resolveCabangId($request);
         $query = JadwalKerja::query();
+        if ($cabangId) {
+            $query->where('tb_jadwal_kerja.cabang_id', $cabangId);
+        }
 
         if ($request->has('statusFilter') && !empty($request->statusFilter)) {
             if ($request->statusFilter == 'Terlambat') {
@@ -74,29 +113,46 @@ class LaporanAbsensiController extends Controller
             'statusFilter' => $selectedStatus,
             'monthFilter' => $selectedMonth,
             'yearFilter' => $selectedYear,
+            'cabang_id' => $cabangId,
         ]);
 
         $url = url('/jadwal-laporan?' . $queryParams);
 
-        return view('absensi.report', compact('jadwal', 'selectedMonth', 'selectedYear', 'selectedStatus', 'displayText', 'url'));
+        $cabangs = $this->cabangs();
+        return view('absensi.report', compact('jadwal', 'selectedMonth', 'selectedYear', 'selectedStatus', 'displayText', 'url', 'cabangId', 'cabangs'));
     }
 
 
     public function today(Request $request)
     {
         try {
+            $request->validate(['cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id']);
+            $cabangId = $this->resolveCabangId($request);
             $today = Carbon::now()->format('Y-m-d');
-            $jadwal = JadwalKerja::where('tanggal',$today )->get();
-            return view('absensi.reportToday', compact('jadwal','today'));
+            $jadwal = JadwalKerja::where('tanggal', $today)
+                ->when($cabangId, function ($query) use ($cabangId) {
+                    $query->where('cabang_id', $cabangId);
+                })->get();
+            $cabangs = $this->cabangs();
+            return view('absensi.reportToday', compact('jadwal','today','cabangs','cabangId'));
         } catch (\Throwable $th) {
             return $th;
         }
 
     }
 
-    public function getUser(){
-        $user = User::get();
-        return view('absensi.reportAll', compact('user'));
+    public function getUser(Request $request){
+        $request->validate(['cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id']);
+        $cabangId = $this->resolveCabangId($request);
+        $user = User::query()
+            ->when($cabangId, function ($query) use ($cabangId) {
+                $query->whereHas('cabangs', function ($query) use ($cabangId) {
+                    $query->where('tb_master_cabang.cabang_id', $cabangId);
+                });
+            })
+            ->get();
+        $cabangs = $this->cabangs();
+        return view('absensi.reportAll', compact('user', 'cabangs', 'cabangId'));
     }
 
 

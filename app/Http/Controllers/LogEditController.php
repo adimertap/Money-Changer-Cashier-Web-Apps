@@ -15,9 +15,20 @@ class LogEditController extends Controller
      */
     public function index(Request $request)
     {
+        $isOwner = auth()->user()->role === 'Owner';
+        $allowedCabangIds = $isOwner
+            ? \App\Models\MasterCabang::where('is_active', 1)->pluck('cabang_id')->all()
+            : array_column(session('cabangs', []), 'cabang_id');
+        $cabangId = $isOwner ? $request->input('cabang_id') : session('cabang_aktif');
+        if ($cabangId !== null && !in_array((int) $cabangId, array_map('intval', $allowedCabangIds), true)) {
+            abort(403);
+        }
+
         $log = LogEdit::with([
             'detailLog',
-        ]);        
+            'Pegawai',
+            'Modal.Cabang',
+        ]);
         if($request->from){
             $log->where('tanggal_transaksi', '>=', $request->from);
         }
@@ -27,8 +38,23 @@ class LogEditController extends Controller
         if($request->jenis){
             $log->where('jenis_log', '=', $request->jenis);
         }
+        if ($isOwner) {
+            $log->whereHas('Modal', function ($query) use ($cabangId) {
+                $query->withoutGlobalScope('cabang');
+                if ($cabangId) {
+                    $query->where('cabang_id', $cabangId);
+                }
+            });
+        } elseif ($cabangId) {
+            $log->whereHas('Modal', function ($query) use ($cabangId) {
+                $query->where('cabang_id', $cabangId);
+            });
+        }
         $log = $log->orderBy('updated_at','DESC')->get();
-        return view('pages.log.index', compact('log'));
+        $cabangs = $isOwner
+            ? \App\Models\MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get(['cabang_id', 'cabang_name'])
+            : collect();
+        return view('pages.log.index', compact('log', 'cabangs', 'cabangId'));
     }
 
     public function filterLog(Request $request)

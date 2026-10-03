@@ -10,6 +10,7 @@ use App\Models\Jurnal;
 use App\Models\LogEdit;
 use App\Models\LogEditDetail;
 use App\Models\MasterCurrency;
+use App\Models\MasterCabang;
 use App\Models\MasterCustomer;
 use App\Models\MasterThreshold;
 use App\Models\MasterTerduga;
@@ -32,17 +33,63 @@ class TransaksiController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private function allowedCabangIds($isOwner = null)
+    {
+        $isOwner = $isOwner === null ? Auth::user()->role === 'Owner' : $isOwner;
+        if ($isOwner) {
+            return MasterCabang::where('is_active', 1)->pluck('cabang_id')->map(function ($id) {
+                return (int) $id;
+            })->all();
+        }
+
+        $sessionCabangs = array_map('intval', array_column(session('cabangs', []), 'cabang_id'));
+        $activeCabang = session('cabang_aktif');
+        if ($activeCabang) {
+            $sessionCabangs = [(int) $activeCabang];
+        }
+
+        return MasterCabang::where('is_active', 1)
+            ->whereIn('cabang_id', $sessionCabangs)
+            ->pluck('cabang_id')
+            ->map(function ($id) {
+                return (int) $id;
+            })->all();
+    }
+
+    private function resolveCabangId(Request $request, $isOwner, $required = false)
+    {
+        $allowedCabangIds = $this->allowedCabangIds($isOwner);
+        $cabangId = $isOwner
+            ? ($request->input('cabang_id') ?: session('cabang_aktif'))
+            : session('cabang_aktif');
+
+        if ($cabangId === null || $cabangId === '') {
+            if ($required) {
+                abort(422, 'Cabang wajib dipilih.');
+            }
+            return null;
+        }
+
+        abort_unless(in_array((int) $cabangId, $allowedCabangIds, true), 403, 'Cabang tidak valid.');
+        return (int) $cabangId;
+    }
+
     public function index(Request $request)
     {
         try {
+            $request->validate([
+                'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+            ]);
             $today = Carbon::now()->format('Y-m-d');
             $user = Auth::user();
             $isPegawai = $user->role != 'Owner';
+            $selectedCabangId = $this->resolveCabangId($request, !$isPegawai);
 
             // Get pagination size from frontend (default to 10)
             $perPage = $request->input('per_page', 10);
 
-            $transaksiQuery = Transaksi::where('tanggal_transaksi', $today)
+            $transaksiQuery = Transaksi::with('Cabang')
+                ->where('tanggal_transaksi', $today)
                 ->where('jenis_transaksi', 'Beli')
                 ->orderBy('updated_at', 'DESC');
 
@@ -56,9 +103,14 @@ class TransaksiController extends Controller
                 $jurnalQuery->where('id_pegawai', $user->id);
                 $jurnalQuery2->where('id_pegawai', $user->id);
             }
+            if ($selectedCabangId) {
+                $transaksiQuery->where('tb_transaksi.cabang_id', $selectedCabangId);
+                $jurnalQuery->where('tb_jurnal.cabang_id', $selectedCabangId);
+                $jurnalQuery2->where('tb_jurnal.cabang_id', $selectedCabangId);
+            }
 
             // Paginate transactions
-            $transaksi = $transaksiQuery->paginate($perPage);
+            $transaksi = $transaksiQuery->paginate($perPage)->withQueryString();
             $count = $transaksi->total();
             $total_transaksi = $transaksiQuery->sum('total');
             $currency = MasterCurrency::orderBy('jenis_kurs', 'ASC')->get();
@@ -90,10 +142,12 @@ class TransaksiController extends Controller
                         ->get();
                 }
 
-                return view('pages.transaksi.owner', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'pegawai', 'report'));
+                $cabang = MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get(['cabang_id', 'cabang_name']);
+                return view('pages.transaksi.owner', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'pegawai', 'report', 'cabang'));
             }
 
-            return view('pages.transaksi.index', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'report'));
+            $cabang = MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get(['cabang_id', 'cabang_name']);
+            return view('pages.transaksi.index', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'report', 'cabang'));
 
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
@@ -127,12 +181,19 @@ class TransaksiController extends Controller
 
     public function Export_dokumen(Request $request)
     {
+        $request->validate([
+            'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+        ]);
+
         try {
             if (Auth::user()->role != 'Owner') {
                 $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
                     ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency')->where('id_pegawai', Auth::user()->id);
                 if ($request->id_currency) {
                     $transaksi->where('currency_id', $request->id_currency);
+                }
+                if ($request->filled('cabang_id')) {
+                    $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
                 }
                 $transaksi = $transaksi->where('jenis_transaksi', 'Beli')->where('tanggal_transaksi', Carbon::today())->get();
                 $total = $transaksi->sum('total');
@@ -161,6 +222,9 @@ class TransaksiController extends Controller
                 }
                 if ($request->id_pegawai) {
                     $transaksi->where('id_pegawai', $request->id_pegawai);
+                }
+                if ($request->filled('cabang_id')) {
+                    $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
                 }
                 $transaksi = $transaksi->where('jenis_transaksi', 'Beli')->get();
                 $total = $transaksi->sum('total');
@@ -191,12 +255,19 @@ class TransaksiController extends Controller
 
     public function Export_dokumen_jual(Request $request)
     {
+        $request->validate([
+            'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+        ]);
+
         try {
             if (Auth::user()->role != 'Owner') {
                 $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
                     ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency')->where('id_pegawai', Auth::user()->id);
                 if ($request->id_currency) {
                     $transaksi->where('currency_id', $request->id_currency);
+                }
+                if ($request->filled('cabang_id')) {
+                    $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
                 }
                 $transaksi = $transaksi->where('jenis_transaksi', 'Jual')->where('tanggal_transaksi', Carbon::today())->get();
                 $total = $transaksi->sum('total');
@@ -225,6 +296,9 @@ class TransaksiController extends Controller
                 }
                 if ($request->id_pegawai) {
                     $transaksi->where('id_pegawai', $request->id_pegawai);
+                }
+                if ($request->filled('cabang_id')) {
+                    $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
                 }
                 $transaksi = $transaksi->where('jenis_transaksi', 'Jual')->get();
                 $total = $transaksi->sum('total');
@@ -258,23 +332,46 @@ class TransaksiController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
+        $isOwner = Auth::user()->role === 'Owner';
+        $request->validate([
+            'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+        ]);
+        $selectedCabangId = $this->resolveCabangId($request, $isOwner);
+        $cabangs = MasterCabang::whereIn('cabang_id', $this->allowedCabangIds($isOwner))
+            ->where('is_active', 1)
+            ->orderBy('cabang_name')
+            ->get(['cabang_id', 'cabang_name']);
+        if ($isOwner && !$selectedCabangId && $cabangs->isNotEmpty()) {
+            $selectedCabangId = (int) $cabangs->first()->cabang_id;
+        }
+        $customers = MasterCustomer::where('is_active', 1)
+            ->when($selectedCabangId, function ($query) use ($selectedCabangId) {
+                $query->where('cabang_terdaftar', $selectedCabangId);
+            })
+            ->when(!$selectedCabangId && !$isOwner, function ($query) {
+                $query->where('cabang_terdaftar', session('cabang_aktif'));
+            })
+            ->orderBy('name')
+            ->get(['customer_id', 'name', 'alias', 'country', 'passport', 'nik', 'alamat', 'cabang_terdaftar']);
+
         $currency = MasterCurrency::orderBy('jenis_kurs', 'ASC')->get();
-        $tes = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
-        if (empty($tes)) {
+        $tesQuery = $isOwner ? ModalTransaksi::withoutGlobalScope('cabang') : ModalTransaksi::query();
+        $tes = $selectedCabangId
+            ? (clone $tesQuery)->where('cabang_id', $selectedCabangId)->where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first()
+            : null;
+        if ($selectedCabangId && empty($tes)) {
             Alert::warning('Belum Mengajukan Modal', 'Anda Belum Mengajukan Modal');
-            return redirect()->route('modal.index');
-        } else {
-            if ($tes->status_modal == 'Pending') {
+            return redirect()->route('modal.index', ['cabang_id' => $selectedCabangId]);
+        } elseif ($selectedCabangId && $tes->status_modal == 'Pending') {
                 Alert::warning('Modal Diproses, Mohon Menunggu', 'Pengajuan Modal Anda Hari Ini Belum Diproses oleh Owner');
-                return redirect()->route('modal.index');
-            } elseif ($tes->status_modal == 'Tolak') {
+                return redirect()->route('modal.index', ['cabang_id' => $selectedCabangId]);
+        } elseif ($selectedCabangId && $tes->status_modal == 'Tolak') {
                 Alert::warning('Modal Ditolak', 'Pengajuan Modal Anda Hari Ini Ditolak oleh Owner, Edit Data Modal');
-                return redirect()->route('modal.index');
-            } else {
-                $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal', 'Terima')->first();
-            }
+                return redirect()->route('modal.index', ['cabang_id' => $selectedCabangId]);
+        } elseif ($selectedCabangId) {
+            $modal = (clone $tesQuery)->where('cabang_id', $selectedCabangId)->where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal', 'Terima')->first();
         }
         $today = Carbon::now()->format('d M Y H:i:s');
         $today_format = Carbon::now()->format('Y-m-d');
@@ -288,8 +385,14 @@ class TransaksiController extends Controller
         $blt = date('ymd');
         $id = Auth::user()->id;
         $kode_transaksi = 'RV' . $blt . '-' . $idbaru;
+        $countries = json_decode(file_get_contents(base_path('countries.json')), true) ?: [];
+        asort($countries);
 
-        return view('pages.transaksi.create', compact('currency', 'modal', 'today', 'kode_transaksi', 'today_format', 'idbaru', 'jumlah_transaksi', 'total_transaksi'));
+        return view('pages.transaksi.create', compact(
+            'currency', 'modal', 'today', 'kode_transaksi', 'today_format', 'idbaru',
+            'jumlah_transaksi', 'total_transaksi', 'countries', 'cabangs', 'customers',
+            'selectedCabangId'
+        ));
     }
 
     /**
@@ -395,7 +498,16 @@ class TransaksiController extends Controller
 
         try {
             DB::beginTransaction();
+            $isOwner = Auth::user()->role === 'Owner';
+            $request->validate([
+                'cabang_id' => 'required|integer|exists:tb_master_cabang,cabang_id',
+            ]);
+            $transactionCabangId = $this->resolveCabangId($request, $isOwner, true);
             $customer = $request->customer_id ? MasterCustomer::findOrFail($request->customer_id) : null;
+            if ($customer && (int) $customer->cabang_terdaftar !== $transactionCabangId) {
+                DB::rollBack();
+                return response()->json(['message' => 'Customer tidak sesuai dengan cabang transaksi.'], 422);
+            }
             if (!$customer && !trim((string) $request->nama_customer)) {
                 DB::rollBack();
                 return response()->json(['message' => 'Customer wajib dipilih.'], 422);
@@ -433,7 +545,10 @@ class TransaksiController extends Controller
                 ->exists();
             if ($screening && $request->input('screening_confirmed') !== '1') {
                 DB::rollBack();
-                return response()->json(['message' => 'Customer masuk daftar terduga dan membutuhkan konfirmasi.'], 422);
+                return response()->json([
+                    'message' => 'Customer masuk daftar terduga dan membutuhkan konfirmasi.',
+                    'requires_screening_confirmation' => true,
+                ], 422);
             }
             $transaksi = new Transaksi();
             $transaksi->kode_transaksi = $request->kode_transaksi;
@@ -445,7 +560,7 @@ class TransaksiController extends Controller
             $transaksi->nomor_passport = $request->nomor_passport;
             $transaksi->negara_asal = $request->asal_negara;
             $transaksi->jenis_transaksi = 'Beli';
-            $transaksi->cabang_id = session('cabang_aktif');
+            $transaksi->cabang_id = $transactionCabangId;
             $transaksi->supporting_document_type = $request->supporting_document_type;
             $transaksi->supporting_document_number = $request->supporting_document_number;
             $transaksi->supporting_document_date = $request->supporting_document_date;
@@ -475,6 +590,7 @@ class TransaksiController extends Controller
                 $jurnal->total_tukar = $key['total_tukar'];
                 $jurnal->jenis_jurnal = 'Debit';
                 $jurnal->id_pegawai = Auth::user()->id;
+                $jurnal->cabang_id = $transaksi->cabang_id;
                 $jurnal->save();
 
                 $cry = MasterCurrency::where('id_currency', $key['currency_id'])->first();
@@ -527,7 +643,21 @@ class TransaksiController extends Controller
         $jumlah_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->count();
         $total_transaksi = Transaksi::where('id_pegawai', Auth::user()->id)->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->sum('total');
 
-        return view('pages.transaksi.edit', compact('transaksi','currency','modal','today','today_format','jumlah_transaksi','total_transaksi'));
+        // Customer aktif sesuai cabang transaksi untuk dropdown searchable.
+        $customerCabangId = $transaksi->cabang_id ?: session('cabang_aktif');
+        $customers = MasterCustomer::where('is_active', 1)
+            ->when($customerCabangId, function ($query) use ($customerCabangId) {
+                $query->where('cabang_terdaftar', $customerCabangId);
+            })
+            ->orderBy('name')
+            ->get(['customer_id', 'name', 'alias', 'country', 'passport', 'nik']);
+        $selectedCustomer = $customers->first(function ($customer) use ($transaksi) {
+            return $customer->name === $transaksi->nama_customer
+                && (!$transaksi->nomor_passport || (string) $customer->passport === (string) $transaksi->nomor_passport);
+        });
+        $selectedCustomerId = $selectedCustomer ? $selectedCustomer->customer_id : null;
+
+        return view('pages.transaksi.edit', compact('transaksi','currency','modal','today','today_format','jumlah_transaksi','total_transaksi','customers','selectedCustomerId'));
     }
 
     /**
@@ -633,6 +763,62 @@ class TransaksiController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    /**
+     * Validasi terduga dari nama dan alias.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function validateTerduga(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:1000',
+        ]);
+
+        $nama = $request->input('nama');
+
+        // Pisahkan dengan delimiter ; (mengikuti logika di method store)
+        $screeningTerms = collect([$nama])
+            ->filter()
+            ->flatMap(function ($value) {
+                return preg_split('/\s*;\s*/', $value);
+            })
+            ->map(function ($term) {
+                return preg_replace('/\s+/', ' ', trim($term));
+            })
+            ->filter(function ($term) {
+                return mb_strlen($term) >= 2;
+            })
+            ->unique(function ($term) {
+                return mb_strtolower($term);
+            })
+            ->values()
+            ->all();
+
+        // Cek di tabel terduga ke name dan alias
+        $screening = MasterTerduga::query()
+            ->where(function ($query) use ($screeningTerms) {
+                foreach ($screeningTerms as $term) {
+                    $term = mb_strtolower($term);
+                    $query->orWhereRaw('LOWER(name) LIKE ?', ['%' . $term . '%'])
+                        ->orWhereRaw('LOWER(alias) LIKE ?', ['%' . $term . '%']);
+                }
+            })
+            ->where(function ($query) {
+                $query->whereNull('is_clear')->orWhere('is_clear', '!=', 1);
+            })
+            ->whereHas('header', function ($query) {
+                $query->where('is_active', 1);
+            })
+            ->exists();
+
+        return response()->json([
+            'terduga' => $screening,
+            'message' => $screening ? 'Nama atau alias ditemukan dalam daftar terduga.' : 'Tidak ditemukan dalam daftar terduga.',
+            'search_terms' => $screeningTerms,
+        ]);
     }
 
     public function hapus(Request $request)

@@ -100,6 +100,19 @@
 </head>
   
 <body class="page" onload="window.print()">
+    @php
+        $formatAngka = function ($val, $maxDec = 4) {
+            if ($val === null || $val === '') {
+                return '0';
+            }
+            $floatVal = (float) $val;
+            if (floor($floatVal) == $floatVal) {
+                return number_format($floatVal, 0, ',', '.');
+            }
+            $formatted = number_format($floatVal, $maxDec, ',', '.');
+            return rtrim(rtrim($formatted, '0'), ',');
+        };
+    @endphp
     <main class="text-kecil" style="color: white; top: 0">
         <div class="row align-items-center  text-center mb-3 mt-3">
             <div class="col-sm-2 text-sm-start justify-content-center">
@@ -141,13 +154,13 @@
                 @else
                 <p class="fs--2 text-danger fw-bold m-0">{{ $item->Currency->nama_currency }}</p>
                 @endif
-                <h6 class="m-0 fs--2 text-600">{{ number_format($item->jumlah_currency, 0, ',', '.') }}</h6>
+                <h6 class="m-0 fs--2 text-600">{{ $formatAngka($item->jumlah_currency) }}</h6>
             </div>
             <div class="col-1 mt-3">
-                <p class="fs--2 text-danger fw-bold m-0 text-600">{{ $item->jumlah_tukar }}</p>
+                <p class="fs--2 text-danger fw-bold m-0 text-600">{{ $formatAngka($item->jumlah_tukar) }}</p>
             </div>
             <div class="col-4 text-end mt-3 ms-4">
-                <h6 class="m-0 fs--2 text-600">{{ number_format($item->total_tukar, 0, ',', '.') }}</h6>
+                <h6 class="m-0 fs--2 text-600">{{ $formatAngka($item->total_tukar) }}</h6>
             </div>
         </div>
         <hr class="tebal mt-2 mb-2" style="height:1px;border-width:0;color:gray;background-color:gray">
@@ -161,7 +174,7 @@
                 <h6 class="m-0 fs--2 text-600">Total Rp.</h6>
             </div>
             <div class="col-6 text-end">
-                <p class="fs--2 fw-bold m-0 text-600 me-2" id="total">{{ number_format($transaksi->total, 0, ',', '.') }}</p>
+                <p class="fs--2 fw-bold m-0 text-600 me-2" id="total">{{ $formatAngka($transaksi->total) }}</p>
             </div>
             <h6 class="text-600 m-0 fs--2 text-center mt-4">
                 @if($transaksi->jenis_transaksi == 'Jual')

@@ -14,14 +14,24 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-4">
-                        <label class="form-label" for="nama_customer">Nama Customer</label>
-                        <input class="form-control form-select-sm" id="nama_customer" name="nama_customer" type="text"
-                            placeholder="Input Nama Customer" value="{{ $transaksi->nama_customer }}" />
+                        <label class="form-label" for="customerSelect">Nama Customer</label>
+                        {{-- Dropdown customer searchable (sama seperti Pilih Kurs) --}}
+                        <select class="form-select js-choice" id="customerSelect" size="1"
+                            data-options='{"removeItemButton":true,"placeholder":true,"shouldSort":false,"searchPlaceholderValue":"Cari nama atau alias customer","noResultsText":"Customer tidak ditemukan"}'>
+                            <option value="">Pilih Customer</option>
+                            @if ($transaksi->nama_customer && !$selectedCustomerId)
+                            <option value="current" selected>{{ $transaksi->nama_customer }}</option>
+                            @endif
+                            @foreach ($customers as $customer)
+                            <option value="{{ $customer->customer_id }}" {{ (string) $selectedCustomerId === (string) $customer->customer_id ? 'selected' : '' }}>{{ $customer->name }}{{ $customer->alias ? ' - ' . $customer->alias : '' }}</option>
+                            @endforeach
+                        </select>
+                        <input type="hidden" id="nama_customer" name="nama_customer" value="{{ $transaksi->nama_customer }}" />
                     </div>
                     <div class="col-4">
                         <label class="form-label" for="nomor_passport">Nomor Passport</label>
                         <input class="form-control form-select-sm " id="nomor_passport" name="nomor_passport"
-                            type="number" placeholder="Input Nomor Passport" value="{{ $transaksi->nomor_passport }}" />
+                            type="text" placeholder="Input Nomor Passport" value="{{ $transaksi->nomor_passport }}" />
                     </div>
                     <div class="col-4">
                         <label class="form-label" for="asal_negara">Asal Negara</label>
@@ -63,13 +73,22 @@
                                     <td class="currency_edit"><span
                                             id="{{ $item->Currency->id_currency }}">{{ $item->Currency->nama_currency }}</span>
                                     </td>
-                                    <td class="harga_currency_edit">IDR&nbsp;{{ number_format($item->jumlah_currency) }}
+                                    <td class="harga_currency_edit">
+                                        <span class="val-kurs" data-kurs="{{ (float) $item->jumlah_currency }}">
+                                            IDR&nbsp;{{ floor((float)$item->jumlah_currency) == (float)$item->jumlah_currency ? number_format($item->jumlah_currency, 0, ',', '.') : number_format($item->jumlah_currency, 2, ',', '.') }}
+                                        </span>
                                     </td>
-                                    <td class="jumlah_edit">{{ $item->jumlah_tukar }}</td>
-                                    <td class="total_edit">IDR&nbsp;{{ number_format($item->total_tukar)}}</td>
-                                    <td>
-
+                                    <td class="jumlah_edit">
+                                        <span class="val-jumlah" data-jumlah="{{ (float) $item->jumlah_tukar }}">
+                                            {{ floor((float)$item->jumlah_tukar) == (float)$item->jumlah_tukar ? number_format($item->jumlah_tukar, 0, ',', '.') : number_format($item->jumlah_tukar, 2, ',', '.') }}
+                                        </span>
                                     </td>
+                                    <td class="total_edit">
+                                        <span class="val-total" data-total="{{ (float) $item->total_tukar }}">
+                                            IDR&nbsp;{{ floor((float)$item->total_tukar) == (float)$item->total_tukar ? number_format($item->total_tukar, 0, ',', '.') : number_format($item->total_tukar, 2, ',', '.') }}
+                                        </span>
+                                    </td>
+                                    <td></td>
                                 </tr>
                                 @empty
 
@@ -80,8 +99,8 @@
                 </div>
                 <div class="card-footer d-flex justify-content-between bg-light">
                     <div class="fw-semi-bold">Payable Total</div>
-                    <div class="fw-bold payable_total" id="payable_total">
-                        IDR&nbsp;{{ number_format($transaksi->total) }}</div>
+                    <div class="fw-bold payable_total" id="payable_total" data-raw-total="{{ (float)$transaksi->total }}">
+                        IDR&nbsp;{{ floor((float)$transaksi->total) == (float)$transaksi->total ? number_format($transaksi->total, 0, ',', '.') : number_format($transaksi->total, 2, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -115,8 +134,10 @@
                             </div>
                             <div class="card-body position-relative">
                                 <h6>Modal Anda Hari Ini</h6>
-                                <h4 class="text-primary jumlah_modal" id="jumlah_modal" data-countup="jumlah_modal">
-                                    IDR&nbsp;{{ number_format($modal->riwayat_modal) }}
+                                <h4 class="text-primary jumlah_modal" id="jumlah_modal" data-countup="jumlah_modal"
+                                    data-base-modal="{{ !empty($modal) ? (float)$modal->riwayat_modal + (float)$transaksi->total : 0 }}"
+                                    data-sisa-modal="{{ !empty($modal) ? (float)$modal->riwayat_modal : 0 }}">
+                                    IDR&nbsp;{{ floor((float)optional($modal)->riwayat_modal) == (float)optional($modal)->riwayat_modal ? number_format(optional($modal)->riwayat_modal, 0, ',', '.') : number_format(optional($modal)->riwayat_modal, 2, ',', '.') }}
                                 </h4>
                                 <a class="fw-semi-bold fs--1 text-nowrap" href="{{ route('modal.index') }}">Tambah Modal
                                     <span class="fas fa-angle-right ms-1" data-fa-transform="down-1"></span></a>
@@ -153,8 +174,8 @@
                                 class="col-md-5 col-xl-12 col-xxl-5 ps-lg-4 ps-xl-2 ps-xxl-5 text-center text-md-start text-xl-center text-xxl-start">
                                 <div class="border-dashed-bottom d-block d-md-none d-xl-block d-xxl-none my-4"></div>
                                 <div class="fs-2 fw-semi-bold">All Total: <span class="text-primary">
-                                        <span class="grand_total" id="grand_total">IDR&nbsp;
-                                            {{ number_format($transaksi->total) }}</span>
+                                        <span class="grand_total" id="grand_total" data-raw-total="{{ (float)$transaksi->total }}">IDR&nbsp;
+                                            {{ floor((float)$transaksi->total) == (float)$transaksi->total ? number_format($transaksi->total, 0, ',', '.') : number_format($transaksi->total, 2, ',', '.') }}</span>
                                 </div>
                                 <button class="btn btn-primary mt-3 px-4" data-bs-toggle="modal"
                                     data-bs-target="#error-modal" type="button">Confirm Data
@@ -236,7 +257,7 @@
                                 style="color: red">*</span>
                             <div class="input-group"><span class="input-group-text">Rp. </span>
                                 <input class="form-control jumlah_currency" id="jumlah_currency" name="jumlah_currency"
-                                    type="number" min="1000" placeholder="Input Harga Currency"
+                                    type="number" step="any" min="0" placeholder="Input Harga Currency"
                                     value="{{ old('jumlah_currency') }}" readonly />
                             </div>
                             <p class="fs--1"> <b>Ket:</b> Nilai kurs akan otomatis terisi setelah memilih Jenis Kurs</p>
@@ -245,7 +266,7 @@
                         <div class="col-md-12 mb-1">
                             <label class="form-label" for="jumlah_tukar">Jumlah Penukaran</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
-                            <input class="form-control" id="jumlah_tukar" name="jumlah_tukar" type="number" min="1"
+                            <input class="form-control" id="jumlah_tukar" name="jumlah_tukar" type="number" step="any" min="0.0001"
                                 placeholder="Input Jumlah Penukaran" value="{{ old('jumlah_tukar') }}" required />
                         </div>
                         <p class="text-primary fs--1"> Calculate (IDR):
@@ -270,289 +291,148 @@
 </template>
 
 <script>
-    function submitdata(event, id_transaksi) {
-        event.preventDefault()
-        var form = $('#form')
-        var _token = form.find('input[name="_token"]').val()
-        var id_modal = form.find('input[name="id_modal"]').val()
-        var keterangan = $('#keterangan').val()
-        var dataform2 = []
-        var grand_total = $('#grand_total').html()
-        var nama_customer = $('#nama_customer').val()
-        var nomor_passport = $('#nomor_passport').val()
-        var negara = $('.negara_asal').val()
-        console.log(negara)
-
-
-        if (grand_total.includes("IDR&nbsp;0")) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Transaksi Kosong! Tambah Transaksi Terlebih Dahulu',
-            })
-        } else {
-            var total = grand_total.split('IDR&nbsp;')[1].replace(',', '').replace(',', '').trim()
-            var check_1 = $('#check_1').is(":checked")
-            var check_2 = $('#check_2').is(":checked")
-
-            var modal = $('#jumlah_modal').html()
-            var jumlah_modal = modal.split('IDR&nbsp;')[1].replace(',', '').replace(',', '').trim()
-
-            if (check_1 == false) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Check Terlebih Dahulu!',
-                })
-            } else if (check_2 == false) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Check Terlebih Dahulu!',
-                })
-            } else if (check_1 == false && check_2 == false) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Check Terlebih Dahulu!',
-                })
-            } else if (check_1 == true && check_2 == true) {
-
-                var detail = $('#konfirmasi').children()
-                for (let index = 0; index < detail.length; index++) {
-                    var children = $(detail[index]).children()
-
-                    var td_currency = children[1]
-                    var span = $(td_currency).children()[0]
-                    var id_currency = $(span).attr('id')
-
-                    var td_jumlah_currency = children[2]
-                    var jumlah_currency_trim = $(td_jumlah_currency).html()
-                    var tes = jumlah_currency_trim.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
-                        .trim()
-                    var jumlah_currency = parseFloat(tes).toFixed(0)
-
-
-                    var td_jumlah_tukar = children[3]
-                    var jumlah_tukar = $(td_jumlah_tukar).html()
-
-                    var total_tukar = children[4]
-                    var total_tukar_trim = $(total_tukar).html()
-                    var total_tukar = total_tukar_trim.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
-                        .trim()
-
-                    dataform2.push({
-                        currency_id: id_currency,
-                        id_transaksi: id_transaksi,
-                        jumlah_currency: jumlah_currency,
-                        jumlah_tukar: jumlah_tukar,
-                        total_tukar: total_tukar,
-                    })
-                }
-
-                if (dataform2.length == 0) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Transaksi Kosong!, Isi Transaksi Terlebih Dahulu',
-                    })
-                } else {
-                    var data = {
-                        _token: _token,
-                        id_modal: id_modal,
-                        total: total,
-                        keterangan: keterangan,
-                        jumlah_modal: jumlah_modal,
-                        nama_customer: nama_customer,
-                        nomor_passport: nomor_passport,
-                        asal_negara: negara,
-                        detail: dataform2
-                    }
-
-                    console.log(data)
-
-                    $.ajax({
-                        method: 'put',
-                        url: '/transaksi/' + id_transaksi,
-                        data: data,
-                        beforeSend: function () {
-                            $('#btnSubmit').prop('disabled', true);
-                        },
-                        success: function (response) {
-                            window.location.href = '/transaksi'
-                            const Toast = Swal.mixin({
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 3000,
-                                timerProgressBar: true,
-                                didOpen: (toast) => {
-                                    toast.addEventListener('mouseenter', Swal.stopTimer)
-                                    toast.addEventListener('mouseleave', Swal.resumeTimer)
-                                }
-                            })
-
-                            Toast.fire({
-                                icon: 'success',
-                                title: 'Data Masih Diproses Mohon Tunggu'
-                            })
-                        },
-                        error: function (response) {
-                            console.log(response)
-                            $('#btnSubmit').prop('disabled', false);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Oops...',
-                                text: 'Error! Transaksi Tidak dapat disimpan',
-                            })
-                        },
-                        complete: function () {
-                            $('#btnSubmit').prop('disabled', false);
-                        }
-                    });
-                }
-            }
-        }
+    function formatCurrencyIdr(val) {
+        var num = parseFloat(val) || 0;
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: num % 1 !== 0 ? 2 : 0,
+            maximumFractionDigits: 2
+        }).format(num);
     }
 
-    function tambahdata(event, id_sparepart) {
-        var form = $('#form1')
-        var currency = $('#currency').html()
-        var currency_2 = $('#currency').text()
-        var id_currency = $('#currency').val()
-        var jumlah_currency = form.find('input[name="jumlah_currency"]').val()
-        var jumlah_tukar = form.find('input[name="jumlah_tukar"]').val()
-        var total_tukar = jumlah_tukar * jumlah_currency;
+    function formatNumberDec(val, maxDec) {
+        var num = parseFloat(val) || 0;
+        maxDec = maxDec || 4;
+        return new Intl.NumberFormat('id-ID', {
+            minimumFractionDigits: num % 1 !== 0 ? 2 : 0,
+            maximumFractionDigits: maxDec
+        }).format(num);
+    }
 
-        var harga_currency = new Intl.NumberFormat('locale', {
-            style: 'currency',
-            currency: 'IDR',
-            separator: ',',
-            minimumFractionDigits: 0,
-        }).format(jumlah_currency)
-
-        var total_tukar_rp = new Intl.NumberFormat('locale', {
-            style: 'currency',
-            currency: 'IDR',
-            type: 'group',
-            minimumFractionDigits: 0,
-        }).format(jumlah_tukar * jumlah_currency)
-
-        if (currency == "" | currency == "Pilih Currency") {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Currency Tidak Boleh Kosong!',
-            })
-        } else if (jumlah_currency == "" | jumlah_currency == 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Harga Currency Tidak Boleh Bernilai 0 atau Kosong!',
-            })
-        } else if (jumlah_tukar == "" | jumlah_tukar == 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Jumlah Tukar Tidak Boleh Bernilai 0 atau Kosong!',
-            })
-        } else {
-            // PENGURANGAN MODAL
-            var jumlah_modal = $('#jumlah_modal').html()
-            // console.log(jumlah_modal)
-            var check_modal = jumlah_modal.includes("IDR&nbsp;")
-            if (check_modal == true) {
-                var jumlah_modal_trim = jumlah_modal.split('IDR&nbsp;')[1].replace(',', '').replace(',', '').trim()
-                var jumlah_total_fix = parseInt(jumlah_modal_trim) - parseInt(total_tukar)
+    function recalculateTotals() {
+        var grandTotal = 0;
+        var detail = $('#konfirmasi').children();
+        for (let index = 0; index < detail.length; index++) {
+            var row = $(detail[index]);
+            var totalSpan = row.find('.val-total');
+            var valTotal = 0;
+            if (totalSpan.length && totalSpan.data('total') !== undefined) {
+                valTotal = parseFloat(totalSpan.data('total'));
             } else {
-                var jumlah_modal_trim = jumlah_modal.split('IDR')[1].replace(',', '').replace(',', '').trim()
-                var jumlah_total_fix = parseInt(jumlah_modal_trim) - parseInt(total_tukar)
+                var rawText = row.children().eq(4).text().replace(/[^\d,-]/g, '').replace(',', '.');
+                valTotal = parseFloat(rawText) || 0;
+            }
+            grandTotal += valTotal;
+        }
+        grandTotal = Math.round(grandTotal * 100) / 100;
+
+        $('#grand_total').data('raw-total', grandTotal).html(formatCurrencyIdr(grandTotal));
+        if ($('#payable_total').length) {
+            $('#payable_total').data('raw-total', grandTotal).html(formatCurrencyIdr(grandTotal));
+        }
+
+        var baseModal = parseFloat($('#jumlah_modal').data('base-modal')) || 0;
+        if (baseModal > 0) {
+            var sisaModal = Math.round((baseModal - grandTotal) * 100) / 100;
+            $('#jumlah_modal').data('sisa-modal', sisaModal).html(formatCurrencyIdr(sisaModal));
+        }
+
+        return {
+            grandTotal: grandTotal,
+            sisaModal: $('#jumlah_modal').data('sisa-modal') || 0
+        };
+    }
+
+    function submitdata(event, id_transaksi) {
+        event.preventDefault();
+        var form = $('#form');
+        var _token = form.find('input[name="_token"]').val();
+        var id_modal = form.find('input[name="id_modal"]').val();
+        var keterangan = $('#keterangan').val();
+        var dataform2 = [];
+        var nama_customer = $('#nama_customer').val();
+        var nomor_passport = $('#nomor_passport').val();
+        var negara = $('.negara_asal').val();
+
+        var check_1 = $('#check_1').is(":checked");
+        var check_2 = $('#check_2').is(":checked");
+
+        if (!check_1 || !check_2) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Check Terlebih Dahulu!',
+            });
+            return;
+        }
+
+        var detail = $('#konfirmasi').children();
+        for (let index = 0; index < detail.length; index++) {
+            var row = $(detail[index]);
+            var span = row.find('span[id]');
+            var id_currency = span.attr('id') || span.data('currency-id');
+
+            var valKurs = row.find('.val-kurs').data('kurs');
+            if (valKurs === undefined) {
+                valKurs = parseFloat(row.children().eq(2).text().replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
             }
 
-            // JIKA TRANSAKSI LEBIH DARI MODAL
-            if (total_tukar > jumlah_modal_trim) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Mohon Maaf Modal Anda Kurang Dari Transaksi, Lakukan Penambahan!',
-                })
-            } else {
-                // PENGURANGAN MODAL
-                var jumlah_total_idr = new Intl.NumberFormat('locale', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                }).format(jumlah_total_fix)
-                $('#jumlah_modal').html(jumlah_total_idr)
+            var valJumlah = row.find('.val-jumlah').data('jumlah');
+            if (valJumlah === undefined) {
+                valJumlah = parseFloat(row.children().eq(3).text().replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+            }
 
-                // PAYABLE TOTAL
-                var payable_total = $('#payable_total').html()
-                var check_payable = payable_total.includes("IDR&nbsp;");
-                if (check_payable == true) {
-                    var payable_total_trim = payable_total.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
-                        .trim()
-                    var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
-                } else {
-                    var payable_total_trim = payable_total.split('Rp&nbsp;')[1].replace(',', '').replace(',', '').trim()
-                    var payable_total_fix = parseInt(payable_total_trim) + parseInt(total_tukar)
-                }
-                var payable_total_idr = new Intl.NumberFormat('locale', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                }).format(payable_total_fix)
-                $('#payable_total').html(payable_total_idr)
+            var valTotal = row.find('.val-total').data('total');
+            if (valTotal === undefined) {
+                valTotal = parseFloat(row.children().eq(4).text().replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+            }
 
-                // GRAND TOTAL
-                var grand_total = $('#grand_total').html()
-                var check_grand = grand_total.includes("IDR&nbsp;");
-                if (check_grand == true) {
-                    var grand_total_trim = grand_total.split('IDR&nbsp;')[1].replace(',', '').replace(',', '').trim()
-                    var grand_total_fix = parseInt(grand_total_trim) + parseInt(total_tukar)
-                } else {
-                    var grand_total_trim = grand_total.split('Rp&nbsp;')[1].replace(',', '').replace(',', '').trim()
-                    var grand_total_fix = parseInt(grand_total_trim) + parseInt(total_tukar)
-                }
-                var grand_total_idr = new Intl.NumberFormat('locale', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    type: 'group',
-                    minimumFractionDigits: 0,
-                }).format(grand_total_fix)
-                $('#grand_total').html(grand_total_idr)
+            if (id_currency) {
+                dataform2.push({
+                    currency_id: id_currency,
+                    id_transaksi: id_transaksi,
+                    jumlah_currency: valKurs,
+                    jumlah_tukar: valJumlah,
+                    total_tukar: valTotal,
+                });
+            }
+        }
 
-                // var detail = $('#konfirmasi').children()
-                // for (let index = 0; index < detail.length; index++) {
-                //     var children1 = $(detail[index]).children()
+        if (dataform2.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Transaksi Kosong!, Isi Transaksi Terlebih Dahulu',
+            });
+            return;
+        }
 
-                //     var td_currency = children1[1]
-                //     var span1 = $(td_currency).children()[0]
-                //     var id_currency2 = $(span1).attr('id')
-                //     var kurs_text = $(span1).text()
+        var totals = recalculateTotals();
+        var total = totals.grandTotal;
+        var jumlah_modal = totals.sisaModal;
 
-                //     var tod = $(detail[index]).parent()
-                //     var tes1 = $(tod).children()[index]
-                //     var tes2 = $(tes1).attr('id')
-                //     var fixx = tes2.split('item-')[1]
+        var data = {
+            _token: _token,
+            id_modal: id_modal,
+            total: total,
+            keterangan_log: keterangan,
+            jumlah_modal: jumlah_modal,
+            nama_customer: nama_customer,
+            nomor_passport: nomor_passport,
+            asal_negara: negara,
+            detail: dataform2
+        };
 
-                // } 
-
-                // DRAW DATATABLE
-                $('#dataTableKonfirmasi').DataTable().row.add([
-                    total_tukar_rp, `<span id=${id_currency}>${currency}</span>`, harga_currency, jumlah_tukar,
-                    total_tukar_rp, total_tukar_rp
-                ]).draw();
-
-                // CLOSE DAN RESET MODAL
-                $('#btn-close-modal').click();
-                $('#form1')[0].reset();
-                var tes = 0;
-                var tes_fix = new Intl.NumberFormat('locale', {
-                    style: 'currency',
-                    currency: 'IDR'
-                }).format(tes)
-                $('#detailjumlahcurrency').html(tes_fix)
-
+        $.ajax({
+            method: 'put',
+            url: '/transaksi/' + id_transaksi,
+            data: data,
+            beforeSend: function () {
+                $('#btnSubmit').prop('disabled', true);
+            },
+            success: function (response) {
+                window.location.href = '/transaksi';
                 const Toast = Swal.mixin({
                     toast: true,
                     position: 'top-end',
@@ -560,22 +440,136 @@
                     timer: 3000,
                     timerProgressBar: true,
                     didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer)
-                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
                     }
-                })
+                });
 
                 Toast.fire({
                     icon: 'success',
-                    title: 'Berhasil Menambahkan Data Transaksi'
-                })
-
-
+                    title: 'Data Berhasil Diupdate'
+                });
+            },
+            error: function (response) {
+                console.log(response);
+                $('#btnSubmit').prop('disabled', false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Error! Transaksi Tidak dapat disimpan',
+                });
+            },
+            complete: function () {
+                $('#btnSubmit').prop('disabled', false);
             }
+        });
+    }
 
+    function tambahdata(event, id_sparepart) {
+        var form = $('#form1');
+        var currencySelect = $('#currency');
+        var id_currency = currencySelect.val();
+        var currencyName = currencySelect.find('option:selected').text() || currencySelect.text();
+        var jumlah_currency = parseFloat(form.find('input[name="jumlah_currency"]').val());
+        var jumlah_tukar = parseFloat(form.find('input[name="jumlah_tukar"]').val());
 
-
+        if (!id_currency || currencyName === "" || currencyName === "Pilih Kurs Terlebih Dahulu") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Currency Tidak Boleh Kosong!',
+            });
+            return;
         }
+
+        var isDuplicate = false;
+        var detailRows = $('#konfirmasi').children();
+        for (let index = 0; index < detailRows.length; index++) {
+            var span_asu = $(detailRows[index]).find('span[id]');
+            if (span_asu.attr('id') == id_currency) {
+                isDuplicate = true;
+                break;
+            }
+        }
+        if (isDuplicate) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Currency Tersebut Sudah Ada, Hapus Dahulu jika ingin menambahkan!',
+            });
+            return;
+        }
+
+        if (isNaN(jumlah_currency) || jumlah_currency <= 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Harga Currency Tidak Boleh Bernilai 0 atau Kosong!',
+            });
+            return;
+        }
+
+        if (isNaN(jumlah_tukar) || jumlah_tukar <= 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Jumlah Tukar Tidak Boleh Bernilai 0 atau Kosong!',
+            });
+            return;
+        }
+
+        var total_tukar = Math.round((jumlah_tukar * jumlah_currency) * 100) / 100;
+
+        var baseModal = parseFloat($('#jumlah_modal').data('base-modal')) || 0;
+        var currentGrandTotal = parseFloat($('#grand_total').data('raw-total')) || 0;
+        var projectedTotal = Math.round((currentGrandTotal + total_tukar) * 100) / 100;
+
+        if (baseModal > 0 && projectedTotal > baseModal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Mohon Maaf Modal Anda Kurang Dari Transaksi, Lakukan Penambahan!',
+            });
+            return;
+        }
+
+        var harga_currency_display = `<span class="val-kurs" data-kurs="${jumlah_currency}">${formatCurrencyIdr(jumlah_currency)}</span>`;
+        var jumlah_tukar_display = `<span class="val-jumlah" data-jumlah="${jumlah_tukar}">${formatNumberDec(jumlah_tukar)}</span>`;
+        var total_tukar_display = `<span class="val-total" data-total="${total_tukar}">${formatCurrencyIdr(total_tukar)}</span>`;
+
+        var table = $('#dataTableKonfirmasi').DataTable();
+        table.row.add([
+            total_tukar_display,
+            `<span id="${id_currency}" data-currency-id="${id_currency}">${currencyName}</span>`,
+            harga_currency_display,
+            jumlah_tukar_display,
+            total_tukar_display,
+            total_tukar_display
+        ]).draw();
+
+        recalculateTotals();
+
+        // Close and reset modal
+        $('#btn-close-modal').click();
+        $('#form1')[0].reset();
+        $('#detailjumlahcurrency').html(formatCurrencyIdr(0));
+
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: 'Berhasil Menambahkan Data Transaksi'
+        });
     }
 
     function hapusdata(element) {
@@ -589,66 +583,34 @@
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                var table = $('#dataTableKonfirmasi').DataTable()
-                var row = $(element).parent().parent()
+                var table = $('#dataTableKonfirmasi').DataTable();
+                var row = $(element).closest('tr');
                 table.row(row).remove().draw();
-                var table = $('#dataTable').DataTable()
-
-                var jumlah = $(row.children()[4]).text()
-                var check_jumlah = jumlah.includes("&nbsp;");
-                if (check_jumlah == true) {
-                    var jumlah_trim = jumlah.split('IDR&nbsp;')[1].replace(',', '').replace(',', '').trim()
-                } else {
-                    var jumlah_trim = jumlah.split('IDR')[1].replace(',', '').replace(',', '').trim()
-                }
-
-                // PAYABLE 
-                var payable_total = $('#payable_total').html()
-                var payable_total_trim = payable_total.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
-                    .trim()
-                var payable_total_fix = parseInt(payable_total_trim) - parseInt(jumlah_trim)
-                var payable_total_idr = new Intl.NumberFormat('locale', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    type: 'group',
-                    minimumFractionDigits: 0,
-                }).format(payable_total_fix)
-                $('#payable_total').html(payable_total_idr)
-
-                // GRAND TOTAL
-                var grand_total = $('#grand_total').html()
-                var grand_total_trim = grand_total.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
-                    .trim()
-                var grand_total_fix = parseInt(grand_total_trim) - parseInt(jumlah_trim)
-                var grand_total_idr = new Intl.NumberFormat('locale', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    type: 'group',
-                    minimumFractionDigits: 0,
-                }).format(grand_total_fix)
-                $('#grand_total').html(grand_total_idr)
-
-                // MODAL
-                var jumlah_modal = $('#jumlah_modal').html()
-
-
-                var jumlah_modal_trim = jumlah_modal.split('IDR&nbsp;')[1].replace(',', '').replace(',', '')
-                    .trim()
-                // console.log(jumlah_modal, jumlah_modal_trim)
-                var jumlah_total_fix = parseInt(jumlah_modal_trim) + parseInt(jumlah_trim)
-                var jumlah_total_idr = new Intl.NumberFormat('locale', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    type: 'group',
-                    minimumFractionDigits: 0,
-                }).format(jumlah_total_fix)
-                $('#jumlah_modal').html(jumlah_total_idr)
+                recalculateTotals();
             }
-        })
-
+        });
     }
 
     $(document).ready(function () {
+        // Isi otomatis nama, passport & negara saat customer dipilih dari dropdown.
+        var editCustomers = @json($customers->keyBy('customer_id'));
+        var originalCustomerName = @json($transaksi->nama_customer);
+        $('#customerSelect').on('change', function () {
+            var value = $(this).val();
+            if (value === 'current') {
+                $('#nama_customer').val(originalCustomerName);
+                return;
+            }
+            var customer = editCustomers[value];
+            if (!customer) {
+                $('#nama_customer').val('');
+                return;
+            }
+            $('#nama_customer').val(customer.name);
+            $('#nomor_passport').val(customer.passport || '');
+            $('#negara_asal').val(customer.country || '');
+        });
+
         $('.jumlah_currency').each(function () {
             $(this).on('input', function () {
                 var harga = $(this).val()
@@ -686,19 +648,10 @@
         });
 
         $('#jumlah_tukar').on('input', function () {
-            var value = $(this).val()
-            var nilai_kurs = $('.jumlah_currency').val()
-            var calculate = parseFloat(value) * parseFloat(nilai_kurs)
-            // var hasil_calc = calculate.toFixed(2)
-
-            var hasil_calc = new Intl.NumberFormat('id', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(calculate);
-
-            $('#detailjumlahcurrency').html(hasil_calc)
+            var value = parseFloat($(this).val()) || 0;
+            var nilai_kurs = parseFloat($('.jumlah_currency').val()) || 0;
+            var calculate = Math.round((value * nilai_kurs) * 100) / 100;
+            $('#detailjumlahcurrency').html(formatCurrencyIdr(calculate));
         });
 
 

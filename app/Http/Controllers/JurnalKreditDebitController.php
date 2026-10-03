@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\ExcelDebitKredit;
 use App\Models\Jurnal;
+use App\Models\MasterCabang;
 use App\Models\MasterCurrency;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -21,16 +22,27 @@ class JurnalKreditDebitController extends Controller
     public function index(Request $request)
     {
         try {
+            $request->validate([
+                'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+            ]);
             $perPage = $request->input('per_page', 10);
-            if(Auth::user()->role == 'Owner'){
-                $jurnalQuery = Jurnal::orderBy('updated_at','DESC')->take(200);
-            }else{
-                $jurnalQuery = Jurnal::where('id_pegawai', Auth::user()->id)->orderBy('updated_at','DESC')->take(300);
+            $jurnalQuery = Jurnal::with(['Cabang', 'Transaksi', 'Currency'])
+                ->when($request->filled('cabang_id'), function ($query) use ($request) {
+                    $query->where('cabang_id', $request->cabang_id);
+                })
+                ->orderBy('updated_at', 'DESC');
+            if (Auth::user()->role != 'Owner') {
+                $jurnalQuery->where('id_pegawai', Auth::user()->id);
             }
-            $jurnal = $jurnalQuery->paginate($perPage);
+            $jurnal = $jurnalQuery->take(Auth::user()->role == 'Owner' ? 200 : 300)
+                ->paginate($perPage)
+                ->withQueryString();
             $currency = MasterCurrency::get();
+            $cabang = MasterCabang::where('is_active', 1)
+                ->orderBy('cabang_name')
+                ->get(['cabang_id', 'cabang_name']);
 
-            return view('pages.jurnal.kredit&debit.index', compact('jurnal','currency'));
+            return view('pages.jurnal.kredit&debit.index', compact('jurnal', 'currency', 'cabang'));
         } catch (\Throwable $th) {
             return $th;
         }
@@ -44,6 +56,9 @@ class JurnalKreditDebitController extends Controller
      */
     public function create(Request $request)
     {
+        $request->validate([
+            'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+        ]);
 
         $jurnal = Jurnal::with('Currency')->OrderBy('updated_at');
         $totalDebit = Jurnal::with('Currency')->OrderBy('updated_at');
@@ -62,6 +77,12 @@ class JurnalKreditDebitController extends Controller
             $totalDebit->where('tanggal_jurnal', '>=', $request->to_date_export);
             $totalKredit->where('tanggal_jurnal', '>=', $request->to_date_export);
             $totalModal->where('tanggal_jurnal', '>=', $request->to_date_export);
+        }
+        if($request->filled('cabang_id')){
+            $jurnal->where('cabang_id', $request->cabang_id);
+            $totalDebit->where('cabang_id', $request->cabang_id);
+            $totalKredit->where('cabang_id', $request->cabang_id);
+            $totalModal->where('cabang_id', $request->cabang_id);
         }
         if($request->filter_jenis){
             $jurnal->where('jenis_jurnal', $request->filter_jenis);
@@ -86,6 +107,9 @@ class JurnalKreditDebitController extends Controller
         }
         if($request->to_date_export){
             $currency->where('tanggal_jurnal', '<=', $request->to_date_export);
+        }
+        if($request->filled('cabang_id')){
+            $currency->where('tb_jurnal.cabang_id', $request->cabang_id);
         }
         if($request->filter_jenis){
             $currency->where('jenis_jurnal', $request->filter_jenis);

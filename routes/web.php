@@ -9,6 +9,8 @@ use App\Http\Controllers\CurrencyDetailController;
 use App\Http\Controllers\JurnalBulananController;
 use App\Http\Controllers\JurnalHarianController;
 use App\Http\Controllers\JurnalKreditDebitController;
+use App\Http\Controllers\LkubController;
+use App\Http\Controllers\SummaryValasController;
 use App\Http\Controllers\LogEditController;
 use App\Http\Controllers\LaporanRekapCabangController;
 use App\Http\Controllers\MasterCurrencyController;
@@ -61,6 +63,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('role-hak-akses', [\App\Http\Controllers\RoleHakAksesController::class, 'index'])->name('role-hak-akses.index');
             Route::post('role-hak-akses', [\App\Http\Controllers\RoleHakAksesController::class, 'store'])->name('role-hak-akses.store');
             Route::put('role-hak-akses/{role}', [\App\Http\Controllers\RoleHakAksesController::class, 'update'])->name('role-hak-akses.update');
+            Route::delete('role-hak-akses/{role}', [\App\Http\Controllers\RoleHakAksesController::class, 'destroy'])->name('role-hak-akses.destroy');
             Route::get('/master-pegawa/reset/{id}', [\App\Http\Controllers\MasterPegawaiController::class, 'reset_password'])->name('master-pegawai-reset');
             Route::put('/master-pegawa/reset/{id}', [\App\Http\Controllers\MasterPegawaiController::class, 'reset_password_post'])->name('master-pegawai-reset-post');
 
@@ -72,6 +75,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::get('master-customer/search', [\App\Http\Controllers\MasterCustomerController::class, 'search'])->name('master-customer.search');
             Route::post('master-customer/screen', [\App\Http\Controllers\MasterCustomerController::class, 'screen'])->name('master-customer.screen');
             Route::resource('master-customer', \App\Http\Controllers\MasterCustomerController::class)->except(['create', 'edit']);
+            Route::patch('master-customer/{id}/status', [\App\Http\Controllers\MasterCustomerController::class, 'status'])->name('master-customer.status');
             Route::get('master-terduga', [\App\Http\Controllers\MasterTerdugaController::class, 'index'])->name('master-terduga.index');
             Route::post('master-terduga', [\App\Http\Controllers\MasterTerdugaController::class, 'store'])->name('master-terduga.store');
             Route::post('master-terduga/upload', [\App\Http\Controllers\MasterTerdugaController::class, 'upload'])->name('master-terduga.upload');
@@ -112,6 +116,10 @@ Route::group(['middleware' => 'auth'], function () {
         // LAPORAN REKAP CABANG
         Route::get('/laporan-rekap-cabang', [LaporanRekapCabangController::class, 'index'])->name('laporan-rekap-cabang.index');
         Route::get('/laporan-rekap-cabang/download', [LaporanRekapCabangController::class, 'download'])->name('laporan-rekap-cabang.download');
+        Route::get('/laporan-lkub', [LkubController::class, 'index'])->name('laporan-lkub.index');
+        Route::get('/laporan-lkub/download', [LkubController::class, 'download'])->name('laporan-lkub.download');
+        Route::get('/summary-valas', [SummaryValasController::class, 'index'])->name('summary-valas.index');
+        Route::get('/summary-valas/download', [SummaryValasController::class, 'download'])->name('summary-valas.download');
 
         // CUSTOMER AJAX UNTUK TRANSAKSI
         Route::get('/api/customer/search', [\App\Http\Controllers\MasterCustomerController::class, 'search'])->name('api.customer.search');
@@ -120,6 +128,7 @@ Route::group(['middleware' => 'auth'], function () {
 
         // TRANSAKSI
         Route::post('/api/transaksi/passport-threshold', [TransaksiController::class, 'passportThreshold'])->name('api.transaksi.passport-threshold');
+        Route::post('/api/transaksi/validate-terduga', [TransaksiController::class, 'validateTerduga'])->name('api.transaksi.validate-terduga');
         Route::resource('transaksi', TransaksiController::class);
         Route::get('transaksi/getkurs/{id_currency}', [\App\Http\Controllers\TransaksiController::class, 'getkurs']);
         Route::get('/edit/getkurs/{id_currency}', [\App\Http\Controllers\TransaksiController::class, 'getkursedit']);

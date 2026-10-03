@@ -24,6 +24,19 @@
                 <div class="col-lg-6">
                     <h5>Jurnal Debit Kredit</h5>
                     <p class="mt-2">Export Jurnal</p>
+                    <form method="get" class="mt-3">
+                        <label class="small" for="cabang_id">Filter by Cabang</label>
+                        <div class="d-flex gap-2">
+                            <select class="form-select" id="cabang_id" name="cabang_id">
+                                <option value="">Semua Cabang</option>
+                                @foreach ($cabang as $item)
+                                <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                            <button class="btn btn-primary" type="submit">Filter</button>
+                            <a class="btn btn-danger" href="{{ route('jurnal-debit-kredit.index') }}">Reset</a>
+                        </div>
+                    </form>
                     <hr>
                     <button class="btn btn-falcon-default btn-sm me-1 mb-2 mb-sm-0" type="button" data-bs-toggle="modal"
                         data-bs-target="#modalfilter"><span class="fas fa-arrow-down me-1"> </span>Download Laporan Jurnal
@@ -45,6 +58,7 @@
                                 <th class="sort text-center fs--1" data-sort="no">No.</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal">Tanggal</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal">Kode</th>
+                                <th class="sort text-center fs--1" data-sort="cabang">Cabang</th>
                                 <th class="sort text-center fs--1" data-sort="jenis">Jenis</th>
                                 <th class="sort text-center fs--1" data-sort="tanggal_transaksi">Currency</th>
                                 <th class="sort text-center fs--1" data-sort="kode_transaksi">Jumlah Jual/Beli</th>
@@ -61,6 +75,7 @@
                                 <td class="text-start tanggal fs--1">{{ date('d-M-Y H:i:s', strtotime($item->updated_at)) }}</td>
                                 @if ($item->jenis_jurnal == 'Debit')
                                     <td class="text-center text-center fs--1 jenis">{{ $item->Transaksi->kode_transaksi }}</td>
+                                    <td class="text-center text-center fs--1 cabang">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                     <td class="text-center text-center fs--1 jenis">Penjualan Customer</td>
                                     <td class="text-center text-center fs--1">{{ $item->Currency->nama_currency }}, {{ $item->Currency->jenis_kurs }}</td>
                                     <td class="text-center text-center fs--1">{{ $item->jumlah_tukar }}</td>
@@ -69,6 +84,7 @@
                                     <td>-</td>
                                 @elseif ($item->jenis_jurnal == 'Kredit Jual')
                                     <td class="text-center text-center fs--1 jenis">{{ $item->Transaksi->kode_transaksi }}</td>
+                                    <td class="text-center text-center fs--1 cabang">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                     <td class="text-center text-center fs--1 jenis">Penjualan Valas</td>
                                     <td class="text-center text-center fs--1">{{ $item->Currency->nama_currency }}, {{ $item->Currency->jenis_kurs }}</td>
                                     <td class="text-center text-center fs--1">{{ $item->jumlah_tukar }}</td>
@@ -77,6 +93,7 @@
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>
                                 @else
                                     <td class="text-center text-center fs--1 jenis">Modal</td>
+                                    <td class="text-center text-center fs--1 cabang">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                     <td class="text-center text-center fs--1 jenis">Modal</td>
                                     <td>-</td>
                                     <td>-</td>
@@ -99,7 +116,7 @@
                     </table>
                 </div>
                 <div class="d-flex justify-content-center">
-                    {{ $jurnal->links('layouts.pagination') }}
+                    {{ $jurnal->withQueryString()->links('layouts.pagination') }}
                 </div>
             </div>
         </div>
@@ -145,6 +162,17 @@
                                 <label class="small">End Date</label>
                                 <input class="form-control datetimepicker" id="to_date_export" type="date"
                                     name="to_date_export" placeholder="To Date" data-options='{"disableMobile":true}' />
+                            </div>
+                        </div>
+                        <div class="row mb-3 mt-3">
+                            <div class="col-12">
+                                <label for="cabang_export">Filter by Cabang</label>
+                                <select class="form-select js-choice" id="cabang_export" name="cabang_id">
+                                    <option value="">Semua Cabang</option>
+                                    @foreach ($cabang as $item)
+                                    <option value="{{ $item->cabang_id }}" {{ (string) request('cabang_id') === (string) $item->cabang_id ? 'selected' : '' }}>{{ $item->cabang_name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-3 mt-3">

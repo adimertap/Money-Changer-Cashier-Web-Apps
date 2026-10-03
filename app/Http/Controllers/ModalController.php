@@ -75,6 +75,18 @@ class ModalController extends Controller
         //
     }
 
+    private function resolveCabangId($requestedCabangId, $isOwner, $activeCabangId, array $allowedCabangIds)
+    {
+        $allowedCabangIds = array_map('intval', $allowedCabangIds);
+        $cabangId = $isOwner ? $requestedCabangId : $activeCabangId;
+
+        if ($cabangId === null || $cabangId === '' || !in_array((int) $cabangId, $allowedCabangIds, true)) {
+            return null;
+        }
+
+        return (int) $cabangId;
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -83,20 +95,36 @@ class ModalController extends Controller
      */
     public function store(Request $request)
     {
+        $isOwner = Auth::user()->role === 'Owner';
+        $allowedCabangIds = $isOwner
+            ? MasterCabang::where('is_active', 1)->pluck('cabang_id')->all()
+            : array_column(session('cabangs', []), 'cabang_id');
+        $cabangId = $this->resolveCabangId(
+            $request->input('cabang_id'),
+            $isOwner,
+            session('cabang_aktif'),
+            $allowedCabangIds
+        );
+
+        abort_unless($cabangId !== null, 403, 'Cabang tidak valid.');
+
         try {
             $modal = new ModalTransaksi();
             $modal->tanggal_modal = Carbon::now();
             $modal->jumlah_modal = $request->jumlah_modal;
             $modal->status_modal = 'Pending';
             $modal->id_pegawai = Auth::user()->id;
+            $modal->cabang_id = $cabangId;
             $modal->riwayat_modal = $request->jumlah_modal;
             $modal->total_modal_backup = $request->jumlah_modal;
             $modal->jenis_modal = 'Modal Awal';
             $modal->save();
 
-            $user = User::where('role','Owner')->get();
-            foreach ($user as $tes) {
-                Mail::to($tes->email)->send(new MailModal($modal));
+            if (app()->environment('production')) {
+                $user = User::where('role','Owner')->get();
+                foreach ($user as $tes) {
+                    Mail::to($tes->email)->send(new MailModal($modal));
+                }
             }
 
             Alert::success('Berhasil', 'Data Modal Berhasil Ditambahkan');
@@ -182,9 +210,11 @@ class ModalController extends Controller
             $item->jenis_modal = 'Penambahan Modal';
             $item->save();
 
-            $user = User::where('role','Owner')->get();
-            foreach ($user as $tes) {
-                Mail::to($tes->email)->send(new MailModalTambah($item));
+            if (app()->environment('production')) {
+                $user = User::where('role','Owner')->get();
+                foreach ($user as $tes) {
+                    Mail::to($tes->email)->send(new MailModalTambah($item));
+                }
             }
 
             Alert::success('Berhasil', 'Data Modal Berhasil Diajukan, Mohon Tunggu');
@@ -232,6 +262,7 @@ class ModalController extends Controller
                 $modal_baru->jumlah_modal = $modal->riwayat_modal;
                 $modal_baru->status_modal = 'Pending';
                 $modal_baru->id_pegawai = Auth::user()->id;
+                $modal_baru->cabang_id = $modal->cabang_id;
                 $modal_baru->riwayat_modal = $modal->riwayat_modal;
                 $modal_baru->total_modal_backup = $modal->riwayat_modal;
                 $modal_baru->jenis_modal = 'Transfer Modal';
@@ -250,9 +281,11 @@ class ModalController extends Controller
             $modal->riwayat_modal = 0;
             $modal->save();
 
-            $user = User::where('role','Owner')->get();
-            foreach ($user as $tes) {
-                Mail::to($tes->email)->send(new MailTransfer($modal));
+            if (app()->environment('production')) {
+                $user = User::where('role','Owner')->get();
+                foreach ($user as $tes) {
+                    Mail::to($tes->email)->send(new MailTransfer($modal));
+                }
             }
 
             Alert::success('Berhasil', 'Data Transfer Modal Berhasil Diajukan, Mohon Menunggu Approval');

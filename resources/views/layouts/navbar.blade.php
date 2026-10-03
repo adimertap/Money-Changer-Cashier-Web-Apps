@@ -27,7 +27,7 @@
     <div class="d-flex align-items-center">
         <div class="toggle-icon-wrapper"></div>
         <a class="navbar-brand" href="{{ route('dashboard') }}">
-            <div class="d-flex align-items-center py-3"><span class="font-sans-serif">Kasir</span></div>
+            <div class="d-flex align-items-center py-3"><span class="font-sans-serif fs-1">Riasta Valasindo</span></div>
         </a>
     </div>
     @php
@@ -35,7 +35,7 @@
         'master' => request()->routeIs('role-hak-akses.*', 'master-*'),
         'jadwal' => true,
         'transaksi' => true,
-        'pelaporan' => request()->routeIs('transaksi.index', 'transaksi.show', 'jurnal-*', 'bulanan-transaksi', 'getUserReport', 'jadwal-laporan.*', 'report-jadwal-harian', 'laporan-rekap-cabang.*'),
+        'pelaporan' => request()->routeIs('transaksi.index', 'transaksi.show', 'jurnal-*', 'bulanan-transaksi', 'getUserReport', 'jadwal-laporan.*', 'report-jadwal-harian', 'laporan-rekap-cabang.*', 'laporan-lkub.*', 'summary-valas.*'),
         'absen' => request()->routeIs('getUserReport', 'jadwal-laporan.*', 'report-jadwal-harian'),
         'log' => request()->routeIs('approval-modal.*', 'log-edit.*', 'filterLog'),
     ];
@@ -134,7 +134,7 @@
                 </li>
                 @endmenuAccess
 
-                @menuAccess(['rekapan-hari-ini', 'seluruh-transaksi', 'jurnal-bulanan', 'jurnal-debit-kredit', 'laporan-harian', 'laporan-pegawai', 'laporan-saya', 'laporan-rekap-cabang'])
+                @menuAccess(['rekapan-hari-ini', 'seluruh-transaksi', 'jurnal-bulanan', 'jurnal-debit-kredit', 'laporan-harian', 'laporan-pegawai', 'laporan-saya', 'laporan-rekap-cabang', 'lkub', 'summary-valas'])
                 <li class="nav-item">
                     <a class="nav-link dropdown-indicator {{ $open['pelaporan'] ? '' : 'collapsed' }}" href="#navPelaporan" role="button" data-bs-toggle="collapse" aria-expanded="{{ $open['pelaporan'] ? 'true' : 'false' }}" aria-controls="navPelaporan">
                         <div class="d-flex align-items-center"><span class="nav-link-icon"><i class="fas fa-file-alt"></i></span><span class="nav-link-text ps-1">Pelaporan</span></div>
@@ -171,7 +171,13 @@
                         </li>
                         @endmenuAccess
                         @menuAccess('laporan-rekap-cabang')
-                        <li class="nav-item"><a class="nav-link" href="{{ route('laporan-rekap-cabang.index') }}"><div class="d-flex align-items-center"><span class="nav-link-icon"><i class="fas fa-file-excel"></i></span><span class="nav-link-text ps-1">Rekapitulasi Cabang (Excel)</span></div></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('laporan-rekap-cabang.index') }}"><div class="d-flex align-items-center"><span class="nav-link-icon"><i class="fas fa-file-excel"></i></span><span class="nav-link-text ps-1">Rekapitulasi</span></div></a></li>
+                        @endmenuAccess
+                        @menuAccess('lkub')
+                        <li class="nav-item"><a class="nav-link" href="{{ route('laporan-lkub.index') }}"><div class="d-flex align-items-center"><span class="nav-link-icon"><i class="fas fa-file-alt"></i></span><span class="nav-link-text ps-1">LKUB</span></div></a></li>
+                        @endmenuAccess
+                        @menuAccess('summary-valas')
+                        <li class="nav-item"><a class="nav-link" href="{{ route('summary-valas.index') }}"><div class="d-flex align-items-center"><span class="nav-link-icon"><i class="fas fa-chart-line"></i></span><span class="nav-link-text ps-1">Summary Valas</span></div></a></li>
                         @endmenuAccess
                     </ul>
                 </li>

@@ -11,6 +11,16 @@
         <h4 class="mb-3">Laporan Absensi {{ $displayText }}</h4>
         <form action="{{ route('jadwal-laporan.index') }}" method="GET">
             <input type="hidden" name="userid" value="{{ request()->query('userid') }}">
+            <input type="hidden" name="cabang_id" value="{{ $cabangId ?? request('cabang_id') }}">
+            <div class="mb-3">
+                <label for="reportCabangId" class="form-label">Cabang</label>
+                <select id="reportCabangId" name="cabang_id" class="form-select">
+                    <option value="">Semua Cabang</option>
+                    @foreach ($cabangs ?? [] as $cabang)
+                    <option value="{{ $cabang->cabang_id }}" {{ (string) ($cabangId ?? request('cabang_id')) === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="card mb-2 mt-2">
                 <div class="card-body">
                     <div class="row">

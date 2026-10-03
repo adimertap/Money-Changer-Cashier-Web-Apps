@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use App\Models\MasterCurrency;
+use App\Models\MasterCabang;
 use App\Models\DetailTransaksi;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
@@ -24,8 +25,12 @@ class JurnalHarianController extends Controller
     public function index(Request $request)
     {
         try {
+            $request->validate([
+                'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+            ]);
+            $cabang = MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get(['cabang_id', 'cabang_name']);
             // Build the initial query
-            $transaksiQuery = Transaksi::with(['Pegawai'])
+            $transaksiQuery = Transaksi::with(['Pegawai', 'Cabang'])
                 ->where('jenis_transaksi', 'Beli')
                 ->where('tanggal_transaksi', '>=', now()->subDays(60))
                 ->orderBy('updated_at', 'DESC');
@@ -37,10 +42,13 @@ class JurnalHarianController extends Controller
             if ($request->to) {
                 $transaksiQuery->where('tanggal_transaksi', '<=', $request->to);
             }
+            if ($request->filled('cabang_id')) {
+                $transaksiQuery->where('cabang_id', $request->cabang_id);
+            }
 
             // Paginate the results
             $perPage = 10;
-            $transaksi = $transaksiQuery->paginate($perPage);
+            $transaksi = $transaksiQuery->paginate($perPage)->withQueryString();
 
             // Count and sum for the filtered results
             $jumlah = $transaksiQuery->count();
@@ -50,7 +58,7 @@ class JurnalHarianController extends Controller
             $currency = MasterCurrency::orderBy('jenis_kurs', 'ASC')->get();
             $pegawai = User::where('role', '!=', 'Owner')->get();
 
-            return view('pages.jurnal.harian.index', compact('pegawai', 'transaksi', 'jumlah', 'total', 'currency'));
+            return view('pages.jurnal.harian.index', compact('pegawai', 'transaksi', 'jumlah', 'total', 'currency', 'cabang'));
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
@@ -61,8 +69,12 @@ class JurnalHarianController extends Controller
     public function jual(Request $request)
     {
         try {
+            $request->validate([
+                'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+            ]);
+            $cabang = MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get(['cabang_id', 'cabang_name']);
             // Build the initial query
-            $transaksiQuery = Transaksi::with(['Pegawai'])
+            $transaksiQuery = Transaksi::with(['Pegawai', 'Cabang'])
                 ->where('jenis_transaksi', 'Jual')
                 ->where('tanggal_transaksi', '>=', now()->subDays(60))
                 ->orderBy('updated_at', 'DESC');
@@ -74,10 +86,13 @@ class JurnalHarianController extends Controller
             if ($request->to) {
                 $transaksiQuery->where('tanggal_transaksi', '<=', $request->to);
             }
+            if ($request->filled('cabang_id')) {
+                $transaksiQuery->where('cabang_id', $request->cabang_id);
+            }
 
             // Paginate the results
             $perPage = 10;
-            $transaksi = $transaksiQuery->paginate($perPage);
+            $transaksi = $transaksiQuery->paginate($perPage)->withQueryString();
 
             // Count and sum for the filtered results
             $jumlah = $transaksiQuery->count();
@@ -87,7 +102,7 @@ class JurnalHarianController extends Controller
             $currency = MasterCurrency::orderBy('jenis_kurs', 'ASC')->get();
             $pegawai = User::where('role', '!=', 'Owner')->get();
 
-            return view('pages.jurnal.harian.jual.index', compact('pegawai', 'transaksi', 'jumlah', 'total', 'currency'));
+            return view('pages.jurnal.harian.jual.index', compact('pegawai', 'transaksi', 'jumlah', 'total', 'currency', 'cabang'));
         } catch (\Throwable $th) {
             return $th;
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
@@ -107,6 +122,10 @@ class JurnalHarianController extends Controller
 
     public function Export_dokumen(Request $request)
     {
+        $request->validate([
+            'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+        ]);
+
         try {
             $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
                 ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency');
@@ -121,6 +140,9 @@ class JurnalHarianController extends Controller
             }
             if ($request->id_currency) {
                 $transaksi->where('currency_id', $request->id_currency);
+            }
+            if ($request->filled('cabang_id')) {
+                $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
             }
             $transaksi = $transaksi->where('jenis_transaksi','Beli')->orderBy('tb_transaksi.created_at', 'DESC')->get();
             $total = $transaksi->sum('total');
@@ -161,6 +183,10 @@ class JurnalHarianController extends Controller
 
     public function Export_dokumen_jual(Request $request)
     {
+        $request->validate([
+            'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
+        ]);
+
         try {
             $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
                 ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency');
@@ -175,6 +201,9 @@ class JurnalHarianController extends Controller
             }
             if ($request->id_currency) {
                 $transaksi->where('currency_id', $request->id_currency);
+            }
+            if ($request->filled('cabang_id')) {
+                $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
             }
             $transaksi = $transaksi->where('jenis_transaksi','Jual')->orderBy('tb_transaksi.created_at', 'DESC')->get();
             $total = $transaksi->sum('total');

@@ -20,10 +20,24 @@
                             @if (count($modal_today) == 0)
                             <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="modal"
                                 data-bs-target="#modaltambah">Tambah Modal</button>
-
                             @endif
-
                         </div>
+                        @if (Auth::user()->role === 'Owner')
+                        <div class="col-12 mt-3">
+                            <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+                                <label for="welcomeCabangFilter" class="mb-0">Filter Cabang</label>
+                                <select id="welcomeCabangFilter" name="cabang_id" class="form-select w-auto">
+                                    <option value="">Semua Cabang</option>
+                                    @foreach ($cabangs as $cabang)
+                                    <option value="{{ $cabang->cabang_id }}" {{ (string) request('cabang_id') === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+                                <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+                                <a class="btn btn-sm btn-danger" href="{{ route('modal.index') }}">Reset</a>
+                            </form>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -71,15 +85,6 @@
                     @endif
             </h5>
             <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
-                <div id="cabangFilterWrapper" class="d-flex align-items-center gap-2">
-                    <label for="cabangFilter" class="mb-0">Cabang</label>
-                    <select id="cabangFilter" class="form-select w-auto">
-                        <option value="">Semua Cabang</option>
-                        @foreach ($cabangs as $cabang)
-                        <option value="{{ $cabang->cabang_id }}" {{ (string) request('cabang_id') === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
                 <label for="perPageSelect" class="mb-0">Show</label>
                 <select id="perPageSelect" class="form-select w-auto">
                     <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
@@ -198,6 +203,18 @@
                     </div>
                     <div class="p-4 pb-0">
                         <p class="text-word-break fs--1 mb-3">Lengkapi Form Modal berikut ini</p>
+                        @if (Auth::user()->role === 'Owner')
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label" for="modal_cabang_id">Cabang</label><span class="mr-4 mb-3"
+                                style="color: red">*</span>
+                            <select class="form-select" id="modal_cabang_id" name="cabang_id" required>
+                                <option value="">Pilih Cabang</option>
+                                @foreach ($cabangs as $cabang)
+                                <option value="{{ $cabang->cabang_id }}" {{ (string) old('cabang_id') === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                         <div class="col-md-12 mb-3">
                             <label class="form-label" for="jumlah_modal">Jumlah Modal</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
@@ -396,10 +413,12 @@
         var form = $('#form_tambah_baru')
         var _token = form.find('input[name="_token"]').val()
         var jumlah_modal = form.find('input[name="jumlah_modal"]').val()
+        var cabang_id = form.find('select[name="cabang_id"]').val()
 
         var data = {
             _token: _token,
             jumlah_modal: jumlah_modal,
+            cabang_id: cabang_id,
         }
         $('#btn_form_tambah_baru').prop('disabled', true);
 
@@ -549,14 +568,9 @@
         var table = $('#example').DataTable({
             paging:false
         });
-        $('#perPageSelect, #cabangFilter').on('change', function () {
+        $('#perPageSelect').on('change', function () {
             const params = new URLSearchParams(window.location.search);
-            params.set('per_page', $('#perPageSelect').val());
-            if ($('#cabangFilter').val()) {
-                params.set('cabang_id', $('#cabangFilter').val());
-            } else {
-                params.delete('cabang_id');
-            }
+            params.set('per_page', $(this).val());
             params.delete('page');
             window.location.href = '?' + params.toString();
         });

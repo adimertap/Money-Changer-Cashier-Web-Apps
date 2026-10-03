@@ -9,12 +9,13 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Illuminate\Contracts\Support\Responsable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Events\AfterSheet;
 
 class ExcelHarian implements FromCollection, Responsable, ShouldAutoSize,
-WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
+WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell, WithColumnFormatting
 {
     use Exportable;
     public $transaksi;
@@ -56,25 +57,34 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
 
     public function map($transaksi): array
     {
-            return[
-                $transaksi->kode_transaksi,
-                $transaksi->tanggal_transaksi,
-                $transaksi->nama_customer,
-                $transaksi->nomor_passport,
-                $transaksi->negara_asal,
-                $transaksi->nama_currency,
-                $transaksi->jumlah_currency,
-                $transaksi->jumlah_tukar,
-                $transaksi->total_tukar,
-            ];
-            
+        $jumlahTukar = (float) $transaksi->jumlah_tukar;
+        return [
+            $transaksi->kode_transaksi,
+            $transaksi->tanggal_transaksi,
+            $transaksi->nama_customer,
+            $transaksi->nomor_passport,
+            $transaksi->negara_asal,
+            $transaksi->nama_currency,
+            (float) $transaksi->jumlah_currency,
+            floor($jumlahTukar) == $jumlahTukar ? (int) $jumlahTukar : $jumlahTukar,
+            round((float) $transaksi->total_tukar),
+        ];
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'G' => '#,##0',
+            'H' => '#,##0',
+            'I' => '#,##0',
+        ];
     }
 
     public function registerEvents(): array
     {
-        return[
+        return [
             AfterSheet::class => function(AfterSheet $event){
-                $event->sheet->getStyle('A2:J2')->applyFromArray([
+                $event->sheet->getStyle('A2:I2')->applyFromArray([
                     'font' => [
                         'bold' => true
                     ],
@@ -82,6 +92,23 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell
                         'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
                     ],
                 ]);
+                $lastRow = $this->transaksi->count() + 2;
+                $event->sheet->getStyle('G3:I' . $lastRow)->applyFromArray([
+                    'alignment' => [
+                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT,
+                    ],
+                ]);
+
+                for ($row = 3; $row <= $lastRow; $row++) {
+                    $kursVal = $event->sheet->getCell('G' . $row)->getValue();
+                    if (is_numeric($kursVal) && floor((float)$kursVal) != (float)$kursVal) {
+                        $event->sheet->getStyle('G' . $row)->getNumberFormat()->setFormatCode('#,##0.00##');
+                    }
+                    $jtVal = $event->sheet->getCell('H' . $row)->getValue();
+                    if (is_numeric($jtVal) && floor((float)$jtVal) != (float)$jtVal) {
+                        $event->sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+                    }
+                }
             }
         ];
     }
