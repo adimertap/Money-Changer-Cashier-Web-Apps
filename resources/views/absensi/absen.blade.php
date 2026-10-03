@@ -27,11 +27,31 @@
                 <a href="{{ route('dashboard') }}" class="btn btn-info col-12 mb-4">Masuk Aplikasi Kasir</a>
             @endif
 
-            <p class="text-danger" id="textJangkauan">Anda Berada diluar jangkauan radius kantor!</p>
+            <div class="card mb-3 mx-auto" style="max-width: 550px; text-align: left;">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas fa-store text-primary me-2 fs-1"></i>
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ $cabangName }}</h6>
+                            <span class="fs--1 text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ $cabangAlamat }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top fs--1">
+                        <span><i class="fas fa-crosshairs me-1 text-info"></i>Radius: <strong>{{ $cabangRadius }} meter</strong></span>
+                        @if($absenRadiusActive)
+                            <span class="badge badge-soft-success"><i class="fas fa-check-circle me-1"></i>Radius Checking Aktif</span>
+                        @else
+                            <span class="badge badge-soft-warning"><i class="fas fa-info-circle me-1"></i>Radius Checking Nonaktif</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-secondary fw-semi-bold" id="textJangkauan">Memeriksa lokasi GPS Anda...</p>
             <form action="{{ route('jadwal-user.store') }}" method="POST" id="jadwalForm" enctype="multipart/form-data">
                 @csrf
                 <button id="absenButton" type="submit" class="btn btn-danger col-12" style="height: 50px!important"
-                    disabled>Anda diluar radius kantor</button>
+                    disabled>Memeriksa lokasi GPS...</button>
             </form>
 
         </div>
@@ -282,10 +302,33 @@
     document.addEventListener('DOMContentLoaded', function() {
         updateClock();
 
+        const isRadiusActive = {{ $absenRadiusActive ? 'true' : 'false' }};
+        var absenButton = document.getElementById('absenButton');
+        var jangkauanText = document.getElementById('textJangkauan');
+
+        if (!isRadiusActive) {
+            if (jangkauanText) {
+                jangkauanText.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Pengecekan radius dinonaktifkan untuk cabang ini. Silakan langsung melakukan absensi.</span>';
+                jangkauanText.classList.remove('text-danger', 'text-secondary');
+                jangkauanText.classList.add('text-success');
+            }
+            if (absenButton) {
+                absenButton.disabled = false;
+                absenButton.innerText = "Absen Sekarang, Klik Disini";
+                absenButton.classList.remove('btn-danger');
+                absenButton.classList.add('btn-primary');
+            }
+            return;
+        }
+
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(showPosition);
+            navigator.geolocation.getCurrentPosition(showPosition, showError, {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            });
         } else {
-            alert("Geolocation is not supported by this browser.");
+            alert("Geolocation tidak didukung oleh browser Anda.");
         }
 
         function showPosition(position) {
@@ -293,42 +336,81 @@
             const userLong = position.coords.longitude;
             const fixedLat = {{ $fixedLatitude }};
             const fixedLong = {{ $fixedLongitude }};
-            const distance = calculateDistance(userLat, userLong, fixedLat, fixedLong);
+            const allowedRadius = {{ $cabangRadius }};
+            const branchName = "{{ addslashes($cabangName) }}";
 
-            if (distance < 20) {
-                var absenButton = document.getElementById('absenButton');
-                var jangkauanText = document.getElementById('textJangkauan');
-                jangkauanText.innerText = 'Anda Telah Berada di Radius Kantor, Silahkan Absen!'
-                jangkauanText.classList.remove('text-danger');
+            const distanceInMeters = calculateDistanceInMeters(userLat, userLong, fixedLat, fixedLong);
+
+            var absenButton = document.getElementById('absenButton');
+            var jangkauanText = document.getElementById('textJangkauan');
+
+            if (distanceInMeters <= allowedRadius) {
+                jangkauanText.innerHTML = `Anda telah berada di radius cabang <strong>${branchName}</strong> (Jarak: <strong>${distanceInMeters} m</strong> dari maks <strong>${allowedRadius} m</strong>). Silahkan Absen!`;
+                jangkauanText.classList.remove('text-danger', 'text-secondary');
                 jangkauanText.classList.add('text-primary');
 
                 absenButton.disabled = false;
                 absenButton.innerText = "Absen Sekarang, Klik Disini";
                 absenButton.classList.remove('btn-danger');
                 absenButton.classList.add('btn-primary');
-            }else{
-                const Toast = Swal.mixin({
-                toast: true,
-                position: "top-end",
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.onmouseenter = Swal.stopTimer;
-                    toast.onmouseleave = Swal.resumeTimer;
-                }
-                });
-                Toast.fire({
-                icon: "warning",
-                title: "Anda Berada Diluar Jangkauan Absensi Kantor"
-                });
+            } else {
+                jangkauanText.innerHTML = `Anda berada di luar jangkauan radius cabang <strong>${branchName}</strong>!<br><span class="fs--1 text-muted">Jarak Anda: <strong>${distanceInMeters} meter</strong> (Batas radius kantor: <strong>${allowedRadius} meter</strong>)</span>`;
+                jangkauanText.classList.remove('text-primary', 'text-secondary');
+                jangkauanText.classList.add('text-danger');
 
                 absenButton.disabled = true;
+                absenButton.innerText = `Anda diluar radius cabang (${distanceInMeters} m)`;
+                absenButton.classList.remove('btn-primary');
+                absenButton.classList.add('btn-danger');
+
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+                Toast.fire({
+                    icon: "warning",
+                    title: `Diluar radius cabang ${branchName} (${distanceInMeters} m > ${allowedRadius} m)`
+                });
             }
         }
 
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Radius of the earth in km
+        function showError(error) {
+            var jangkauanText = document.getElementById('textJangkauan');
+            var absenButton = document.getElementById('absenButton');
+            let msg = "Gagal mengambil lokasi GPS. Pastikan izin akses lokasi di browser/perangkat Anda telah diaktifkan.";
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    msg = "Izin akses lokasi ditolak oleh browser. Mohon izinkan akses lokasi (GPS) untuk absensi.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    msg = "Informasi lokasi GPS tidak tersedia pada perangkat Anda.";
+                    break;
+                case error.TIMEOUT:
+                    msg = "Waktu permintaan lokasi GPS habis (timeout). Silakan refresh halaman.";
+                    break;
+            }
+            if (jangkauanText) {
+                jangkauanText.innerText = msg;
+                jangkauanText.classList.remove('text-primary', 'text-secondary');
+                jangkauanText.classList.add('text-danger');
+            }
+            if (absenButton) {
+                absenButton.disabled = true;
+                absenButton.innerText = "Lokasi GPS Tidak Tersedia";
+                absenButton.classList.remove('btn-primary');
+                absenButton.classList.add('btn-danger');
+            }
+        }
+
+        function calculateDistanceInMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Radius bumi dalam meter
             const dLat = deg2rad(lat2 - lat1);
             const dLon = deg2rad(lon2 - lon1);
             const a =
@@ -336,8 +418,8 @@
                 Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
                 Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            const distance = R * c; // Distance in km
-            return distance;
+            const distance = R * c; // Jarak dalam meter
+            return Math.round(distance);
         }
 
         function deg2rad(deg) {

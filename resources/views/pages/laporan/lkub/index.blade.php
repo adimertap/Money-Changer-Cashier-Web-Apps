@@ -49,9 +49,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="d-flex gap-2 mt-4">
+                <div class="d-flex flex-wrap gap-2 mt-4">
                     <button class="btn btn-primary" type="submit" name="format" value="excel"><span class="fas fa-file-excel me-1"></span>Download Excel</button>
                     <button class="btn btn-danger" type="submit" name="format" value="pdf"><span class="fas fa-file-pdf me-1"></span>Download PDF</button>
+                    <button class="btn btn-success" type="submit" name="format" value="csv"><span class="fas fa-file-csv me-1"></span>Download CSV</button>
+                    <button class="btn btn-secondary" type="submit" name="format" value="txt"><span class="fas fa-file-alt me-1"></span>Download TXT</button>
                 </div>
             </form>
         </div>

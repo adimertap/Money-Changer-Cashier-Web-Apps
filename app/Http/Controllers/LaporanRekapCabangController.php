@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Exports\ExcelRekapCabang;
 use App\Models\Jurnal;
 use App\Models\MasterCabang;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -22,7 +24,7 @@ class LaporanRekapCabangController extends Controller
     {
         $allowed = $this->allowedCabangIds();
         $data = $request->validate([
-            'radio_input' => ['required', 'in:excel'],
+            'radio_input' => ['required', 'in:excel,pdf'],
             'from_date_export' => ['required', 'date'],
             'to_date_export' => ['required', 'date', 'after_or_equal:from_date_export'],
             'semua_cabang' => ['nullable', 'boolean'],
@@ -80,8 +82,15 @@ class LaporanRekapCabangController extends Controller
                 ->with('error', 'Data operasional tidak ditemukan pada periode dan cabang yang dipilih.');
         }
 
-        $filename = 'rekap-cabang ' . $data['from_date_export'] . ' sampai ' . $data['to_date_export'] . '.xlsx';
-        return Excel::download(new ExcelRekapCabang($reports), $filename);
+        $baseFilename = 'rekap-cabang ' . $data['from_date_export'] . ' sampai ' . $data['to_date_export'];
+        if ($data['radio_input'] === 'pdf') {
+            $periodLabel = Carbon::parse($data['from_date_export'])->format('d/m/Y') . ' - ' . Carbon::parse($data['to_date_export'])->format('d/m/Y');
+            return Pdf::loadView('pages.laporan.rekap-cabang.pdf', compact('reports', 'data', 'periodLabel'))
+                ->setPaper('a4', 'portrait')
+                ->download($baseFilename . '.pdf');
+        }
+
+        return Excel::download(new ExcelRekapCabang($reports), $baseFilename . '.xlsx');
     }
 
     private function jurnalQuery($cabangId, array $data)

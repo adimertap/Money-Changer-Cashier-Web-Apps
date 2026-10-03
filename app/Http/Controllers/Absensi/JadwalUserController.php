@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Alert;
 use App\Models\JadwalKerja;
+use App\Models\MasterCabang;
 use App\Models\MasterShift;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -26,52 +27,83 @@ class JadwalUserController extends Controller
           $startOfMonth = Carbon::now($timezone)->startOfMonth();
           $endOfMonth = Carbon::now($timezone)->endOfMonth();
 
-          $jadwal = JadwalKerja::with('Shift', 'User')->where('id', Auth::user()->id)
+          $jadwal = JadwalKerja::withoutGlobalScope('cabang')
+              ->with('Shift', 'User', 'Cabang')
+              ->where('id', Auth::user()->id)
               ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
               ->get()
               ->sortBy('tanggal');
 
-          $jadwalToday = JadwalKerja::with('Shift', 'User')->where('id', Auth::user()->id)
+          $jadwalToday = JadwalKerja::withoutGlobalScope('cabang')
+              ->with('Shift', 'User', 'Cabang')
+              ->where('id', Auth::user()->id)
               ->where('tanggal', Carbon::today($timezone))
               ->get();
 
-          $countTodayStatusX = JadwalKerja::where('id', Auth::user()->id)
-          ->where('tanggal', Carbon::today($timezone))
-          ->whereIn('status', ['X', 'T'])
-          ->count();
+          $countTodayStatusX = JadwalKerja::withoutGlobalScope('cabang')
+              ->where('id', Auth::user()->id)
+              ->where('tanggal', Carbon::today($timezone))
+              ->whereIn('status', ['X', 'T'])
+              ->count();
 
           $today = Carbon::today($timezone);
           $jadwalTodayCount = $jadwalToday->count();
           $currentMonth = Carbon::now($timezone)->format('F');
 
           // Button Absen Setelah 4 Jam Masuk
-          $jadwalMasukFilled = JadwalKerja::where('id', Auth::user()->id)
-          ->where('tanggal', Carbon::today($timezone))
-          ->where('jam_masuk','!=', null)
-          ->where('status', 'X')
-          ->first();
+          $jadwalMasukFilled = JadwalKerja::withoutGlobalScope('cabang')
+              ->where('id', Auth::user()->id)
+              ->where('tanggal', Carbon::today($timezone))
+              ->where('jam_masuk','!=', null)
+              ->where('status', 'X')
+              ->first();
 
-         // $shiftActual = MasterShift::where('shift_id', $jadwalMasukFilled->shift_id)->value('shift_in');
-         // $shiftCheck = Carbon::createFromFormat('H:i:s', $jadwalMasukFilled->jam_masuk, $timezone);
-         // dd([
-         //         'Actual' => $shiftActual,
-         //         '+ 2 Jam' => $shiftCheck->toTimeString()
-         //     ]);
+          // Penentuan Cabang untuk Absensi:
+          // 1. Dari jadwal hari ini jika memiliki cabang_id
+          $cabangTarget = null;
+          if ($jadwalToday->isNotEmpty() && $jadwalToday->first()->cabang_id) {
+              $cabangTarget = MasterCabang::find($jadwalToday->first()->cabang_id);
+          }
 
+          // 2. Jika tidak ada di jadwal, cek session cabang aktif
+          if (!$cabangTarget && session('cabang_aktif')) {
+              $cabangTarget = MasterCabang::find(session('cabang_aktif'));
+          }
 
-          // Radius Salah
-          //  -8.035976527872002, 114.38504957190355
+          // 3. Jika tidak ada di session, ambil cabang yang di-assign ke user
+          if (!$cabangTarget && Auth::check()) {
+              $cabangTarget = Auth::user()->cabangs()->where('is_active', 1)->first()
+                  ?? Auth::user()->cabangs()->first();
+          }
 
-          // Radius Basurra
-          // -6.200000, 106.816666
+          // 4. Fallback ke cabang aktif pertama di database
+          if (!$cabangTarget) {
+              $cabangTarget = MasterCabang::where('is_active', 1)->first() ?? MasterCabang::first();
+          }
 
-          // Radius PT Riastavalasindo on googlemaps
-          //  -8.701647497474847, 115.16637512084526
+          $cabangName = $cabangTarget ? $cabangTarget->cabang_name : 'Kantor Pusat';
+          $cabangAlamat = $cabangTarget ? ($cabangTarget->alamat ?: '-') : '-';
+          $absenRadiusActive = $cabangTarget ? (bool) ($cabangTarget->absen_radius_active ?? true) : true;
+          // Koordinat default PT Riasta Valasindo jika belum diset di cabang
+          $fixedLatitude = (float) ($cabangTarget ? ($cabangTarget->latitude ?? $cabangTarget->lat ?? -8.701647497474847) : -8.701647497474847);
+          $fixedLongitude = (float) ($cabangTarget ? ($cabangTarget->longitude ?? $cabangTarget->lng ?? 115.16637512084526) : 115.16637512084526);
+          $cabangRadius = (int) ($cabangTarget && $cabangTarget->radius ? $cabangTarget->radius : 50);
 
-          $fixedLatitude = -8.701647497474847; // Example fixed latitude
-          $fixedLongitude =  115.16637512084526; // Example fixed longitude
-
-          return view('absensi.absen', compact('jadwalMasukFilled','countTodayStatusX','jadwal', 'jadwalToday', 'currentMonth', 'jadwalTodayCount', 'today', 'fixedLatitude', 'fixedLongitude'));
+          return view('absensi.absen', compact(
+              'jadwalMasukFilled',
+              'countTodayStatusX',
+              'jadwal',
+              'jadwalToday',
+              'currentMonth',
+              'jadwalTodayCount',
+              'today',
+              'fixedLatitude',
+              'fixedLongitude',
+              'cabangRadius',
+              'cabangName',
+              'cabangAlamat',
+              'absenRadiusActive'
+          ));
     }
 
     /**
@@ -95,7 +127,8 @@ class JadwalUserController extends Controller
         try {
             $timezone = new \DateTimeZone('Asia/Makassar');
             $currentTime = Carbon::now($timezone)->toTimeString();
-            $jadwal = JadwalKerja::with('Shift', 'User')
+            $jadwal = JadwalKerja::withoutGlobalScope('cabang')
+                ->with('Shift', 'User')
                 ->where('id', Auth::user()->id)
                 ->where('tanggal', Carbon::today($timezone))
                 ->whereIn('status', ['X', 'T'])
@@ -192,7 +225,7 @@ class JadwalUserController extends Controller
     {
         try {
             DB::beginTransaction();
-            $jadwal = JadwalKerja::where('jadwal_Id', $request->jadwalId)->first();
+            $jadwal = JadwalKerja::withoutGlobalScope('cabang')->where('jadwal_id', $request->jadwalId)->first();
             if(!$jadwal){
                 Alert::warning('Warning', 'Tukar Jadwal Gagal, Internal Server Error!');
                 return redirect()->back();

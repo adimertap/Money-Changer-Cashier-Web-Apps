@@ -17,8 +17,10 @@
                             <th class="text-center">No.</th>
                             <th class="text-center">Nama Cabang</th>
                             <th class="text-center">Alamat</th>
-                            <th class="text-center">Lat</th>
-                            <th class="text-center">Lng</th>
+                            <th class="text-center">Latitude</th>
+                            <th class="text-center">Longitude</th>
+                            <th class="text-center">Radius (m)</th>
+                            <th class="text-center">Radius Check</th>
                             <th class="text-center">Status</th>
                             <th class="text-center">Actions</th>
                         </tr>
@@ -29,8 +31,16 @@
                             <th scope="row">{{ $loop->iteration }}.</th>
                             <td>{{ $item->cabang_name }}</td>
                             <td>{{ $item->alamat }}</td>
-                            <td>{{ $item->lat }}</td>
-                            <td>{{ $item->lng }}</td>
+                            <td>{{ $item->latitude ?? $item->lat ?? '-' }}</td>
+                            <td>{{ $item->longitude ?? $item->lng ?? '-' }}</td>
+                            <td class="text-center"><span class="badge badge-soft-info">{{ ($item->radius ?? 50) }} m</span></td>
+                            <td class="text-center">
+                                @if($item->absen_radius_active ?? true)
+                                    <span class="badge badge-soft-success">Aktif</span>
+                                @else
+                                    <span class="badge badge-soft-secondary">Nonaktif</span>
+                                @endif
+                            </td>
                             <td class="text-nowrap">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input statusRadio" type="radio" id="aktif-{{ $item->cabang_id }}"
@@ -68,7 +78,7 @@
 </main>
 
 <div class="modal fade" id="modal-cabang" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 700px">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 750px">
         <div class="modal-content position-relative">
             <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
                 <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
@@ -100,21 +110,41 @@
                             @enderror
                         </div>
                         <div class="row mb-3">
-                            <div class="col-6">
-                                <label class="form-label" for="lat">Latitude</label>
-                                <input class="form-control @error('lat') is-invalid @enderror" id="lat" name="lat"
-                                    type="number" step="0.01" placeholder="-8.65" value="{{ old('lat') }}" />
-                                @error('lat')
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="latitude">Latitude</label>
+                                <input class="form-control @error('latitude') is-invalid @enderror" id="latitude" name="latitude"
+                                    type="number" step="any" placeholder="-8.701647" value="{{ old('latitude', old('lat')) }}" />
+                                @error('latitude')
                                 <div class="invalid-feedback"><strong>{{ $message }}</strong></div>
                                 @enderror
                             </div>
-                            <div class="col-6">
-                                <label class="form-label" for="lng">Longitude</label>
-                                <input class="form-control @error('lng') is-invalid @enderror" id="lng" name="lng"
-                                    type="number" step="0.01" placeholder="115.22" value="{{ old('lng') }}" />
-                                @error('lng')
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="longitude">Longitude</label>
+                                <input class="form-control @error('longitude') is-invalid @enderror" id="longitude" name="longitude"
+                                    type="number" step="any" placeholder="115.166375" value="{{ old('longitude', old('lng')) }}" />
+                                @error('longitude')
                                 <div class="invalid-feedback"><strong>{{ $message }}</strong></div>
                                 @enderror
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label" for="radius">Radius Absen (Meter)</label>
+                                <input class="form-control @error('radius') is-invalid @enderror" id="radius" name="radius"
+                                    type="number" step="1" min="1" placeholder="50" value="{{ old('radius', 50) }}" />
+                                <span class="fs--2 text-muted">Jarak radius dalam meter (default: 50)</span>
+                                @error('radius')
+                                <div class="invalid-feedback"><strong>{{ $message }}</strong></div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label d-block">Pengecekan Radius Absensi (Jadwal User) <span style="color: red">*</span></label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="absen_radius_active" id="radiusCheckActive" value="1" checked required>
+                                <label class="form-check-label" for="radiusCheckActive">Aktif (Wajib dalam radius)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="absen_radius_active" id="radiusCheckInactive" value="0">
+                                <label class="form-check-label" for="radiusCheckInactive">Nonaktif (Bebas lokasi)</label>
                             </div>
                         </div>
                         <div class="mb-4">
@@ -154,8 +184,14 @@
                 $('#cabangForm .is-invalid').removeClass('is-invalid');
                 $('#cabang_name').val(response.cabang_name);
                 $('#alamat').val(response.alamat);
-                $('#lat').val(response.lat);
-                $('#lng').val(response.lng);
+                $('#latitude').val(response.latitude ?? response.lat ?? '');
+                $('#longitude').val(response.longitude ?? response.lng ?? '');
+                $('#radius').val(response.radius ?? 50);
+                if (response.absen_radius_active == 0 || response.absen_radius_active === false) {
+                    $('#radiusCheckInactive').prop('checked', true);
+                } else {
+                    $('#radiusCheckActive').prop('checked', true);
+                }
                 $('#modal-cabang').modal('show');
             }).fail(function () {
                 Swal.fire('Warning!', 'Data Tidak Ditemukan!', 'warning');
@@ -211,6 +247,8 @@
         $('#formMethod').val('POST');
         $('#cabangForm')[0].reset();
         $('#cabangForm input[type=text], #cabangForm input[type=number]').val('');
+        $('#radius').val('50');
+        $('#radiusCheckActive').prop('checked', true);
         $('#editId').val('');
         $('#cabangForm .is-invalid').removeClass('is-invalid');
         $('#modal-cabang').modal('show');

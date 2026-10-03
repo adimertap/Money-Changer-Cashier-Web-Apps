@@ -12,7 +12,6 @@
                 <div class="alert alert-warning">{{ session('error') }}</div>
             @endif
             <form method="GET" action="{{ route('laporan-rekap-cabang.download') }}">
-                <input type="hidden" name="radio_input" value="excel">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Tanggal Mulai <span class="text-danger">*</span></label>
@@ -42,7 +41,10 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-primary mt-4" type="submit"><span class="fas fa-file-excel me-1"></span>Download Excel</button>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <button class="btn btn-primary" type="submit" name="radio_input" value="excel"><span class="fas fa-file-excel me-1"></span>Download Excel</button>
+                    <button class="btn btn-danger" type="submit" name="radio_input" value="pdf"><span class="fas fa-file-pdf me-1"></span>Download PDF</button>
+                </div>
             </form>
         </div>
     </div>

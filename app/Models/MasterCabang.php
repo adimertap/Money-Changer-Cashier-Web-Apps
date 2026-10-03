@@ -15,8 +15,44 @@ class MasterCabang extends Model
         'alamat',
         'lat',
         'lng',
+        'latitude',
+        'longitude',
+        'radius',
+        'absen_radius_active',
         'is_active',
     ];
+
+    public function getAbsenRadiusActiveAttribute($value)
+    {
+        return $value !== null ? (bool) $value : true;
+    }
+
+    public function getLatitudeAttribute($value)
+    {
+        return $value ?? ($this->attributes['lat'] ?? null);
+    }
+
+    public function getLongitudeAttribute($value)
+    {
+        return $value ?? ($this->attributes['lng'] ?? null);
+    }
+
+    public function getRadiusAttribute($value)
+    {
+        return $value !== null ? (int) $value : 50;
+    }
+
+    public function setLatitudeAttribute($value)
+    {
+        $this->attributes['latitude'] = $value;
+        $this->attributes['lat'] = $value;
+    }
+
+    public function setLongitudeAttribute($value)
+    {
+        $this->attributes['longitude'] = $value;
+        $this->attributes['lng'] = $value;
+    }
 
     public $timestamps = true;
 
