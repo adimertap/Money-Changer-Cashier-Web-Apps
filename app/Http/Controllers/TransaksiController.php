@@ -13,6 +13,7 @@ use App\Models\MasterCurrency;
 use App\Models\MasterCabang;
 use App\Models\MasterCustomer;
 use App\Models\MasterThreshold;
+use App\Models\MasterLimitTransaksi;
 use App\Models\MasterTerduga;
 use App\Models\ModalTransaksi;
 use App\Models\Transaksi;
@@ -22,6 +23,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -410,42 +412,70 @@ class TransaksiController extends Controller
             ->first();
     }
 
-    private function passportThresholdResult($passport, $total, $date = null)
+    private function passportThresholdResult($passport, $total = 0, $date = null)
     {
         $passport = mb_strtolower(trim((string) $passport));
         $total = (float) $total;
-        $date = $date ?: Carbon::today()->toDateString();
-        $threshold = $this->activePassportThreshold($date);
+        $targetDate = $date ? Carbon::parse($date) : Carbon::today();
+        $dateStr = $targetDate->toDateString();
 
-        if ($passport === '' || !$threshold) {
+        // Ambil batas dari Master Data Batas Transaksi Customer (tb_master_limit_transaksi)
+        $activeRule = MasterLimitTransaksi::getActiveLimit();
+        $isRuleActive = $activeRule ? (bool) $activeRule->is_active : true;
+        $periodeHari = $activeRule && $activeRule->periode_hari > 0 ? (int) $activeRule->periode_hari : 30;
+
+        if ($activeRule && $activeRule->use_live_kurs_usd) {
+            $usdCurrency = MasterCurrency::where('nama_currency', 'LIKE', '%USD%')->first();
+            $usdRate = $usdCurrency && (float) $usdCurrency->nilai_kurs > 0 ? (float) $usdCurrency->nilai_kurs : 18000;
+            $limit = (float) (($activeRule->ekuivalen_usd ?: 10000) * $usdRate);
+        } elseif ($activeRule && $activeRule->nominal_limit_idr > 0) {
+            $limit = (float) $activeRule->nominal_limit_idr;
+        } else {
+            // Default BI Threshold: Setara USD 10.000 (Rp 180.000.000)
+            $limit = 180000000;
+        }
+
+        if ($passport === '') {
             return [
                 'exceeded' => false,
-                'reason' => $passport === '' ? 'passport_empty' : 'threshold_unavailable',
+                'reason' => 'passport_empty',
                 'accumulated' => 0,
+                'accumulated_this_month' => 0,
                 'projected' => $total,
-                'limit' => null,
-                'threshold' => $threshold,
+                'limit' => $limit,
+                'remaining' => $limit,
+                'threshold' => null,
             ];
         }
 
-        $currency = MasterCurrency::find($threshold->currency_id);
-        $currencyName = strtoupper((string) optional($currency)->nama_currency);
-        $rate = $currency && (strpos($currencyName, 'IDR') !== false || strpos($currencyName, 'RUPIAH') !== false)
-            ? 1
-            : (float) optional($currency)->nilai_kurs;
-        $limit = (float) $threshold->nominal * ($rate ?: 1);
+        // Akumulasi rolling sesuai periode_hari dari master data (default 30 hari)
         $accumulated = (float) Transaksi::whereRaw('LOWER(TRIM(nomor_passport)) = ?', [$passport])
-            ->whereDate('tanggal_transaksi', '>=', Carbon::parse($date)->subDays(29)->toDateString())
-            ->whereDate('tanggal_transaksi', '<=', $date)
+            ->whereDate('tanggal_transaksi', '>=', $targetDate->copy()->subDays($periodeHari - 1)->toDateString())
+            ->whereDate('tanggal_transaksi', '<=', $dateStr)
             ->sum('total');
 
+        // Akumulasi bulan berjalan (bulan ini)
+        $accumulatedThisMonth = (float) Transaksi::whereRaw('LOWER(TRIM(nomor_passport)) = ?', [$passport])
+            ->whereYear('tanggal_transaksi', $targetDate->year)
+            ->whereMonth('tanggal_transaksi', $targetDate->month)
+            ->sum('total');
+
+        $projected = $accumulated + $total;
+        $remaining = max(0, $limit - $accumulated);
+
+        // Jika aturan dinonaktifkan oleh Owner, transaksi tidak akan terblokir
+        $exceeded = $isRuleActive && ($projected > $limit);
+
         return [
-            'exceeded' => $accumulated + $total > $limit,
+            'exceeded' => $exceeded,
             'reason' => null,
             'accumulated' => $accumulated,
-            'projected' => $accumulated + $total,
+            'accumulated_this_month' => $accumulatedThisMonth,
+            'projected' => $projected,
             'limit' => $limit,
-            'threshold' => $threshold,
+            'remaining' => $remaining,
+            'threshold' => null,
+            'rule' => $activeRule,
         ];
     }
 
@@ -453,22 +483,37 @@ class TransaksiController extends Controller
     {
         $data = $request->validate([
             'nomor_passport' => 'nullable|string|max:100',
-            'total' => 'required|numeric|min:0',
+            'total' => 'nullable|numeric|min:0',
             'tanggal_transaksi' => 'nullable|date',
         ]);
         $result = $this->passportThresholdResult(
             $data['nomor_passport'] ?? null,
-            $data['total'],
+            $data['total'] ?? 0,
             $data['tanggal_transaksi'] ?? null
         );
+
+        $limit = (float) $result['limit'];
+        $accumulated = (float) $result['accumulated'];
+        $accumulatedThisMonth = (float) $result['accumulated_this_month'];
 
         return response()->json([
             'exceeded' => $result['exceeded'],
             'reason' => $result['reason'],
-            'accumulated' => $result['accumulated'],
+            'accumulated' => $accumulated,
+            'accumulated_formatted' => 'Rp ' . number_format($accumulated, 0, ',', '.'),
+            'accumulated_this_month' => $accumulatedThisMonth,
+            'accumulated_this_month_formatted' => 'Rp ' . number_format($accumulatedThisMonth, 0, ',', '.'),
             'projected' => $result['projected'],
-            'limit' => $result['limit'],
-            'threshold' => $result['threshold'],
+            'projected_formatted' => 'Rp ' . number_format($result['projected'], 0, ',', '.'),
+            'limit' => $limit,
+            'limit_formatted' => 'Rp ' . number_format($limit, 0, ',', '.'),
+            'remaining' => $result['remaining'],
+            'remaining_formatted' => 'Rp ' . number_format($result['remaining'], 0, ',', '.'),
+            'percentage' => $limit > 0 ? min(100, round(($accumulated / $limit) * 100, 1)) : 0,
+            'percentage_this_month' => $limit > 0 ? min(100, round(($accumulatedThisMonth / $limit) * 100, 1)) : 0,
+            'threshold' => null,
+            'rule_name' => optional($result['rule'])->nama_aturan,
+            'periode_hari' => optional($result['rule'])->periode_hari ?: 30,
         ]);
     }
 
@@ -550,15 +595,21 @@ class TransaksiController extends Controller
                     'requires_screening_confirmation' => true,
                 ], 422);
             }
+            $kodeTransaksi = $request->kode_transaksi;
+            if (!$kodeTransaksi || Transaksi::where('kode_transaksi', $kodeTransaksi)->exists()) {
+                $last = Transaksi::orderBy('id_transaksi', 'desc')->first();
+                $nextId = ($last ? $last->id_transaksi : 0) + 1;
+                $kodeTransaksi = 'RV' . date('ymd') . '-' . $nextId;
+            }
             $transaksi = new Transaksi();
-            $transaksi->kode_transaksi = $request->kode_transaksi;
+            $transaksi->kode_transaksi = $kodeTransaksi;
             $transaksi->tanggal_transaksi = $request->tanggal_transaksi;
             $transaksi->id_modal = $request->id_modal;
             $transaksi->total = $request->total;
             $transaksi->id_pegawai = Auth::user()->id;
-            $transaksi->nama_customer = $request->nama_customer;
-            $transaksi->nomor_passport = $request->nomor_passport;
-            $transaksi->negara_asal = $request->asal_negara;
+            $transaksi->nama_customer = $request->nama_customer ?: ($customer ? $customer->name : null);
+            $transaksi->nomor_passport = $request->nomor_passport ?: ($customer ? $customer->passport : null);
+            $transaksi->negara_asal = $request->asal_negara ?: ($customer ? $customer->country : null);
             $transaksi->jenis_transaksi = 'Beli';
             $transaksi->cabang_id = $transactionCabangId;
             $transaksi->supporting_document_type = $request->supporting_document_type;
@@ -570,9 +621,35 @@ class TransaksiController extends Controller
                     ->store('transaksi/dokumen', 'public');
             }
             $transaksi->save();
+            $transaksi->healCustomerData();
+
+            // Bersihkan baris detail/jurnal "yatim" yang kebetulan memakai id_transaksi baru ini
+            // (sisa data lama / transaksi gagal) agar valas transaksi sebelumnya tidak ikut terbawa.
+            DetailTransaksi::withoutGlobalScopes()->where('id_transaksi', $transaksi->id_transaksi)->delete();
+            Jurnal::withoutGlobalScopes()->where('id_transaksi', $transaksi->id_transaksi)->delete();
+
+            // Hanya simpan detail milik transaksi ini (unik per currency) & hitung ulang total di server
+            $details = collect($request->detail ?: [])
+                ->filter(function ($item) {
+                    return !empty($item['currency_id']) && (float) ($item['jumlah_tukar'] ?? 0) > 0;
+                })
+                ->unique('currency_id')
+                ->values();
+            if ($details->isEmpty()) {
+                DB::rollBack();
+                return response()->json(['message' => 'Detail transaksi kosong.'], 422);
+            }
+            $serverTotal = round($details->sum(function ($item) {
+                return (float) $item['total_tukar'];
+            }), 2);
+            if (abs($serverTotal - (float) $transaksi->total) > 0.01) {
+                $transaksi->total = $serverTotal;
+                $transaksi->save();
+                $request->merge(['total' => $serverTotal]);
+            }
 
             // $transaksi->detailTransaksi()->insert($request->detail);
-            foreach ($request->detail as $key) {
+            foreach ($details as $key) {
                 $det = new DetailTransaksi;
                 $det->currency_id = $key['currency_id'];
                 $det->jumlah_currency = $key['jumlah_currency'];
@@ -622,9 +699,34 @@ class TransaksiController extends Controller
      */
     public function show($id)
     {
-        $transaksi = Transaksi::with('Pegawai','detailTransaksi.Currency')->find($id);
+        $transaksi = Transaksi::with('Pegawai', 'Cabang', 'detailTransaksi.Currency')->find($id);
+        if (!$transaksi) {
+            Alert::warning('Error', 'Transaksi tidak ditemukan');
+            return redirect()->back();
+        }
+
+        // Auto-heal jika customer di database belum lengkap
+        $transaksi->healCustomerData();
+
         $detail = DetailTransaksi::where('id_transaksi', $id)->get();
         return view('pages.transaksi.detail', compact('transaksi','detail'));
+    }
+
+    public function downloadDokumen($id)
+    {
+        $transaksi = Transaksi::findOrFail($id);
+        if (empty($transaksi->supporting_document_file)) {
+            Alert::warning('Perhatian', 'Dokumen pendukung tidak ditemukan.');
+            return redirect()->back();
+        }
+
+        $path = $transaksi->supporting_document_file;
+        if (!Storage::disk('public')->exists($path)) {
+            Alert::warning('Perhatian', 'File dokumen tidak ditemukan di penyimpanan server.');
+            return redirect()->back();
+        }
+
+        return Storage::disk('public')->response($path);
     }
 
     /**

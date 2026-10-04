@@ -16,6 +16,9 @@ class CetakController extends Controller
     {
         try {
             $transaksi = Transaksi::with('detailTransaksi','Pegawai')->find($id);
+            if ($transaksi) {
+                $transaksi->healCustomerData();
+            }
             return view('print.cetak', compact('transaksi'));
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');

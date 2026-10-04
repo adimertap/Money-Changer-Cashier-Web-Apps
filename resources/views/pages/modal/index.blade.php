@@ -10,11 +10,10 @@
                         <div class="col-8 d-lg-block flex-between-center">
                             <h5 class="text-primary mb-1">Welcome, {{ Auth::user()->nama_panggilan }}!</h5>
                             @if (count($modal_today) == 0)
-                            <p>Tambah Data Modal Hari Ini</p>
+                            <p class="mb-0 text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Modal Kasir Hari Ini Belum Diinput</p>
                             @else
-                            <p>Anda Telah Menambahkan Modal Hari Ini</p>
+                            <p class="mb-0 text-success"><i class="fas fa-check-circle me-1"></i>Modal Kasir Hari Ini Sudah Aktif</p>
                             @endif
-
                         </div>
                         <div class="col-auto h-100">
                             @if (count($modal_today) == 0)
@@ -75,15 +74,15 @@
     </div>
     <div class="card mb-3">
         <div class="card-header">
-            <h5 class="mb-0">
+            <div>
                 @if (Auth::user()->role != 'Owner')
-                    <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Modal Anda Hari Ini</h5>
-                    <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Modal</p>
-                    @else
-                    <h5 class="mb-0" data-anchor="data-anchor">Rekapan Data Modal</h5>
-                    <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Modal</p>
-                    @endif
-            </h5>
+                    <h5 class="mb-0 text-primary" data-anchor="data-anchor"><i class="fas fa-credit-card me-2"></i>Manajemen Modal Kasir</h5>
+                    <p class="mb-0 pt-1 text-muted small">Kelola data modal awal kasir dan riwayat saldo modal hari ini</p>
+                @else
+                    <h5 class="mb-0 text-primary" data-anchor="data-anchor"><i class="fas fa-credit-card me-2"></i>Manajemen Modal Semua Cabang</h5>
+                    <p class="mb-0 pt-1 text-muted small">Monitoring data modal kasir dan riwayat per cabang</p>
+                @endif
+            </div>
             <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
                 <label for="perPageSelect" class="mb-0">Show</label>
                 <select id="perPageSelect" class="form-select w-auto">

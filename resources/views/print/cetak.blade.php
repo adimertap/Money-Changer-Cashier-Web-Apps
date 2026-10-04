@@ -142,6 +142,16 @@
                 <p class="fs--2 text-danger fw-bold m-0">{{ $transaksi->kode_transaksi }}</p>
             </div>
         </div>
+        @if(!empty($transaksi->nama_customer))
+        <div class="row align-items-center mt-1">
+            <div class="col-6">
+                <p class="fs--2 text-black m-0 text-600">Cust: <strong>{{ $transaksi->nama_customer }}</strong></p>
+            </div>
+            <div class="col-6 text-end">
+                <p class="fs--2 text-black m-0 text-600">{{ $transaksi->nomor_passport ? 'ID: ' . $transaksi->nomor_passport : '' }} {{ $transaksi->negara_asal ? '(' . $transaksi->negara_asal . ')' : '' }}</p>
+            </div>
+        </div>
+        @endif
         <hr class="tebal mt-2 mb-2">
         @forelse ($transaksi->detailTransaksi as $item)
         <div class="row align-items-center mt-2">

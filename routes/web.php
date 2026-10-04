@@ -92,6 +92,8 @@ Route::group(['middleware' => 'auth'], function () {
             Route::delete('master-terduga/{headerId}/detail/{id}', [\App\Http\Controllers\MasterTerdugaController::class, 'destroyDetail'])->name('master-terduga.detail.destroy');
             Route::resource('master-threshold', \App\Http\Controllers\MasterThresholdController::class)->except(['create', 'edit']);
             Route::patch('master-threshold/{id}/status', [\App\Http\Controllers\MasterThresholdController::class, 'status'])->name('master-threshold.status');
+            Route::resource('master-limit-transaksi', \App\Http\Controllers\MasterLimitTransaksiController::class)->except(['create', 'show', 'edit']);
+            Route::patch('master-limit-transaksi/{id}/status', [\App\Http\Controllers\MasterLimitTransaksiController::class, 'status'])->name('master-limit-transaksi.status');
             Route::post('/delete-pegawai', [\App\Http\Controllers\MasterPegawaiController::class, 'hapus'])->name('master-pegawai-delete');
             Route::get('/master-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'index'])->name('master-currency');
             Route::post('/tambah-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'store'])->name('master-currency-store');
@@ -130,6 +132,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/api/transaksi/passport-threshold', [TransaksiController::class, 'passportThreshold'])->name('api.transaksi.passport-threshold');
         Route::post('/api/transaksi/validate-terduga', [TransaksiController::class, 'validateTerduga'])->name('api.transaksi.validate-terduga');
         Route::resource('transaksi', TransaksiController::class);
+        Route::get('/transaksi/{id}/dokumen', [\App\Http\Controllers\TransaksiController::class, 'downloadDokumen'])->name('transaksi.dokumen');
         Route::get('transaksi/getkurs/{id_currency}', [\App\Http\Controllers\TransaksiController::class, 'getkurs']);
         Route::get('/edit/getkurs/{id_currency}', [\App\Http\Controllers\TransaksiController::class, 'getkursedit']);
         Route::post('/delete-transaksi', [\App\Http\Controllers\TransaksiController::class, 'hapus'])->name('transaksi-delete');

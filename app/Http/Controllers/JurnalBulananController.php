@@ -197,6 +197,9 @@ class JurnalBulananController extends Controller
                 $query->where('cabang_id', $request->cabang_id);
             })
             ->firstOrFail();
+
+        $transaksi->healCustomerData();
+
         $detail = DetailTransaksi::where('id_transaksi', $id)->get();
         return view('pages.jurnal.bulan.detailtransaksi', compact('transaksi','detail'));
     }

@@ -143,6 +143,36 @@
                             </div>
                         </div>
 
+                        {{-- Widget Info Kuncian Paspor Customer --}}
+                        <div id="passportAccumulationBadge" class="mt-2 mb-3" style="display: none;">
+                            <div class="card border border-200 shadow-none bg-100 mb-0">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fs--1 text-700 fw-semi-bold">
+                                            <i class="fas fa-passport me-1 text-primary"></i>Paspor: <span id="passportNumberDisplay" class="fw-bold text-dark">-</span>
+                                        </span>
+                                        <span id="passportStatusPill" class="badge rounded-pill bg-success fs--2">Aman</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                        <span class="fs--1 text-muted">Akumulasi Bulan Ini:</span>
+                                        <span class="fs--1 fw-bold">
+                                            <span id="passportAccumulatedDisplay" class="text-primary">Rp 0</span> / <span id="passportLimitDisplay" class="text-muted">Rp 180.000.000</span>
+                                        </span>
+                                    </div>
+                                    <div id="passportCurrentOrderHint" class="text-end fs--2 text-primary fw-semi-bold mb-1" style="display: none;">
+                                        <i class="fas fa-cart-plus me-1"></i>Termasuk transaksi saat ini: <span id="passportCurrentOrderAmount">Rp 0</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div id="passportProgressBar" class="progress-bar bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between fs--2 text-muted mt-1">
+                                        <span id="passportRollingInfo">Rolling 30 Hari: Rp 0</span>
+                                        <span id="passportRemainingInfo">Sisa: Rp 180.000.000</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Input hidden untuk kompatibilitas dengan sistem lama --}}
                         <input type="hidden" name="customer_id" id="customer_id">
                         <input type="hidden" name="nama_customer" id="nama_customer_hidden" value="{{ old('nama_customer') }}">
@@ -242,7 +272,19 @@
                         <div class="col-md-6"><label class="form-label">Nama <span class="text-danger">*</span></label><input class="form-control" name="name" placeholder="Input nama customer" required></div>
                         <div class="col-md-6"><label class="form-label">Alias</label><input class="form-control" name="alias" placeholder="Input alias customer"></div>
                         <div class="col-md-6"><label class="form-label">Country <span class="text-danger">*</span></label><input class="form-control" name="country" placeholder="Input negara asal" required></div>
-                        <div class="col-md-6"><label class="form-label">Passport</label><input class="form-control" name="passport" placeholder="Input nomor passport"></div>
+                        <div class="col-md-6">
+                            <label class="form-label">Passport</label>
+                            <input class="form-control" name="passport" id="modalCustomerPassportInput" placeholder="Input nomor passport">
+                            <div id="customerCreatePassportInfo" class="mt-1" style="display: none;">
+                                <div class="p-2 border rounded bg-light fs--2">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted"><i class="fas fa-passport me-1 text-primary"></i>Akumulasi Bulan Ini:</span>
+                                        <span class="fw-bold text-primary" id="customerCreatePassportTotal">Rp 0 / Rp 180.000.000</span>
+                                    </div>
+                                    <div class="text-muted" id="customerCreatePassportNote"></div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-md-6"><label class="form-label">Pekerjaan</label><input class="form-control" name="pekerjaan" placeholder="Input pekerjaan"></div>
                         <div class="col-md-6"><label class="form-label">NIK</label><input class="form-control" name="nik" placeholder="Input NIK"></div>
                         <div class="col-12"><label class="form-label">Alamat</label><textarea class="form-control" name="alamat" placeholder="Input alamat customer"></textarea></div>
@@ -264,7 +306,15 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-warning">Akumulasi transaksi passport ini melewati batas 30 hari. Lengkapi dokumen pendukung untuk melanjutkan.</p>
+                    <div class="alert alert-warning mb-3" id="passportThresholdNotice">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle fa-2x me-3 text-warning"></i>
+                            <div>
+                                <strong class="d-block mb-1">Validasi Kuncian Paspor Rolling 30 Hari Melebihi Batas</strong>
+                                <p class="mb-0 small" id="passportThresholdDesc">Akumulasi transaksi nomor paspor ini melebihi batas regulasi Bank Indonesia setara USD 10.000 (Rp 180 Juta) dalam 30 hari terakhir. Wajib melengkapi dokumen pendukung (Underlying Document) untuk melanjutkan.</p>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Jenis Dokumen <span class="text-danger">*</span></label>
@@ -412,8 +462,79 @@
 </style>
 
 <script>
+    // Jika halaman dipulihkan dari back-forward cache (tombol Back), paksa reload agar
+    // baris valas transaksi sebelumnya tidak ikut terbawa ke transaksi baru.
+    window.addEventListener('pageshow', function (event) {
+        var nav = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+        if (event.persisted || (nav && nav.type === 'back_forward')) {
+            window.location.replace(window.location.href);
+        }
+    });
+
     var pendingTransactionData = null;
     var initialModalAmount = @json($modal ? (float) $modal->riwayat_modal : 0);
+    var passportBaseData = null;
+    var currentActivePassport = '';
+
+    function renderPassportRealtimeDisplay(currentGrandTotal) {
+        if (!passportBaseData || !currentActivePassport) {
+            return;
+        }
+
+        if (currentGrandTotal === undefined || currentGrandTotal === null) {
+            currentGrandTotal = parseFloat($('#grand_total').data('raw-total')) || 0;
+        }
+
+        var baseThisMonth = parseFloat(passportBaseData.accumulated_this_month) || 0;
+        var baseRolling = parseFloat(passportBaseData.accumulated) || 0;
+        var limit = parseFloat(passportBaseData.limit) || 180000000;
+        var periodeHari = passportBaseData.periode_hari || 30;
+
+        var realtimeThisMonth = Math.round((baseThisMonth + currentGrandTotal) * 100) / 100;
+        var realtimeRolling = Math.round((baseRolling + currentGrandTotal) * 100) / 100;
+        var remaining = Math.max(0, limit - realtimeRolling);
+        var isExceeded = realtimeRolling > limit;
+        var pct = limit > 0 ? (realtimeRolling / limit) * 100 : 0;
+        var pctDisplay = Math.min(100, Math.max(0, pct));
+
+        $('#passportNumberDisplay').text(currentActivePassport.toUpperCase());
+        $('#passportAccumulatedDisplay').text(formatCurrencyIdr(realtimeThisMonth));
+        $('#passportLimitDisplay').text(formatCurrencyIdr(limit));
+
+        if (currentGrandTotal > 0) {
+            $('#passportCurrentOrderAmount').text(formatCurrencyIdr(currentGrandTotal));
+            if (isExceeded) {
+                $('#passportCurrentOrderHint').removeClass('text-primary text-warning').addClass('text-danger').show();
+            } else if (pct >= 75) {
+                $('#passportCurrentOrderHint').removeClass('text-primary text-danger').addClass('text-warning').show();
+            } else {
+                $('#passportCurrentOrderHint').removeClass('text-warning text-danger').addClass('text-primary').show();
+            }
+        } else {
+            $('#passportCurrentOrderHint').hide();
+        }
+
+        $('#passportRollingInfo').text('Rolling ' + periodeHari + ' Hari: ' + formatCurrencyIdr(realtimeRolling));
+        $('#passportRemainingInfo').text('Sisa: ' + formatCurrencyIdr(remaining));
+
+        $('#passportProgressBar').css('width', pctDisplay + '%');
+
+        if (isExceeded || pct >= 100) {
+            $('#passportStatusPill').removeClass('bg-success bg-warning text-dark').addClass('bg-danger text-white').text('Batas Terlampaui');
+            $('#passportProgressBar').removeClass('bg-primary bg-warning').addClass('bg-danger');
+            $('#passportAccumulatedDisplay').removeClass('text-primary text-warning').addClass('text-danger');
+        } else if (pct >= 75) {
+            $('#passportStatusPill').removeClass('bg-success bg-danger text-white').addClass('bg-warning text-dark').text('Mendekati Batas');
+            $('#passportProgressBar').removeClass('bg-primary bg-danger').addClass('bg-warning');
+            $('#passportAccumulatedDisplay').removeClass('text-primary text-danger').addClass('text-warning');
+        } else {
+            $('#passportStatusPill').removeClass('bg-warning bg-danger text-dark').addClass('bg-success text-white').text('Aman');
+            $('#passportProgressBar').removeClass('bg-warning bg-danger').addClass('bg-primary');
+            $('#passportAccumulatedDisplay').removeClass('text-warning text-danger').addClass('text-primary');
+        }
+
+        $('#passportAccumulationBadge').slideDown(200);
+    }
 
     function submitTransaction(data, documentData) {
         var payload = new FormData();
@@ -439,8 +560,30 @@
             processData: false,
             contentType: false,
             success: function (response) {
-                window.location.href = '/transaksi/create';
-                window.open('/cetak/' + response.id_transaksi, '_blank');
+                // 1. Bersihkan memory & form segera agar tidak ada sisa transaksi lama di tabel
+                if (typeof resetTransactionForm === 'function') {
+                    resetTransactionForm();
+                }
+                $('#passportDocumentModal').modal('hide');
+                pendingTransactionData = null;
+
+                // 2. Buka struk cetak di tab baru
+                if (response && response.id_transaksi) {
+                    window.open('/cetak/' + response.id_transaksi, '_blank');
+                }
+
+                // 3. Tampilkan notifikasi sukses yang informatif
+                var kodeTrx = (response && response.kode_transaksi) ? response.kode_transaksi : '';
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Transaksi Berhasil Disimpan!',
+                    html: `Transaksi <strong>${kodeTrx}</strong> telah berhasil disimpan.<br><a href="/cetak/${response.id_transaksi}" target="_blank" class="btn btn-outline-primary btn-sm mt-3"><i class="fas fa-print me-1"></i>Cetak Receipt</a>`,
+                    confirmButtonText: 'Transaksi Baru',
+                    allowOutsideClick: false
+                }).then(function () {
+                    // Reload bersih (GET baru, bukan dari cache) untuk mereset nomor urut, tabel order & sisa modal
+                    window.location.replace(window.location.href);
+                });
             },
             error: function (response) {
                 $('#button_submit, #passportDocumentSubmit').prop('disabled', false);
@@ -517,6 +660,11 @@
         var sisaModal = Math.round((baseModal - grandTotal) * 100) / 100;
         $('#jumlah_modal').data('sisa-modal', sisaModal).html(formatCurrencyIdr(sisaModal));
 
+        // Update realtime akumulasi paspor customer jika ada
+        if (typeof renderPassportRealtimeDisplay === 'function') {
+            renderPassportRealtimeDisplay(grandTotal);
+        }
+
         return {
             grandTotal: grandTotal,
             sisaModal: sisaModal
@@ -532,7 +680,7 @@
         var id_transaksi = form.find('input[name="id_transaksi"]').val();
         var id_modal = form.find('input[name="id_modal"]').val();
         var dataform2 = [];
-        var nama_customer = form.find('input[name="nama_customer"]').val();
+        var nama_customer = $('#nama_customer_hidden').val() || $('#nama_customer_input').val() || form.find('input[name="nama_customer"]').val() || '';
         var customer_alias = form.find('input[name="customer_alias"]').val();
         var nomor_passport = form.find('input[name="nomor_passport"]').val();
         var asal_negara = form.find('select[name="asal_negara"]').val();
@@ -610,6 +758,12 @@
             if (!result.exceeded) {
                 submitTransaction(data, null);
                 return;
+            }
+            if (result.limit) {
+                var limitFormatted = formatCurrencyIdr(result.limit);
+                var accumulatedFormatted = formatCurrencyIdr(result.accumulated);
+                var projectedFormatted = formatCurrencyIdr(result.projected);
+                $('#passportThresholdDesc').html(`Akumulasi transaksi nomor paspor dalam 30 hari terakhir: <strong>${accumulatedFormatted}</strong>.<br>Ditambah transaksi saat ini menjadi <strong>${projectedFormatted}</strong>, melebihi batas regulasi BI (<strong>${limitFormatted}</strong>). Silakan lengkapi dokumen pendukung.`);
             }
             $('#passportDocumentModal').modal('show');
         }).fail(function (response) {
@@ -783,10 +937,15 @@
 
         function clearCustomer() {
             screeningConfirmed = false;
+            currentActivePassport = '';
+            passportBaseData = null;
             $('#screening_confirmed').val('0');
             $('#customer_id, #nama_customer_hidden, #customer_alias_hidden, #nomor_passport, #asal_negara_select').val('');
             // Clear visible fields juga
             $('#nama_customer_input').val('');
+            $('#passportAccumulationBadge').slideUp(150);
+            $('#passportCurrentOrderHint').hide();
+            $('#customerCreatePassportInfo').slideUp(150);
             if (!clearingCustomer) {
                 clearingCustomer = true;
                 if (customerChoicesInstance) {
@@ -807,6 +966,55 @@
             }
         }
 
+        function fetchPassportThreshold(passportNumber, context) {
+            passportNumber = (passportNumber || '').trim();
+            if (!passportNumber) {
+                if (!context || context === 'main') {
+                    currentActivePassport = '';
+                    passportBaseData = null;
+                    $('#passportAccumulationBadge').slideUp(150);
+                    $('#passportCurrentOrderHint').hide();
+                }
+                if (!context || context === 'modal') {
+                    $('#customerCreatePassportInfo').slideUp(150);
+                }
+                return;
+            }
+
+            if (!context || context === 'main') {
+                currentActivePassport = passportNumber;
+            }
+
+            $.post('{{ route('api.transaksi.passport-threshold') }}', {
+                _token: '{{ csrf_token() }}',
+                nomor_passport: passportNumber,
+                total: 0,
+                tanggal_transaksi: $('#tanggal_transaksi').val() || '{{ date('Y-m-d') }}'
+            }).done(function (res) {
+                // Update Main Customer Widget via realtime render
+                if (!context || context === 'main') {
+                    passportBaseData = res;
+                    var currentGrandTotal = parseFloat($('#grand_total').data('raw-total')) || 0;
+                    renderPassportRealtimeDisplay(currentGrandTotal);
+                }
+
+                // Update Modal Tambah Customer Info
+                if (!context || context === 'modal') {
+                    var periodeHariModal = res.periode_hari || 30;
+                    $('#customerCreatePassportTotal').text(`${res.accumulated_this_month_formatted} / ${res.limit_formatted}`);
+                    var pctModal = parseFloat(res.percentage_this_month) || parseFloat(res.percentage) || 0;
+                    if (res.exceeded || pctModal >= 100) {
+                        $('#customerCreatePassportNote').html('<span class="text-danger fw-bold"><i class="fas fa-exclamation-triangle me-1"></i>Akumulasi paspor ini melebihi batas regulasi BI (' + res.limit_formatted + '). Transaksi memerlukan dokumen pendukung.</span>');
+                    } else {
+                        $('#customerCreatePassportNote').html(`<span class="text-success"><i class="fas fa-check-circle me-1"></i>Sisa kuota bulan ini: <strong>${res.remaining_formatted}</strong> (Rolling ${periodeHariModal} Hari: ${res.accumulated_formatted})</span>`);
+                    }
+                    $('#customerCreatePassportInfo').slideDown(200);
+                }
+            }).fail(function () {
+                console.warn('Gagal memuat batas passport');
+            });
+        }
+
         window.resetTransactionForm = function (message) {
             var table = $('#dataTableKonfirmasi').DataTable();
             table.clear().draw();
@@ -817,7 +1025,7 @@
             $('#addCustomerButton').show();
             $('#toggleCustomerForm').hide();
             $('#validationResult').empty().hide();
-            $('#grand_total').html(new Intl.NumberFormat('id', {
+            $('#grand_total').data('raw-total', 0).html(new Intl.NumberFormat('id', {
                 style: 'currency',
                 currency: 'IDR',
                 minimumFractionDigits: 0
@@ -880,10 +1088,20 @@
             }
             $('#customer_id').val(item.customer_id);
             $('#nama_customer_hidden').val(item.name);
+            $('#nama_customer_input').val(item.name);
             $('#customer_alias_hidden').val(item.alias || '');
             $('#nomor_passport').val(item.passport || '');
             $('#asal_negara_select').val(item.country || '').trigger('change');
             if (!skipScreening) screenCustomer(item.name, item.alias || '');
+
+            if (item && item.passport) {
+                fetchPassportThreshold(item.passport, 'main');
+            } else {
+                currentActivePassport = '';
+                passportBaseData = null;
+                $('#passportAccumulationBadge').slideUp(150);
+                $('#passportCurrentOrderHint').hide();
+            }
 
             // Sembunyikan form manual jika memilih dari dropdown
             $('#customerForm').hide();
@@ -896,6 +1114,32 @@
             $('.customer-picker').hide();
             $(this).hide();
             $('#toggleCustomerForm').show();
+            const currentPassport = $('#nomor_passport').val();
+            if (currentPassport) {
+                fetchPassportThreshold(currentPassport, 'main');
+            }
+        });
+
+        let passportDebounceTimer = null;
+        $('#nomor_passport').on('input', function () {
+            clearTimeout(passportDebounceTimer);
+            const val = $(this).val();
+            passportDebounceTimer = setTimeout(function () {
+                fetchPassportThreshold(val, 'main');
+            }, 300);
+        });
+
+        let modalPassportDebounce = null;
+        $('#modalCustomerPassportInput').on('input', function () {
+            clearTimeout(modalPassportDebounce);
+            const val = $(this).val();
+            modalPassportDebounce = setTimeout(function () {
+                fetchPassportThreshold(val, 'modal');
+            }, 300);
+        });
+
+        $('#customerCreateModal').on('hidden.bs.modal', function () {
+            $('#customerCreatePassportInfo').hide();
         });
 
         function screenCustomer(name, alias) {
@@ -919,6 +1163,10 @@
             event.preventDefault();
             if (!pendingTransactionData) return;
             submitTransaction(pendingTransactionData, new FormData(this));
+        });
+
+        $('#passportDocumentModal').on('hidden.bs.modal', function () {
+            $('#button_submit').prop('disabled', false);
         });
 
         $('#customerCreateForm').on('submit', function (event) {
@@ -1138,6 +1386,10 @@
             $('#addCustomerButton').hide();
             $('#toggleCustomerForm').show();
             $('#nama_customer_input').val('{{ old('nama_customer') }}');
+        @endif
+
+        @if(old('nomor_passport'))
+            fetchPassportThreshold('{{ old('nomor_passport') }}', 'main');
         @endif
     });
 </script>

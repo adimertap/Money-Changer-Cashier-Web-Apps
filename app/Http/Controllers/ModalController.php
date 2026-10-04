@@ -60,7 +60,8 @@ class ModalController extends Controller
             }
             return view('pages.modal.index', compact('modal','modal_today','today','jumlah_modal_today','modal_tf','cabangs','cabangId'));
         } catch (\Throwable $th) {
-            Alert::warning('Error', 'Error Server');
+            Alert::warning('Error', 'Error Server: ' . $th->getMessage());
+            return redirect()->back();
         }
 
     }

@@ -261,7 +261,15 @@ class JurnalHarianController extends Controller
      */
     public function show($id)
     {
-        $transaksi = Transaksi::with('Pegawai','detailTransaksi.Currency')->find($id);
+        $transaksi = Transaksi::with('Pegawai', 'Cabang', 'detailTransaksi.Currency')->find($id);
+        if (!$transaksi) {
+            Alert::warning('Error', 'Transaksi tidak ditemukan');
+            return redirect()->back();
+        }
+
+        // Auto-heal jika customer di database belum lengkap
+        $transaksi->healCustomerData();
+
         $detail = DetailTransaksi::where('id_transaksi', $id)->get();
 
         return view('pages.transaksi.detail', compact('transaksi','detail'));

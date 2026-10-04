@@ -64,7 +64,7 @@
                 </li>
                 @endmenuAccess
 
-                @menuAccess(['master-cabang', 'master-pegawai', 'role-hak-akses', 'master-currency', 'master-customer', 'master-terduga', 'master-threshold'])
+                @menuAccess(['master-cabang', 'master-pegawai', 'role-hak-akses', 'master-currency', 'master-customer', 'master-terduga', 'master-threshold', 'master-limit-transaksi'])
                 <li class="nav-item">
                     <a class="nav-link dropdown-indicator {{ $open['master'] ? '' : 'collapsed' }}" href="#navMaster" role="button"
                         data-bs-toggle="collapse" aria-expanded="{{ $open['master'] ? 'true' : 'false' }}" aria-controls="navMaster">
@@ -90,7 +90,10 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('master-terduga.index') }}"><div class="d-flex align-items-center"><span class="nav-link-icon"><i class="fas fa-user-shield"></i></span><span class="nav-link-text ps-1">Terduga</span></div></a></li>
                         @endmenuAccess
                         @menuAccess('master-threshold')
-                        <li class="nav-item"><a class="nav-link" href="{{ route('master-threshold.index') }}"><div class="d-flex align-items-center"><span class="nav-link-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-link-text ps-1">Batas Atas Transaksi</span></div></a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('master-threshold.index') }}"><div class="d-flex align-items-center"><span class="nav-link-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-link-text ps-1">Batas Atas LKUB</span></div></a></li>
+                        @endmenuAccess
+                        @menuAccess('master-limit-transaksi')
+                        <li class="nav-item"><a class="nav-link" href="{{ route('master-limit-transaksi.index') }}"><div class="d-flex align-items-center"><span class="nav-link-icon"><i class="fas fa-passport"></i></span><span class="nav-link-text ps-1">Batas Kuncian Paspor</span></div></a></li>
                         @endmenuAccess
                     </ul>
                 </li>
