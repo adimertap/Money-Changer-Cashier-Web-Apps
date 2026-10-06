@@ -548,15 +548,62 @@ class TransaksiController extends Controller
                 'cabang_id' => 'required|integer|exists:tb_master_cabang,cabang_id',
             ]);
             $transactionCabangId = $this->resolveCabangId($request, $isOwner, true);
-            $customer = $request->customer_id ? MasterCustomer::findOrFail($request->customer_id) : null;
+            $customer = $request->customer_id ? MasterCustomer::find($request->customer_id) : null;
             if ($customer && (int) $customer->cabang_terdaftar !== $transactionCabangId) {
                 DB::rollBack();
                 return response()->json(['message' => 'Customer tidak sesuai dengan cabang transaksi.'], 422);
             }
             if (!$customer && !trim((string) $request->nama_customer)) {
                 DB::rollBack();
-                return response()->json(['message' => 'Customer wajib dipilih.'], 422);
+                return response()->json(['message' => 'Customer wajib dipilih atau diisi.'], 422);
             }
+
+            // Jika customer belum ada (customer baru dari form transaksi), simpan ke tb_master_customer
+            if (!$customer && trim((string) $request->nama_customer)) {
+                $trimmedName = trim((string) $request->nama_customer);
+                $trimmedPassport = trim((string) $request->nomor_passport);
+                $country = $request->asal_negara ?: 'INDONESIA';
+
+                // Cek apakah customer sudah pernah terdaftar di cabang ini berdasarkan passport atau nama
+                $existingCustomer = null;
+                if (!empty($trimmedPassport)) {
+                    $existingCustomer = MasterCustomer::where('cabang_terdaftar', $transactionCabangId)
+                        ->whereRaw('LOWER(TRIM(passport)) = ?', [mb_strtolower($trimmedPassport)])
+                        ->first();
+                }
+                if (!$existingCustomer) {
+                    $existingCustomer = MasterCustomer::where('cabang_terdaftar', $transactionCabangId)
+                        ->whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower($trimmedName)])
+                        ->first();
+                }
+
+                if ($existingCustomer) {
+                    $customer = $existingCustomer;
+                    $dirtyCustomer = false;
+                    if (empty($customer->passport) && !empty($trimmedPassport)) {
+                        $customer->passport = $trimmedPassport;
+                        $dirtyCustomer = true;
+                    }
+                    if (empty($customer->country) && !empty($country)) {
+                        $customer->country = $country;
+                        $dirtyCustomer = true;
+                    }
+                    if ($dirtyCustomer) {
+                        $customer->save();
+                    }
+                } else {
+                    $customer = MasterCustomer::create([
+                        'name' => $trimmedName,
+                        'alias' => $request->customer_alias ?: null,
+                        'country' => $country,
+                        'passport' => $trimmedPassport ?: null,
+                        'cabang_terdaftar' => $transactionCabangId,
+                        'is_active' => 1,
+                        'created_by' => Auth::id(),
+                    ]);
+                }
+            }
+
             $screeningTerms = collect([$customer ? $customer->name : $request->nama_customer, $customer ? $customer->alias : $request->customer_alias])
                 ->filter()
                 ->flatMap(function ($value) {

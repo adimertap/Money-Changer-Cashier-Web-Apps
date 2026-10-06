@@ -83,6 +83,7 @@
                                     @endforeach
                                 </select>
                                 <button class="btn btn-sm btn-outline-primary customer-add-button" type="button" id="addCustomerButton" title="Tambah customer manual">+</button>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#customerCreateModal" title="Tambah customer via popup modal"><i class="fas fa-user-plus"></i></button>
                             </div>
                             <small class="text-muted">Seluruh customer aktif pada cabang terpilih ditampilkan.</small>
                         </div>
@@ -136,9 +137,15 @@
                                 @enderror
                             </div>
                             <div class="mb-4">
-                                <button class="btn btn-warning btn-sm" type="button" id="validateTerdugaButton">
-                                    <i class="fas fa-search me-1"></i>Validate Terduga
-                                </button>
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <button class="btn btn-warning btn-sm" type="button" id="validateTerdugaButton">
+                                        <i class="fas fa-search me-1"></i>Validate Terduga
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm" type="button" id="saveCustomerManualBtn">
+                                        <i class="fas fa-user-check me-1"></i>Simpan ke Master Customer
+                                    </button>
+                                </div>
+                                <small class="text-muted d-block"><i class="fas fa-info-circle me-1"></i>Customer baru juga akan otomatis tersimpan ke tabel customer saat transaksi disubmit.</small>
                                 <div id="validationResult" class="mt-2" style="display: none;"></div>
                             </div>
                         </div>
@@ -1216,6 +1223,97 @@
                     });
                 })
                 .fail(function () {
+                    Swal.fire('Gagal', 'Screening customer gagal.', 'error');
+                });
+        });
+
+        // Simpan customer manual (inline form) ke tabel master customer
+        $('#saveCustomerManualBtn').on('click', function () {
+            const nama = ($('#nama_customer_input').val() || '').trim();
+            const passport = ($('#nomor_passport').val() || '').trim();
+            const country = $('#asal_negara_select').val() || 'INDONESIA';
+            const cabangId = $('#transaction_cabang_id').val() || $('input[name="cabang_id"]').val();
+
+            if (!nama) {
+                Swal.fire('Peringatan', 'Nama customer wajib diisi.', 'warning');
+                return;
+            }
+
+            const btn = $(this);
+            const originalText = btn.html();
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Menyimpan...');
+
+            const data = {
+                _token: '{{ csrf_token() }}',
+                name: nama,
+                alias: nama,
+                passport: passport,
+                country: country,
+                cabang_terdaftar: cabangId
+            };
+
+            $.post('{{ route('api.customer.screen') }}', data)
+                .done(function (result) {
+                    const doSave = function () {
+                        $.ajax({
+                            url: '{{ route('api.customer.store') }}',
+                            method: 'POST',
+                            data: data,
+                            success: function (response) {
+                                const item = response.customer;
+                                customersData[item.customer_id] = item;
+                                const label = item.name + (item.alias ? ' - ' + item.alias : '') + (item.passport ? ' [' + item.passport + ']' : '');
+                                if (customerChoicesInstance) {
+                                    const newCustomerChoice = {
+                                        value: String(item.customer_id),
+                                        label: label,
+                                        customProperties: item
+                                    };
+                                    customerChoicesInstance.setChoices([newCustomerChoice], 'value', 'label', false);
+                                    skipNextCustomerScreening = true;
+                                    customerChoicesInstance.setChoiceByValue(String(item.customer_id));
+                                } else {
+                                    $('#customerSelect').append(new Option(label, item.customer_id, true, true));
+                                }
+
+                                // Reset form manual dan kembali ke picker dropdown
+                                $('#customerForm').hide();
+                                $('.customer-picker').show();
+                                $('#addCustomerButton').show();
+                                $('#toggleCustomerForm').hide();
+
+                                skipNextCustomerScreening = true;
+                                $('#customerSelect').val(String(item.customer_id)).trigger('change');
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: 'Customer baru berhasil disimpan ke Master Data Customer.',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            },
+                            error: function (response) {
+                                const message = response.responseJSON && response.responseJSON.message;
+                                Swal.fire('Gagal', message || 'Customer tidak dapat disimpan.', 'error');
+                            },
+                            complete: function () {
+                                btn.prop('disabled', false).html(originalText);
+                            }
+                        });
+                    };
+
+                    if (!result.matched) return doSave();
+                    showScreeningPrompt(function () {
+                        screeningConfirmed = true;
+                        $('#screening_confirmed').val('1');
+                        doSave();
+                    }, function () {
+                        btn.prop('disabled', false).html(originalText);
+                    });
+                })
+                .fail(function () {
+                    btn.prop('disabled', false).html(originalText);
                     Swal.fire('Gagal', 'Screening customer gagal.', 'error');
                 });
         });
