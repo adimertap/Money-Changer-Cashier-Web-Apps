@@ -130,6 +130,7 @@ Route::group(['middleware' => 'auth'], function () {
 
         // TRANSAKSI
         Route::post('/api/transaksi/passport-threshold', [TransaksiController::class, 'passportThreshold'])->name('api.transaksi.passport-threshold');
+        Route::get('/api/transaksi/next-passport', [TransaksiController::class, 'nextIncrementalPassportApi'])->name('api.transaksi.next-passport');
         Route::post('/api/transaksi/validate-terduga', [TransaksiController::class, 'validateTerduga'])->name('api.transaksi.validate-terduga');
         Route::resource('transaksi', TransaksiController::class);
         Route::get('/transaksi/{id}/dokumen', [\App\Http\Controllers\TransaksiController::class, 'downloadDokumen'])->name('transaksi.dokumen');

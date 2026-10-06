@@ -615,6 +615,9 @@
                     <div class="auth-footer">
                         <span>Belum memiliki akun atau terkendala akses? Hubungi Admin</span>
                     </div>
+                    <div style="margin-top: 60px; font-size: 13px; color: blue; font-weight: 600; font-style: italic; text-align: center;">
+                        <span>Version 2.1</span>
+                    </div>
                 </form>
             </div>
         </div>

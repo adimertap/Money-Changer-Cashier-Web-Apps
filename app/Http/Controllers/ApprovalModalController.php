@@ -19,24 +19,13 @@ class ApprovalModalController extends Controller
      */
     public function index(Request $request)
     {
-        $isOwner = Auth::user()->role === 'Owner';
-        $allowedCabangIds = $isOwner
-            ? MasterCabang::where('is_active', 1)->pluck('cabang_id')->all()
-            : array_map('intval', array_column(session('cabangs', []), 'cabang_id'));
-        $modal = ($isOwner ? ModalTransaksi::withoutGlobalScope('cabang') : ModalTransaksi::query())
+        $modal = ModalTransaksi::withoutGlobalScope('cabang')
             ->with(['Pegawai', 'Cabang'])
             ->where('status_modal', 'Pending')
-            ->when($request->cabang_id && in_array((int) $request->cabang_id, $allowedCabangIds, true), function ($query) use ($request) {
-                $query->where('cabang_id', $request->cabang_id);
-            })
             ->orderByDesc('created_at')
             ->get();
-        $cabangs = MasterCabang::where('is_active', 1)
-            ->whereIn('cabang_id', $allowedCabangIds)
-            ->orderBy('cabang_name')
-            ->get();
 
-        return view('pages.modal.approval', compact('modal', 'cabangs'));
+        return view('pages.modal.approval', compact('modal'));
     }
 
     /**

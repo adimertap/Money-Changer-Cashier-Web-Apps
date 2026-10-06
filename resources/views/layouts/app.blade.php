@@ -147,6 +147,43 @@
     <script src="/../falcon/assets/js/config.js"></script>
     <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var navCollapse = document.getElementById('navbarVerticalCollapse');
+            if (!navCollapse) return;
+
+            function closeNavbarIfOutside(e) {
+                // Hanya jalankan jika menu sedang terbuka (memiliki class 'show')
+                if (!navCollapse.classList.contains('show')) return;
+
+                // Jangan tutup jika klik/tap berada di dalam menu navbar atau pada tombol hamburger itu sendiri
+                if (e.target.closest('#navbarVerticalCollapse, .navbar-vertical, .navbar-toggler-humburger-icon, [data-bs-target="#navbarVerticalCollapse"]')) {
+                    return;
+                }
+
+                // Tutup menu via Bootstrap Collapse API atau fallback jQuery / class
+                if (window.bootstrap && window.bootstrap.Collapse) {
+                    var bsCollapse = bootstrap.Collapse.getOrCreateInstance 
+                        ? bootstrap.Collapse.getOrCreateInstance(navCollapse) 
+                        : (bootstrap.Collapse.getInstance(navCollapse) || new bootstrap.Collapse(navCollapse, { toggle: false }));
+                    bsCollapse.hide();
+                } else if (window.jQuery && typeof $.fn.collapse === 'function') {
+                    $('#navbarVerticalCollapse').collapse('hide');
+                } else {
+                    navCollapse.classList.remove('show');
+                    var toggler = document.querySelector('.navbar-toggler-humburger-icon, [data-bs-target="#navbarVerticalCollapse"]');
+                    if (toggler) {
+                        toggler.classList.add('collapsed');
+                        toggler.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            }
+
+            document.addEventListener('click', closeNavbarIfOutside);
+            document.addEventListener('touchstart', closeNavbarIfOutside, { passive: true });
+        });
+    </script>
 </body>
 
 

@@ -83,7 +83,7 @@
                                     @endforeach
                                 </select>
                                 <button class="btn btn-sm btn-outline-primary customer-add-button" type="button" id="addCustomerButton" title="Tambah customer manual">+</button>
-                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#customerCreateModal" title="Tambah customer via popup modal"><i class="fas fa-user-plus"></i></button>
+                                <!-- <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#customerCreateModal" title="Tambah customer via popup modal"><i class="fas fa-user-plus"></i></button> -->
                             </div>
                             <small class="text-muted">Seluruh customer aktif pada cabang terpilih ditampilkan.</small>
                         </div>
@@ -109,10 +109,27 @@
                                 @enderror
                             </div>
                             <div class="mb-2">
+                                <div class="d-flex align-items-center gap-3 mb-2">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input status-passport-radio" type="radio" name="status_passport_radio" id="passport_ada" value="ada" checked>
+                                        <label class="form-check-label fw-semi-bold cursor-pointer" for="passport_ada">
+                                            Ada
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input status-passport-radio" type="radio" name="status_passport_radio" id="passport_tidak_ada" value="tidak_ada">
+                                        <label class="form-check-label fw-semi-bold cursor-pointer" for="passport_tidak_ada">
+                                            Tidak Ada
+                                        </label>
+                                    </div>
+                                </div>
                                 <label class="form-label" for="nomor_passport">Nomor Passport</label>
                                 <input class="form-control form-select-sm @error('nomor_passport') is-invalid @enderror"
                                     name="nomor_passport" id="nomor_passport" type="text" placeholder="Input Nomor Passport"
                                     value="{{ old('nomor_passport') }}" />
+                                <div id="passport_auto_hint" class="small mt-1 text-primary fw-semi-bold" style="display: none;">
+                                    <i class="fas fa-magic me-1"></i>Nomor paspor otomatis (9 digit): <span id="passport_auto_number_text" class="badge bg-primary text-white px-2 py-1">-</span>
+                                </div>
                                 @error('nomor_passport')
                                 <div class="invalid-feedback">
                                     <strong>{{ $message }}</strong>
@@ -137,15 +154,15 @@
                                 @enderror
                             </div>
                             <div class="mb-4">
-                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                <div class="d-flex gap-2 justify-content-start  mb-3">
                                     <button class="btn btn-warning btn-sm" type="button" id="validateTerdugaButton">
-                                        <i class="fas fa-search me-1"></i>Validate Terduga
+                                        Validate Terduga
                                     </button>
                                     <button class="btn btn-outline-success btn-sm" type="button" id="saveCustomerManualBtn">
-                                        <i class="fas fa-user-check me-1"></i>Simpan ke Master Customer
+                                        Simpan Customer
                                     </button>
                                 </div>
-                                <small class="text-muted d-block"><i class="fas fa-info-circle me-1"></i>Customer baru juga akan otomatis tersimpan ke tabel customer saat transaksi disubmit.</small>
+                                <small class="text-muted d-block"><i class="fas fa-info-circle"></i>Customer baru juga akan otomatis tersimpan ke master customer saat transaksi disubmit.</small>
                                 <div id="validationResult" class="mt-2" style="display: none;"></div>
                             </div>
                         </div>
@@ -280,8 +297,25 @@
                         <div class="col-md-6"><label class="form-label">Alias</label><input class="form-control" name="alias" placeholder="Input alias customer"></div>
                         <div class="col-md-6"><label class="form-label">Country <span class="text-danger">*</span></label><input class="form-control" name="country" placeholder="Input negara asal" required></div>
                         <div class="col-md-6">
-                            <label class="form-label">Passport</label>
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input modal-status-passport-radio" type="radio" name="modal_status_passport_radio" id="modal_passport_ada" value="ada" checked>
+                                    <label class="form-check-label fw-semi-bold cursor-pointer" for="modal_passport_ada">
+                                        Ada
+                                    </label>
+                                </div>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input modal-status-passport-radio" type="radio" name="modal_status_passport_radio" id="modal_passport_tidak_ada" value="tidak_ada">
+                                    <label class="form-check-label fw-semi-bold cursor-pointer" for="modal_passport_tidak_ada">
+                                        Tidak Ada
+                                    </label>
+                                </div>
+                            </div>
+                            <label class="form-label" for="modalCustomerPassportInput">Passport</label>
                             <input class="form-control" name="passport" id="modalCustomerPassportInput" placeholder="Input nomor passport">
+                            <div id="modal_passport_auto_hint" class="small mt-1 text-primary fw-semi-bold" style="display: none;">
+                                <i class="fas fa-magic me-1"></i>Nomor paspor otomatis (9 digit): <span id="modal_passport_auto_number_text" class="badge bg-primary text-white px-2 py-1">-</span>
+                            </div>
                             <div id="customerCreatePassportInfo" class="mt-1" style="display: none;">
                                 <div class="p-2 border rounded bg-light fs--2">
                                     <div class="d-flex justify-content-between mb-1">
@@ -750,6 +784,7 @@
             nama_customer: nama_customer,
             customer_alias: customer_alias,
             nomor_passport: nomor_passport,
+            status_passport: $('input[name="status_passport_radio"]:checked').val() || 'ada',
             asal_negara: asal_negara,
             detail: dataform2
         };
@@ -946,6 +981,10 @@
             screeningConfirmed = false;
             currentActivePassport = '';
             passportBaseData = null;
+            lastManualPassport = '';
+            $('#passport_ada').prop('checked', true);
+            $('#nomor_passport').prop('readonly', false).removeClass('bg-200 text-primary fw-semi-bold');
+            $('#passport_auto_hint').hide();
             $('#screening_confirmed').val('0');
             $('#customer_id, #nama_customer_hidden, #customer_alias_hidden, #nomor_passport, #asal_negara_select').val('');
             // Clear visible fields juga
@@ -1050,6 +1089,9 @@
             $('#passportDocumentForm')[0].reset();
             pendingTransactionData = null;
             $('#button_submit, #passportDocumentSubmit').prop('disabled', false);
+            if (typeof refreshNextIncrementalPassport === 'function') {
+                refreshNextIncrementalPassport();
+            }
 
             if (message) {
                 Swal.fire({
@@ -1097,7 +1139,18 @@
             $('#nama_customer_hidden').val(item.name);
             $('#nama_customer_input').val(item.name);
             $('#customer_alias_hidden').val(item.alias || '');
-            $('#nomor_passport').val(item.passport || '');
+            const custPassport = item.passport || '';
+            $('#nomor_passport').val(custPassport);
+            if (custPassport && /^0000\d{5}$/.test(custPassport)) {
+                $('#passport_tidak_ada').prop('checked', true);
+                $('#nomor_passport').prop('readonly', true).addClass('bg-200 text-primary fw-semi-bold');
+                $('#passport_auto_number_text').text(custPassport);
+                $('#passport_auto_hint').show();
+            } else {
+                $('#passport_ada').prop('checked', true);
+                $('#nomor_passport').prop('readonly', false).removeClass('bg-200 text-primary fw-semi-bold');
+                $('#passport_auto_hint').hide();
+            }
             $('#asal_negara_select').val(item.country || '').trigger('change');
             if (!skipScreening) screenCustomer(item.name, item.alias || '');
 
@@ -1127,6 +1180,105 @@
             }
         });
 
+        let nextIncrementalPassport = '{{ $nextIncrementalPassport ?? '' }}';
+        let lastManualPassport = '';
+        let lastModalManualPassport = '';
+
+        function refreshNextIncrementalPassport(callback) {
+            $.get('{{ route('api.transaksi.next-passport') }}')
+                .done(function (res) {
+                    if (res && res.next_passport) {
+                        nextIncrementalPassport = res.next_passport;
+                    }
+                    if (typeof callback === 'function') callback(nextIncrementalPassport);
+                })
+                .fail(function () {
+                    if (typeof callback === 'function') callback(nextIncrementalPassport);
+                });
+        }
+
+        $('input[name="status_passport_radio"]').on('change', function () {
+            const status = $(this).val();
+            const passportInput = $('#nomor_passport');
+            const autoHint = $('#passport_auto_hint');
+            const autoNumberText = $('#passport_auto_number_text');
+
+            if (status === 'tidak_ada') {
+                const currentVal = passportInput.val();
+                if (currentVal && !/^0000\d{5}$/.test(currentVal)) {
+                    lastManualPassport = currentVal;
+                }
+                const applyAuto = function (num) {
+                    passportInput.val(num);
+                    passportInput.prop('readonly', true).addClass('bg-200 text-primary fw-semi-bold');
+                    autoNumberText.text(num);
+                    autoHint.slideDown(150);
+                    fetchPassportThreshold(num, 'main');
+                };
+
+                if (nextIncrementalPassport) {
+                    applyAuto(nextIncrementalPassport);
+                }
+                refreshNextIncrementalPassport(function (freshNum) {
+                    if ($('input[name="status_passport_radio"]:checked').val() === 'tidak_ada') {
+                        applyAuto(freshNum);
+                    }
+                });
+            } else {
+                passportInput.prop('readonly', false).removeClass('bg-200 text-primary fw-semi-bold');
+                autoHint.slideUp(150);
+                if (lastManualPassport && !/^0000\d{5}$/.test(lastManualPassport)) {
+                    passportInput.val(lastManualPassport);
+                    fetchPassportThreshold(lastManualPassport, 'main');
+                } else {
+                    passportInput.val('');
+                    fetchPassportThreshold('', 'main');
+                }
+                passportInput.focus();
+            }
+        });
+
+        $('input[name="modal_status_passport_radio"]').on('change', function () {
+            const status = $(this).val();
+            const input = $('#modalCustomerPassportInput');
+            const hint = $('#modal_passport_auto_hint');
+            const text = $('#modal_passport_auto_number_text');
+
+            if (status === 'tidak_ada') {
+                const cur = input.val();
+                if (cur && !/^0000\d{5}$/.test(cur)) {
+                    lastModalManualPassport = cur;
+                }
+                const applyAutoModal = function (num) {
+                    input.val(num);
+                    input.prop('readonly', true).addClass('bg-200 text-primary fw-semi-bold');
+                    text.text(num);
+                    hint.slideDown(150);
+                    fetchPassportThreshold(num, 'modal');
+                };
+
+                if (nextIncrementalPassport) {
+                    applyAutoModal(nextIncrementalPassport);
+                }
+                refreshNextIncrementalPassport(function (freshNum) {
+                    if ($('input[name="modal_status_passport_radio"]:checked').val() === 'tidak_ada') {
+                        applyAutoModal(freshNum);
+                    }
+                });
+            } else {
+                input.prop('readonly', false).removeClass('bg-200 text-primary fw-semi-bold');
+                hint.slideUp(150);
+                if (lastModalManualPassport && !/^0000\d{5}$/.test(lastModalManualPassport)) {
+                    input.val(lastModalManualPassport);
+                    fetchPassportThreshold(lastModalManualPassport, 'modal');
+                } else {
+                    input.val('');
+                    fetchPassportThreshold('', 'modal');
+                }
+                input.focus();
+            }
+        });
+
         let passportDebounceTimer = null;
         $('#nomor_passport').on('input', function () {
             clearTimeout(passportDebounceTimer);
@@ -1147,6 +1299,9 @@
 
         $('#customerCreateModal').on('hidden.bs.modal', function () {
             $('#customerCreatePassportInfo').hide();
+            $('#modal_passport_auto_hint').hide();
+            $('#modal_passport_ada').prop('checked', true);
+            $('#modalCustomerPassportInput').prop('readonly', false).removeClass('bg-200 text-primary fw-semi-bold');
         });
 
         function screenCustomer(name, alias) {
@@ -1486,7 +1641,9 @@
             $('#nama_customer_input').val('{{ old('nama_customer') }}');
         @endif
 
-        @if(old('nomor_passport'))
+        @if(old('status_passport_radio') === 'tidak_ada')
+            $('#passport_tidak_ada').prop('checked', true).trigger('change');
+        @elseif(old('nomor_passport'))
             fetchPassportThreshold('{{ old('nomor_passport') }}', 'main');
         @endif
     });

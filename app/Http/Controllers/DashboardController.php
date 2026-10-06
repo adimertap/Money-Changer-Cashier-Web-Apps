@@ -47,93 +47,193 @@ class DashboardController extends Controller
             $bulan_ini = Carbon::now()->format('M Y');
             $currency = MasterCurrency::count();
             if ($isOwner) {
-                $pegawaiQuery = User::query();
-                if ($cabangId) {
-                    $pegawaiQuery->whereHas('cabangs', function ($query) use ($cabangId) {
-                        $query->where('tb_master_cabang.cabang_id', $cabangId);
-                    });
-                }
-                $pegawai = $pegawaiQuery->count();
+                $pegawai = User::count();
             } else {
                 $pegawai = User::diCabangAktif()->count();
             }
             $currentMonth = date('m');
             $currentYear = date('Y');
+            $todayDate = Carbon::now()->format('Y-m-d');
 
-            //TODAY
-            $jumlah_hari_ini = $branchFilter(Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->where('jenis_transaksi','Beli'))->count();
-            $total_hari_ini = $branchFilter(Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->where('jenis_transaksi','Beli'))->sum('total');
-            $jumlah_jual_hari_ini = $branchFilter(Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->where('jenis_transaksi','Jual'))->count();
-            $total_jual_hari_ini = $branchFilter(Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->where('jenis_transaksi','Jual'))->sum('total');
+            // Query helper untuk aggregate
+            $branchFilter = function ($query) use ($isOwner) {
+                if ($isOwner) {
+                    $query->withoutGlobalScope('cabang');
+                }
+                return $query;
+            };
 
-            //MODAL
-            $modal = $branchFilter(ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal', 'Pending'))->count();
-            $sisa_modal = $branchFilter(ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal', 'Terima'))->first();
+            // TODAY (Beli)
+            $jumlah_hari_ini = $branchFilter(Transaksi::where('tanggal_transaksi', $todayDate)->where('jenis_transaksi','Beli'))->count();
+            $total_hari_ini = $branchFilter(Transaksi::where('tanggal_transaksi', $todayDate)->where('jenis_transaksi','Beli'))->sum('total');
+            $jumlah_jual_hari_ini = $branchFilter(Transaksi::where('tanggal_transaksi', $todayDate)->where('jenis_transaksi','Jual'))->count();
+            $total_jual_hari_ini = $branchFilter(Transaksi::where('tanggal_transaksi', $todayDate)->where('jenis_transaksi','Jual'))->sum('total');
+
+            // MODAL
+            $modal = $branchFilter(ModalTransaksi::where('tanggal_modal', $todayDate)->where('status_modal', 'Pending'))->count();
+            $sisa_modal = $branchFilter(ModalTransaksi::where('tanggal_modal', $todayDate)->where('status_modal', 'Terima'))->first();
             $total_modal_bulan_ini = $branchFilter(ModalTransaksi::whereMonth('tanggal_modal', $currentMonth)->whereYear('tanggal_modal', $currentYear))->sum('jumlah_modal');
 
-            // BULAN INI
-            $jumlah_bulan_ini = $branchFilter(Transaksi::whereMonth('tanggal_transaksi', $currentMonth)
-            ->whereYear('tanggal_transaksi', $currentYear)
-            ->where('jenis_transaksi','Beli'))
-            ->count();
-            $total_bulan_ini = $branchFilter(Transaksi::whereMonth('tanggal_transaksi', $currentMonth)
-            ->whereYear('tanggal_transaksi', $currentYear)
-            ->where('jenis_transaksi','Beli'))
-            ->sum('total');
-            $jumlah_jual_bulan_ini = $branchFilter(Transaksi::whereMonth('tanggal_transaksi', $currentMonth)
-            ->whereYear('tanggal_transaksi', $currentYear)
-            ->where('jenis_transaksi','Jual'))
-            ->count();
-            $total_jual_bulan_ini = $branchFilter(Transaksi::whereMonth('tanggal_transaksi', $currentMonth)
-            ->whereYear('tanggal_transaksi', $currentYear)
-            ->where('jenis_transaksi','Jual'))
-            ->sum('total');
+            // BULAN INI & BULAN LALU (COMPARISON)
+            $lastMonthDate = Carbon::now()->subMonth();
+            $lastMonth = $lastMonthDate->format('m');
+            $lastMonthYear = $lastMonthDate->format('Y');
 
-            //SEMUA
-            $jumlah_seluruh = $branchFilter(Transaksi::where('tanggal_transaksi', Carbon::now()->format('Y-m-d')))->count();
+            $jumlah_bulan_ini = $branchFilter(Transaksi::whereMonth('tanggal_transaksi', $currentMonth)
+                ->whereYear('tanggal_transaksi', $currentYear)
+                ->where('jenis_transaksi','Beli'))
+                ->count();
+            $total_bulan_ini = $branchFilter(Transaksi::whereMonth('tanggal_transaksi', $currentMonth)
+                ->whereYear('tanggal_transaksi', $currentYear)
+                ->where('jenis_transaksi','Beli'))
+                ->sum('total');
+            $total_bulan_lalu = $branchFilter(Transaksi::whereMonth('tanggal_transaksi', $lastMonth)
+                ->whereYear('tanggal_transaksi', $lastMonthYear)
+                ->where('jenis_transaksi','Beli'))
+                ->sum('total');
+            $diff_total_bulan = 0;
+            if ($total_bulan_lalu > 0) {
+                $diff_total_bulan = (($total_bulan_ini - $total_bulan_lalu) / $total_bulan_lalu) * 100;
+            } elseif ($total_bulan_ini > 0) {
+                $diff_total_bulan = 100;
+            }
+
+            $jumlah_jual_bulan_ini = $branchFilter(Transaksi::whereMonth('tanggal_transaksi', $currentMonth)
+                ->whereYear('tanggal_transaksi', $currentYear)
+                ->where('jenis_transaksi','Jual'))
+                ->count();
+            $total_jual_bulan_ini = $branchFilter(Transaksi::whereMonth('tanggal_transaksi', $currentMonth)
+                ->whereYear('tanggal_transaksi', $currentYear)
+                ->where('jenis_transaksi','Jual'))
+                ->sum('total');
+
+            // SEMUA
+            $jumlah_seluruh = $branchFilter(Transaksi::where('tanggal_transaksi', $todayDate))->count();
 
             $transaksi = $branchFilter(Transaksi::with('detailTransaksi', 'Cabang')
-                ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d')))
+                ->where('tanggal_transaksi', $todayDate))
                 ->orderBy('created_at', 'DESC')
                 ->take(5)->get();
 
-            //PEGAWAI
+            // Ringkasan per cabang langsung untuk Owner
+            $cabangStats = collect();
+            $approvalModal = collect();
+            if ($isOwner) {
+                $cabangStats = MasterCabang::where('is_active', 1)
+                    ->orderBy('cabang_name')
+                    ->get()
+                    ->map(function ($cabang) use ($todayDate, $currentMonth, $currentYear, $lastMonth, $lastMonthYear) {
+                        $cId = $cabang->cabang_id;
+                        $trxToday = Transaksi::withoutGlobalScope('cabang')
+                            ->where('cabang_id', $cId)
+                            ->where('tanggal_transaksi', $todayDate)
+                            ->where('jenis_transaksi', 'Beli');
+                        $trxMonth = Transaksi::withoutGlobalScope('cabang')
+                            ->where('cabang_id', $cId)
+                            ->whereMonth('tanggal_transaksi', $currentMonth)
+                            ->whereYear('tanggal_transaksi', $currentYear)
+                            ->where('jenis_transaksi', 'Beli');
+                        $trxLastMonth = Transaksi::withoutGlobalScope('cabang')
+                            ->where('cabang_id', $cId)
+                            ->whereMonth('tanggal_transaksi', $lastMonth)
+                            ->whereYear('tanggal_transaksi', $lastMonthYear)
+                            ->where('jenis_transaksi', 'Beli');
+                        $totalBulanBranch = (clone $trxMonth)->sum('total');
+                        $totalBulanLaluBranch = (clone $trxLastMonth)->sum('total');
+                        $diffBulanBranch = 0;
+                        if ($totalBulanLaluBranch > 0) {
+                            $diffBulanBranch = (($totalBulanBranch - $totalBulanLaluBranch) / $totalBulanLaluBranch) * 100;
+                        } elseif ($totalBulanBranch > 0) {
+                            $diffBulanBranch = 100;
+                        }
+
+                        $trxJualMonth = Transaksi::withoutGlobalScope('cabang')
+                            ->where('cabang_id', $cId)
+                            ->whereMonth('tanggal_transaksi', $currentMonth)
+                            ->whereYear('tanggal_transaksi', $currentYear)
+                            ->where('jenis_transaksi', 'Jual');
+                        $modalToday = ModalTransaksi::withoutGlobalScope('cabang')
+                            ->where('cabang_id', $cId)
+                            ->where('tanggal_modal', $todayDate)
+                            ->where('status_modal', 'Terima')
+                            ->first();
+                        $totalModalBulan = ModalTransaksi::withoutGlobalScope('cabang')
+                            ->where('cabang_id', $cId)
+                            ->whereMonth('tanggal_modal', $currentMonth)
+                            ->whereYear('tanggal_modal', $currentYear)
+                            ->sum('jumlah_modal');
+                        $pegawaiCount = User::whereHas('cabangs', function ($q) use ($cId) {
+                            $q->where('tb_master_cabang.cabang_id', $cId);
+                        })->count();
+                        $pengajuanPendingCount = ModalTransaksi::withoutGlobalScope('cabang')
+                            ->where('cabang_id', $cId)
+                            ->where('status_modal', 'Pending')
+                            ->count();
+
+                        return (object) [
+                            'cabang_id' => $cId,
+                            'cabang_name' => $cabang->cabang_name,
+                            'lokasi' => $cabang->lokasi ?? '-',
+                            'jumlah_hari_ini' => (clone $trxToday)->count(),
+                            'total_hari_ini' => (clone $trxToday)->sum('total'),
+                            'jumlah_bulan_ini' => (clone $trxMonth)->count(),
+                            'total_bulan_ini' => $totalBulanBranch,
+                            'total_bulan_lalu' => (float) $totalBulanLaluBranch,
+                            'diff_bulan' => round($diffBulanBranch, 1),
+                            'jumlah_jual_bulan_ini' => (clone $trxJualMonth)->count(),
+                            'total_jual_bulan_ini' => (clone $trxJualMonth)->sum('total'),
+                            'sisa_modal' => $modalToday ? (float) $modalToday->riwayat_modal : null,
+                            'modal_awal' => $modalToday ? (float) $modalToday->total_modal_backup : null,
+                            'total_modal_terpakai_bulan_ini' => (float) $totalModalBulan,
+                            'pegawai_count' => $pegawaiCount,
+                            'pengajuan_pending_count' => $pengajuanPendingCount,
+                        ];
+                    });
+
+                $approvalModal = ModalTransaksi::withoutGlobalScope('cabang')
+                    ->with(['Pegawai', 'Cabang'])
+                    ->where('status_modal', 'Pending')
+                    ->orderByDesc('created_at')
+                    ->take(10)
+                    ->get();
+            }
+
+            // PEGAWAI
             $pegawai_money_today_total = Transaksi::where('id_pegawai', Auth::user()->id)
-                ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))
+                ->where('tanggal_transaksi', $todayDate)
                 ->where('jenis_transaksi','Beli')
                 ->sum('total');
             $pegawai_money_today_total_jual = Transaksi::where('id_pegawai', Auth::user()->id)
-                ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))
+                ->where('tanggal_transaksi', $todayDate)
                 ->where('jenis_transaksi','Jual')
                 ->sum('total');
 
             // BARIS 2
             $pegawai_count_money_today = Transaksi::where('id_pegawai', Auth::user()->id)
-                ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))
+                ->where('tanggal_transaksi', $todayDate)
                 ->where('jenis_transaksi','Beli')
                 ->count();
-                $pegawai_count_money_today_jual = Transaksi::where('id_pegawai', Auth::user()->id)
-                ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))
+            $pegawai_count_money_today_jual = Transaksi::where('id_pegawai', Auth::user()->id)
+                ->where('tanggal_transaksi', $todayDate)
                 ->where('jenis_transaksi','Jual')
                 ->count();
 
             $pegawai_sum_money_bulan = Transaksi::where('id_pegawai', Auth::user()->id)
-            ->whereYear('tanggal_transaksi', $currentYear)
-            ->whereMonth('tanggal_transaksi', $currentMonth)
-            ->where('jenis_transaksi','Beli')
-            ->sum('total');
+                ->whereYear('tanggal_transaksi', $currentYear)
+                ->whereMonth('tanggal_transaksi', $currentMonth)
+                ->where('jenis_transaksi','Beli')
+                ->sum('total');
 
             $pegawai_sum_money_bulan_jual = Transaksi::where('id_pegawai', Auth::user()->id)
-            ->whereYear('tanggal_transaksi', $currentYear)
-            ->whereMonth('tanggal_transaksi', $currentMonth)
-            ->where('jenis_transaksi','Jual')
-            ->sum('total');
+                ->whereYear('tanggal_transaksi', $currentYear)
+                ->whereMonth('tanggal_transaksi', $currentMonth)
+                ->where('jenis_transaksi','Jual')
+                ->sum('total');
 
             $transaksi_pegawai_money = Transaksi::with('detailTransaksi', 'Cabang')->where('id_pegawai', Auth::user()->id)
-                ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))
+                ->where('tanggal_transaksi', $todayDate)
                 ->orderBy('created_at', 'DESC')
                 ->take(5)->get();
-
 
             return view('pages.dashboard.dashboard', compact(
                 'jumlah_hari_ini',
@@ -159,8 +259,10 @@ class DashboardController extends Controller
                 'pegawai_count_money_today',
                 'pegawai_sum_money_bulan',
                 'transaksi_pegawai_money',
-                'cabangs',
-                'cabangId'
+                'cabangStats',
+                'approvalModal',
+                'total_bulan_lalu',
+                'diff_total_bulan'
             ));
         } catch (\Throwable $th) {
             dd($th);

@@ -390,10 +390,12 @@ class TransaksiController extends Controller
         $countries = json_decode(file_get_contents(base_path('countries.json')), true) ?: [];
         asort($countries);
 
+        $nextIncrementalPassport = self::getNextIncrementalPassport();
+
         return view('pages.transaksi.create', compact(
             'currency', 'modal', 'today', 'kode_transaksi', 'today_format', 'idbaru',
             'jumlah_transaksi', 'total_transaksi', 'countries', 'cabangs', 'customers',
-            'selectedCabangId'
+            'selectedCabangId', 'nextIncrementalPassport'
         ));
     }
 
@@ -517,10 +519,61 @@ class TransaksiController extends Controller
         ]);
     }
 
+    /**
+     * Mendapatkan nomor passport incremental berikutnya (format 9 digit: 000000001, 000000002, dst).
+     *
+     * @return string
+     */
+    public static function getNextIncrementalPassport(): string
+    {
+        $maxTrans = DB::table('tb_transaksi')
+            ->whereNotNull('nomor_passport')
+            ->whereRaw("TRIM(nomor_passport) REGEXP '^0000[0-9]{5}$'")
+            ->selectRaw('MAX(CAST(nomor_passport AS UNSIGNED)) as max_num')
+            ->value('max_num');
+
+        $maxCust = DB::table('tb_master_customer')
+            ->whereNotNull('passport')
+            ->whereRaw("TRIM(passport) REGEXP '^0000[0-9]{5}$'")
+            ->selectRaw('MAX(CAST(passport AS UNSIGNED)) as max_num')
+            ->value('max_num');
+
+        $maxVal = max((int) $maxTrans, (int) $maxCust);
+        $nextVal = max(1, $maxVal + 1);
+
+        while (
+            DB::table('tb_transaksi')->where('nomor_passport', str_pad((string) $nextVal, 9, '0', STR_PAD_LEFT))->exists() ||
+            DB::table('tb_master_customer')->where('passport', str_pad((string) $nextVal, 9, '0', STR_PAD_LEFT))->exists()
+        ) {
+            $nextVal++;
+        }
+
+        return str_pad((string) $nextVal, 9, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * API untuk mengambil nomor passport incremental berikutnya via AJAX.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function nextIncrementalPassportApi()
+    {
+        return response()->json([
+            'next_passport' => self::getNextIncrementalPassport(),
+        ]);
+    }
+
     public function store(Request $request)
     {
+        $statusPassport = $request->input('status_passport', 'ada');
+        $passportInput = trim((string) $request->nomor_passport);
+        if ($statusPassport === 'tidak_ada' && empty($passportInput)) {
+            $passportInput = self::getNextIncrementalPassport();
+            $request->merge(['nomor_passport' => $passportInput]);
+        }
+
         $passportResult = $this->passportThresholdResult(
-            $request->nomor_passport,
+            $passportInput,
             $request->total,
             $request->tanggal_transaksi
         );
@@ -562,6 +615,14 @@ class TransaksiController extends Controller
             if (!$customer && trim((string) $request->nama_customer)) {
                 $trimmedName = trim((string) $request->nama_customer);
                 $trimmedPassport = trim((string) $request->nomor_passport);
+
+                if ($statusPassport === 'tidak_ada') {
+                    if (empty($trimmedPassport) || DB::table('tb_master_customer')->where('passport', $trimmedPassport)->exists() || DB::table('tb_transaksi')->where('nomor_passport', $trimmedPassport)->exists()) {
+                        $trimmedPassport = self::getNextIncrementalPassport();
+                        $request->merge(['nomor_passport' => $trimmedPassport]);
+                    }
+                }
+
                 $country = $request->asal_negara ?: 'INDONESIA';
 
                 // Cek apakah customer sudah pernah terdaftar di cabang ini berdasarkan passport atau nama
@@ -648,6 +709,12 @@ class TransaksiController extends Controller
                 $nextId = ($last ? $last->id_transaksi : 0) + 1;
                 $kodeTransaksi = 'RV' . date('ymd') . '-' . $nextId;
             }
+
+            $finalNomorPassport = $request->nomor_passport ?: ($customer ? $customer->passport : null);
+            if ($statusPassport === 'tidak_ada' && empty($finalNomorPassport)) {
+                $finalNomorPassport = self::getNextIncrementalPassport();
+            }
+
             $transaksi = new Transaksi();
             $transaksi->kode_transaksi = $kodeTransaksi;
             $transaksi->tanggal_transaksi = $request->tanggal_transaksi;
@@ -655,7 +722,7 @@ class TransaksiController extends Controller
             $transaksi->total = $request->total;
             $transaksi->id_pegawai = Auth::user()->id;
             $transaksi->nama_customer = $request->nama_customer ?: ($customer ? $customer->name : null);
-            $transaksi->nomor_passport = $request->nomor_passport ?: ($customer ? $customer->passport : null);
+            $transaksi->nomor_passport = $finalNomorPassport;
             $transaksi->negara_asal = $request->asal_negara ?: ($customer ? $customer->country : null);
             $transaksi->jenis_transaksi = 'Beli';
             $transaksi->cabang_id = $transactionCabangId;

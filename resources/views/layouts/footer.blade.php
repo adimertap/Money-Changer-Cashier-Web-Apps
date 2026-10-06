@@ -4,7 +4,7 @@
             <p class="mb-0 text-600">Copyright &copy; 2022 PT. Riasta Valasindo</p>
         </div>
         <div class="col-12 col-sm-auto text-center text-sm-end">
-            <p class="mb-0 text-600">Version 2.0</p>
+            <p class="mb-0 text-600">Version 2.1</p>
         </div>
     </div>
 </footer>
