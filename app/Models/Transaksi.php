@@ -30,7 +30,18 @@ class Transaksi extends Model
         'supporting_document_number',
         'supporting_document_date',
         'supporting_document_note',
-        'supporting_document_file'
+        'supporting_document_file',
+        'npwp',
+        'domicile',
+        'income',
+        'job',
+        'company',
+        'company_form',
+        'position',
+        'business_sector',
+        'transaction_purpose',
+        'relationship',
+        'source_of_funds',
     ];
 
     protected $hidden = [

@@ -23,8 +23,11 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -356,7 +359,11 @@ class TransaksiController extends Controller
                 $query->where('cabang_terdaftar', session('cabang_aktif'));
             })
             ->orderBy('name')
-            ->get(['customer_id', 'name', 'alias', 'country', 'passport', 'nik', 'alamat', 'cabang_terdaftar']);
+            ->get([
+                'customer_id', 'name', 'alias', 'country', 'passport', 'nik', 'alamat', 'cabang_terdaftar',
+                'npwp', 'domicile', 'income', 'job', 'company', 'company_form', 'position', 'business_sector',
+                'transaction_purpose', 'relationship', 'source_of_funds'
+            ]);
 
         $currency = MasterCurrency::orderBy('jenis_kurs', 'ASC')->get();
         $tesQuery = $isOwner ? ModalTransaksi::withoutGlobalScope('cabang') : ModalTransaksi::query();
@@ -438,8 +445,9 @@ class TransaksiController extends Controller
         }
 
         if ($passport === '') {
+            $exceeded = $isRuleActive && ($total > $limit);
             return [
-                'exceeded' => false,
+                'exceeded' => $exceeded,
                 'reason' => 'passport_empty',
                 'accumulated' => 0,
                 'accumulated_this_month' => 0,
@@ -577,18 +585,19 @@ class TransaksiController extends Controller
             $request->total,
             $request->tanggal_transaksi
         );
-        if ($passportResult['exceeded']) {
+        // Validasi opsional dokumen pendukung fisik (jika diunggah)
+        if ($request->hasFile('supporting_document_file') || $request->filled('supporting_document_type')) {
             $documentValidator = Validator::make($request->all(), [
-                'supporting_document_type' => 'required|string|max:100',
-                'supporting_document_number' => 'required|string|max:100',
-                'supporting_document_date' => 'required|date',
-                'supporting_document_note' => 'required|string|max:1000',
-                'supporting_document_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+                'supporting_document_type' => 'nullable|string|max:100',
+                'supporting_document_number' => 'nullable|string|max:100',
+                'supporting_document_date' => 'nullable|date',
+                'supporting_document_note' => 'nullable|string|max:1000',
+                'supporting_document_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
             ]);
             if ($documentValidator->fails()) {
                 return response()->json([
-                    'message' => 'Dokumen pendukung wajib diisi karena akumulasi passport melewati batas 30 hari.',
-                    'requires_supporting_document' => true,
+                    'message' => 'Format file dokumen pendukung tidak valid.',
+                    'requires_supporting_document' => false,
                     'errors' => $documentValidator->errors(),
                 ], 422);
             }
@@ -602,13 +611,68 @@ class TransaksiController extends Controller
             ]);
             $transactionCabangId = $this->resolveCabangId($request, $isOwner, true);
             $customer = $request->customer_id ? MasterCustomer::find($request->customer_id) : null;
-            if ($customer && (int) $customer->cabang_terdaftar !== $transactionCabangId) {
+            if ($customer && !empty($customer->cabang_terdaftar) && (int) $customer->cabang_terdaftar !== $transactionCabangId) {
                 DB::rollBack();
                 return response()->json(['message' => 'Customer tidak sesuai dengan cabang transaksi.'], 422);
+            }
+            if ($customer && empty($customer->cabang_terdaftar)) {
+                $customer->cabang_terdaftar = $transactionCabangId;
+                $customer->save();
             }
             if (!$customer && !trim((string) $request->nama_customer)) {
                 DB::rollBack();
                 return response()->json(['message' => 'Customer wajib dipilih atau diisi.'], 422);
+            }
+
+            // Validasi data Dokumen (CDD / KYC): Wajib diisi HANYA JIKA akumulasi transaksi melebihi batas regulasi
+            if ($passportResult['exceeded']) {
+                $cddValidator = Validator::make($request->all(), [
+                    'npwp' => 'required|string|max:50',
+                    'domicile' => 'required|string|max:150',
+                    'income' => 'required|string|max:100',
+                    'job' => 'required|string|max:100',
+                    'company' => 'required|string|max:150',
+                    'company_form' => 'required|string|max:150',
+                    'position' => 'required|string|max:100',
+                    'business_sector' => 'required|string|max:100',
+                    'transaction_purpose' => 'required|string|max:150',
+                    'relationship' => 'required|string|max:100',
+                    'source_of_funds' => 'required|string|max:100',
+                ], [
+                    'npwp.required' => 'NPWP (TIN) pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'domicile.required' => 'Domicile pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'income.required' => 'Income pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'job.required' => 'Job pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'company.required' => 'Company pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'company_form.required' => 'Company Form pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'position.required' => 'Position pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'business_sector.required' => 'Business Sector pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'transaction_purpose.required' => 'Transaction Purpose pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'relationship.required' => 'Relationship pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                    'source_of_funds.required' => 'Source of funds pada Dokumen wajib diisi karena akumulasi transaksi melewati batas regulasi.',
+                ]);
+                if ($cddValidator->fails()) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Dokumen CDD / KYC wajib dilengkapi karena akumulasi transaksi nomor paspor ini melebihi batas regulasi.',
+                        'requires_cdd_document' => true,
+                        'errors' => $cddValidator->errors(),
+                    ], 422);
+                }
+            } else {
+                $request->validate([
+                    'npwp' => 'nullable|string|max:50',
+                    'domicile' => 'nullable|string|max:150',
+                    'income' => 'nullable|string|max:100',
+                    'job' => 'nullable|string|max:100',
+                    'company' => 'nullable|string|max:150',
+                    'company_form' => 'nullable|string|max:150',
+                    'position' => 'nullable|string|max:100',
+                    'business_sector' => 'nullable|string|max:100',
+                    'transaction_purpose' => 'nullable|string|max:150',
+                    'relationship' => 'nullable|string|max:100',
+                    'source_of_funds' => 'nullable|string|max:100',
+                ]);
             }
 
             // Jika customer belum ada (customer baru dari form transaksi), simpan ke tb_master_customer
@@ -661,6 +725,17 @@ class TransaksiController extends Controller
                         'cabang_terdaftar' => $transactionCabangId,
                         'is_active' => 1,
                         'created_by' => Auth::id(),
+                        'npwp' => $request->npwp ?: null,
+                        'domicile' => $request->domicile ?: null,
+                        'income' => $request->income ?: null,
+                        'job' => $request->job ?: null,
+                        'company' => $request->company ?: null,
+                        'company_form' => $request->company_form ?: null,
+                        'position' => $request->position ?: null,
+                        'business_sector' => $request->business_sector ?: null,
+                        'transaction_purpose' => $request->transaction_purpose ?: null,
+                        'relationship' => $request->relationship ?: null,
+                        'source_of_funds' => $request->source_of_funds ?: null,
                     ]);
                 }
             }
@@ -730,12 +805,46 @@ class TransaksiController extends Controller
             $transaksi->supporting_document_number = $request->supporting_document_number;
             $transaksi->supporting_document_date = $request->supporting_document_date;
             $transaksi->supporting_document_note = $request->supporting_document_note;
+            $transaksi->npwp = $request->npwp ?: ($customer ? $customer->npwp : null);
+            $transaksi->domicile = $request->domicile ?: ($customer ? $customer->domicile : null);
+            $transaksi->income = $request->income ?: ($customer ? $customer->income : null);
+            $transaksi->job = $request->job ?: ($customer ? $customer->job : null);
+            $transaksi->company = $request->company ?: ($customer ? $customer->company : null);
+            $transaksi->company_form = $request->company_form ?: ($customer ? $customer->company_form : null);
+            $transaksi->position = $request->position ?: ($customer ? $customer->position : null);
+            $transaksi->business_sector = $request->business_sector ?: ($customer ? $customer->business_sector : null);
+            $transaksi->transaction_purpose = $request->transaction_purpose ?: ($customer ? $customer->transaction_purpose : null);
+            $transaksi->relationship = $request->relationship ?: ($customer ? $customer->relationship : null);
+            $transaksi->source_of_funds = $request->source_of_funds ?: ($customer ? $customer->source_of_funds : null);
             if ($request->hasFile('supporting_document_file')) {
                 $transaksi->supporting_document_file = $request->file('supporting_document_file')
                     ->store('transaksi/dokumen', 'public');
             }
             $transaksi->save();
             $transaksi->healCustomerData();
+
+            // Simpan / update data Dokumen CDD / KYC juga ke tb_master_customer agar nempel di master customer
+            if ($customer) {
+                $docFields = [
+                    'npwp', 'domicile', 'income', 'job', 'company',
+                    'company_form', 'position', 'business_sector',
+                    'transaction_purpose', 'relationship', 'source_of_funds'
+                ];
+                $custDocDirty = false;
+                foreach ($docFields as $df) {
+                    if ($request->filled($df)) {
+                        $customer->{$df} = $request->input($df);
+                        $custDocDirty = true;
+                    }
+                }
+                if (!empty($transaksi->supporting_document_file) && Schema::hasColumn('tb_master_customer', 'supporting_document_file')) {
+                    $customer->supporting_document_file = $transaksi->supporting_document_file;
+                    $custDocDirty = true;
+                }
+                if ($custDocDirty) {
+                    $customer->save();
+                }
+            }
 
             // Bersihkan baris detail/jurnal "yatim" yang kebetulan memakai id_transaksi baru ini
             // (sisa data lama / transaksi gagal) agar valas transaksi sebelumnya tidak ikut terbawa.
@@ -791,16 +900,39 @@ class TransaksiController extends Controller
                 }
             }
 
-            $modal = ModalTransaksi::find($request->id_modal);
-            $perhitungan = $modal->riwayat_modal - $request->total;
-            $modal->riwayat_modal = $perhitungan;
-            $modal->save();
+            if ($request->id_modal) {
+                $modal = ModalTransaksi::find($request->id_modal);
+                if ($modal) {
+                    $perhitungan = $modal->riwayat_modal - $request->total;
+                    $modal->riwayat_modal = $perhitungan;
+                    $modal->save();
+                }
+            }
             DB::commit();
             Alert::success('Berhasil', 'Data Transaksi Berhasil Ditambahkan');
-            return $transaksi;
+            return response()->json($transaksi);
         } catch (\Throwable $th) {
             DB::rollBack();
-            Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
+            Log::error('TransaksiController store error: ' . $th->getMessage(), [
+                'exception' => $th,
+                'trace' => $th->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
+            if ($th instanceof ValidationException) {
+                return response()->json([
+                    'message' => 'Validasi data transaksi gagal.',
+                    'errors' => $th->errors(),
+                ], 422);
+            }
+
+            Alert::warning('Error', 'Gagal Menyimpan Transaksi: ' . $th->getMessage());
+            if ($request->ajax() || $request->wantsJson() || $request->isJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'message' => 'Gagal menyimpan transaksi: ' . $th->getMessage(),
+                    'error' => $th->getMessage(),
+                ], 500);
+            }
             return redirect()->back();
         }
     }
@@ -829,12 +961,25 @@ class TransaksiController extends Controller
     public function downloadDokumen($id)
     {
         $transaksi = Transaksi::findOrFail($id);
-        if (empty($transaksi->supporting_document_file)) {
+        $path = $transaksi->supporting_document_file;
+        if (empty($path)) {
+            $customer = null;
+            if (!empty($transaksi->nomor_passport)) {
+                $customer = MasterCustomer::whereRaw('LOWER(TRIM(passport)) = ?', [mb_strtolower(trim($transaksi->nomor_passport))])->first();
+            }
+            if (!$customer && !empty($transaksi->nama_customer)) {
+                $customer = MasterCustomer::whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($transaksi->nama_customer))])->first();
+            }
+            if ($customer && !empty($customer->supporting_document_file)) {
+                $path = $customer->supporting_document_file;
+            }
+        }
+
+        if (empty($path)) {
             Alert::warning('Perhatian', 'Dokumen pendukung tidak ditemukan.');
             return redirect()->back();
         }
 
-        $path = $transaksi->supporting_document_file;
         if (!Storage::disk('public')->exists($path)) {
             Alert::warning('Perhatian', 'File dokumen tidak ditemukan di penyimpanan server.');
             return redirect()->back();

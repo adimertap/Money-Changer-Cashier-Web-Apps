@@ -85,66 +85,127 @@
     </div>
   </div>
 
-  {{-- Kelengkapan Dokumen Pendukung jika transaksi memiliki dokumen atau total >= 180 Juta --}}
-  @if(!empty($transaksi->supporting_document_type) || !empty($transaksi->supporting_document_number) || !empty($transaksi->supporting_document_file) || !empty($transaksi->supporting_document_note) || (float)$transaksi->total >= 180000000)
-  <div class="card mb-3 border border-warning">
-    <div class="card-header bg-soft-warning border-bottom border-warning d-flex justify-content-between align-items-center py-2">
+  @php
+    $cddCustomer = null;
+    if (!empty($transaksi->nomor_passport)) {
+        $cddCustomer = \App\Models\MasterCustomer::whereRaw('LOWER(TRIM(passport)) = ?', [mb_strtolower(trim($transaksi->nomor_passport))])->first();
+    }
+    if (!$cddCustomer && !empty($transaksi->nama_customer)) {
+        $cddCustomer = \App\Models\MasterCustomer::whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($transaksi->nama_customer))])->first();
+    }
+    $cddVal = function ($field) use ($transaksi, $cddCustomer) {
+        $val = $transaksi->{$field} ?: ($cddCustomer ? $cddCustomer->{$field} : null);
+        return !empty(trim((string)$val)) ? $val : null;
+    };
+    $supportingFile = $transaksi->supporting_document_file ?: ($cddCustomer ? $cddCustomer->supporting_document_file : null);
+    $hasCddFields = !empty($cddVal('npwp')) || !empty($cddVal('position')) || !empty($cddVal('domicile')) ||
+                    !empty($cddVal('business_sector')) || !empty($cddVal('income')) || !empty($cddVal('transaction_purpose')) ||
+                    !empty($cddVal('job')) || !empty($cddVal('relationship')) || !empty($cddVal('company')) ||
+                    !empty($cddVal('source_of_funds')) || !empty($cddVal('company_form')) || !empty($supportingFile);
+    $hasLegacyDoc = !empty($transaksi->supporting_document_type) || !empty($transaksi->supporting_document_number) ||
+                    !empty($transaksi->supporting_document_date) || !empty($transaksi->supporting_document_note);
+  @endphp
+
+  {{-- Card Dokumen Nasabah (CDD / KYC & Regulasi BI) - Compact --}}
+  <div class="card mb-3 border {{ $hasCddFields ? 'border-primary' : 'border-200' }}">
+    <div class="card-header bg-light d-flex flex-wrap justify-content-between align-items-center py-2 px-3 gap-2">
       <div class="d-flex align-items-center">
-        <span class="fas fa-file-invoice text-warning fs-1 me-2"></span>
-        <div>
-          <h6 class="mb-0 text-900 fw-bold">Kelengkapan Dokumen Pendukung (Regulasi BI &gt; Rp 180 Juta)</h6>
-          <span class="fs--2 text-700">Dokumen pendukung (Underlying Document) untuk transaksi bernilai setara USD 10.000 atau lebih</span>
-        </div>
+        <span class="fas fa-file-invoice-dollar text-primary me-2"></span>
+        <h6 class="mb-0 text-900 fw-bold fs--1">Dokumen Nasabah (CDD / KYC &amp; Regulasi BI)</h6>
       </div>
-      @if(!empty($transaksi->supporting_document_file))
-        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Dokumen Terlampir</span>
-      @else
-        <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i>Belum Diunggah</span>
-      @endif
+      <div class="d-flex align-items-center gap-1">
+        @if(!empty($supportingFile))
+          <a href="{{ route('transaksi.dokumen', $transaksi->id_transaksi) }}" target="_blank" class="btn btn-xs btn-primary py-0 px-2 shadow-none">
+            <i class="fas fa-paperclip me-1"></i>Unduh Berkas Lampiran
+          </a>
+        @endif
+        @if((float)$transaksi->total >= 180000000)
+          <span class="badge bg-warning text-dark fs--2"><i class="fas fa-shield-alt me-1"></i>&gt; Rp 180 Juta</span>
+        @elseif($hasCddFields)
+          <span class="badge bg-info fs--2">CDD Terdata</span>
+        @else
+          <span class="badge bg-secondary fs--2">Standar</span>
+        @endif
+      </div>
     </div>
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-3">
-          <label class="form-label text-600 fs--1 mb-1">Jenis Dokumen</label>
-          <div class="fw-bold text-dark">{{ $transaksi->supporting_document_type ?: '-' }}</div>
+    <div class="card-body py-2 px-3">
+      <div class="row g-2 fs--1">
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">NPWP (TIN):</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('npwp') ?: '-' }}</span>
         </div>
-        <div class="col-md-3">
-          <label class="form-label text-600 fs--1 mb-1">Nomor Dokumen</label>
-          <div class="fw-bold text-dark">{{ $transaksi->supporting_document_number ?: '-' }}</div>
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">Jabatan (Position):</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('position') ?: '-' }}</span>
         </div>
-        <div class="col-md-3">
-          <label class="form-label text-600 fs--1 mb-1">Tanggal Dokumen</label>
-          <div class="fw-bold text-dark">
-            {{ $transaksi->supporting_document_date ? \Carbon\Carbon::parse($transaksi->supporting_document_date)->translatedFormat('d F Y') : '-' }}
-          </div>
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">Pekerjaan (Job):</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('job') ?: '-' }}</span>
         </div>
-        <div class="col-md-3">
-          <label class="form-label text-600 fs--1 mb-1">Berkas Dokumen Pendukung</label>
-          <div>
-            @if(!empty($transaksi->supporting_document_file))
-              @php
-                $isPdf = preg_match('/\.pdf$/i', $transaksi->supporting_document_file);
-                $isImg = preg_match('/\.(jpg|jpeg|png|webp)$/i', $transaksi->supporting_document_file);
-              @endphp
-              <a href="{{ route('transaksi.dokumen', $transaksi->id_transaksi) }}" target="_blank" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
-                <i class="fas {{ $isPdf ? 'fa-file-pdf text-danger' : ($isImg ? 'fa-file-image text-info' : 'fa-download') }} me-2"></i>
-                Lihat / Unduh Dokumen
-              </a>
-            @else
-              <span class="text-muted fst-italic fs--1">Tidak ada file terlampir</span>
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">Penghasilan (Income):</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('income') ?: '-' }}</span>
+        </div>
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">Perusahaan (Company):</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('company') ?: '-' }}</span>
+        </div>
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">Bentuk Usaha:</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('company_form') ?: '-' }}</span>
+        </div>
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">Bidang Usaha:</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('business_sector') ?: '-' }}</span>
+        </div>
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">Sumber Dana:</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('source_of_funds') ?: '-' }}</span>
+        </div>
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">Tujuan Transaksi:</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('transaction_purpose') ?: '-' }}</span>
+        </div>
+        <div class="col-6 col-md-3">
+          <span class="text-600 d-block fs--2">Hubungan (if represented):</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('relationship') ?: '-' }}</span>
+        </div>
+        <div class="col-12 col-md-6">
+          <span class="text-600 d-block fs--2">Domisili:</span>
+          <span class="fw-semi-bold text-dark">{{ $cddVal('domicile') ?: '-' }}</span>
+        </div>
+
+        @if(!empty($supportingFile))
+        <div class="col-12 mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+          <span class="text-600 fs--2"><i class="fas fa-paperclip me-1"></i>Lampiran: <strong>{{ basename($supportingFile) }}</strong></span>
+          <a href="{{ route('transaksi.dokumen', $transaksi->id_transaksi) }}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2">
+            <i class="fas fa-external-link-alt me-1"></i> Buka / Unduh Berkas
+          </a>
+        </div>
+        @endif
+
+        {{-- Legacy Underlying jika ada --}}
+        @if($hasLegacyDoc)
+        <div class="col-12 mt-2 pt-2 border-top">
+          <div class="row g-2 fs--2">
+            @if(!empty($transaksi->supporting_document_type))
+            <div class="col-6 col-md-3"><span class="text-600 d-block">Jenis Dokumen:</span><strong class="text-dark">{{ $transaksi->supporting_document_type }}</strong></div>
+            @endif
+            @if(!empty($transaksi->supporting_document_number))
+            <div class="col-6 col-md-3"><span class="text-600 d-block">Nomor Dokumen:</span><strong class="text-dark">{{ $transaksi->supporting_document_number }}</strong></div>
+            @endif
+            @if(!empty($transaksi->supporting_document_date))
+            <div class="col-6 col-md-3"><span class="text-600 d-block">Tanggal:</span><strong class="text-dark">{{ \Carbon\Carbon::parse($transaksi->supporting_document_date)->translatedFormat('d M Y') }}</strong></div>
+            @endif
+            @if(!empty($transaksi->supporting_document_note))
+            <div class="col-12"><span class="text-600 d-block">Catatan:</span><span class="text-dark">{{ $transaksi->supporting_document_note }}</span></div>
             @endif
           </div>
         </div>
-        <div class="col-12 mt-2">
-          <label class="form-label text-600 fs--1 mb-1">Keterangan / Keperluan Transaksi</label>
-          <div class="p-2 bg-light rounded border text-700 fs--1">
-            {{ $transaksi->supporting_document_note ?: '-' }}
-          </div>
-        </div>
+        @endif
       </div>
     </div>
   </div>
-  @endif
 
   @php
     $formatAngka = function ($val, $maxDec = 4) {

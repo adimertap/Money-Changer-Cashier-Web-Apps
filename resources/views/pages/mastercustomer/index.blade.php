@@ -22,7 +22,14 @@
                         @forelse ($customer as $item)
                         <tr>
                             <td>{{ $loop->iteration }}.</td>
-                            <td>{{ $item->name }}</td>
+                            <td>
+                                <a href="{{ route('master-customer.show', $item->getKey()) }}" class="fw-bold text-dark text-decoration-none">
+                                    {{ $item->name }}
+                                </a>
+                                @if(!empty($item->npwp) || !empty($item->job) || !empty($item->supporting_document_file))
+                                    <span class="badge bg-success fs--2 ms-1" title="Dokumen CDD Terdata"><i class="fas fa-shield-alt me-1"></i>CDD</span>
+                                @endif
+                            </td>
                             <td>{{ $item->country ?: '-' }}</td>
                             <td>{{ $item->passport ?: '-' }}</td>
                             <td>{{ optional($item->cabang)->cabang_name ?: '-' }}</td>
@@ -45,10 +52,13 @@
                             </td>
                             <td class="text-center text-nowrap">
                                 @if ($item->getKey() !== null)
+                                    <a href="{{ route('master-customer.show', $item->getKey()) }}" class="btn btn-sm btn-outline-info me-1" title="Detail Customer">
+                                        <span class="fas fa-eye me-1"></span>Detail
+                                    </a>
                                     <button class="btn btn-sm btn-outline-primary editCustomer" value="{{ $item->getKey() }}" title="Edit" type="button">
                                         <span class="fas fa-edit me-1"></span>Edit
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger ms-2" type="button" onclick="hapusCustomer({{ $item->getKey() }})" title="Delete">
+                                    <button class="btn btn-sm btn-outline-danger ms-1" type="button" onclick="hapusCustomer({{ $item->getKey() }})" title="Delete">
                                         <span class="fas fa-trash-alt me-1"></span>Delete
                                     </button>
                                     <form id="delete-customer-{{ $item->getKey() }}" action="{{ route('master-customer.destroy', ['master_customer' => $item->getKey()]) }}" method="POST" class="d-none">

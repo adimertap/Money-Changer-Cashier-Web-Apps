@@ -32,6 +32,130 @@
             </div>
         </div>
     </div>
+
+    {{-- Informasi Customer --}}
+    <div class="card mb-3">
+        <div class="card-header bg-light py-2">
+            <h6 class="mb-0 text-700"><i class="fas fa-id-card text-primary me-2"></i>Informasi Customer</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label text-600 fs--1 mb-1">Nama Customer</label>
+                    <input class="form-control form-control-sm bg-light" type="text" value="{{ $transaksi->nama_customer ?: '-' }}" readonly />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-600 fs--1 mb-1">Nomor Passport / ID</label>
+                    <input class="form-control form-control-sm bg-light" type="text" value="{{ $transaksi->nomor_passport ?: '-' }}" readonly />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-600 fs--1 mb-1">Asal Negara</label>
+                    <input class="form-control form-control-sm bg-light" type="text" value="{{ $transaksi->negara_asal ?: '-' }}" readonly />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @php
+        $cddCustomer = null;
+        if (!empty($transaksi->nomor_passport)) {
+            $cddCustomer = \App\Models\MasterCustomer::whereRaw('LOWER(TRIM(passport)) = ?', [mb_strtolower(trim($transaksi->nomor_passport))])->first();
+        }
+        if (!$cddCustomer && !empty($transaksi->nama_customer)) {
+            $cddCustomer = \App\Models\MasterCustomer::whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($transaksi->nama_customer))])->first();
+        }
+        $cddVal = function ($field) use ($transaksi, $cddCustomer) {
+            $val = $transaksi->{$field} ?: ($cddCustomer ? $cddCustomer->{$field} : null);
+            return !empty(trim((string)$val)) ? $val : null;
+        };
+        $supportingFile = $transaksi->supporting_document_file ?: ($cddCustomer ? $cddCustomer->supporting_document_file : null);
+        $hasCddFields = !empty($cddVal('npwp')) || !empty($cddVal('position')) || !empty($cddVal('domicile')) ||
+                        !empty($cddVal('business_sector')) || !empty($cddVal('income')) || !empty($cddVal('transaction_purpose')) ||
+                        !empty($cddVal('job')) || !empty($cddVal('relationship')) || !empty($cddVal('company')) ||
+                        !empty($cddVal('source_of_funds')) || !empty($cddVal('company_form')) || !empty($supportingFile);
+    @endphp
+
+    {{-- Card Dokumen Nasabah (CDD / KYC & Regulasi BI) --}}
+    <div class="card mb-3 border {{ $hasCddFields ? 'border-primary' : 'border-200' }}">
+        <div class="card-header bg-light d-flex flex-wrap justify-content-between align-items-center py-2 px-3 gap-2">
+            <div class="d-flex align-items-center">
+                <span class="fas fa-file-invoice-dollar text-primary me-2"></span>
+                <h6 class="mb-0 text-900 fw-bold fs--1">Dokumen Nasabah (CDD / KYC &amp; Regulasi BI)</h6>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+                @if(!empty($supportingFile))
+                    <a href="{{ route('transaksi.dokumen', $transaksi->id_transaksi) }}" target="_blank" class="btn btn-xs btn-primary py-0 px-2 shadow-none">
+                        <i class="fas fa-paperclip me-1"></i>Unduh Berkas Lampiran
+                    </a>
+                @endif
+                @if((float)$transaksi->total >= 180000000)
+                    <span class="badge bg-warning text-dark fs--2"><i class="fas fa-shield-alt me-1"></i>&gt; Rp 180 Juta</span>
+                @elseif($hasCddFields)
+                    <span class="badge bg-info fs--2">CDD Terdata</span>
+                @else
+                    <span class="badge bg-secondary fs--2">Standar</span>
+                @endif
+            </div>
+        </div>
+        <div class="card-body py-2 px-3">
+            <div class="row g-2 fs--1">
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">NPWP (TIN):</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('npwp') ?: '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">Jabatan (Position):</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('position') ?: '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">Pekerjaan (Job):</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('job') ?: '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">Penghasilan (Income):</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('income') ?: '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">Perusahaan (Company):</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('company') ?: '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">Bentuk Usaha:</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('company_form') ?: '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">Bidang Usaha:</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('business_sector') ?: '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">Sumber Dana:</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('source_of_funds') ?: '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">Tujuan Transaksi:</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('transaction_purpose') ?: '-' }}</span>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-600 d-block fs--2">Hubungan (if represented):</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('relationship') ?: '-' }}</span>
+                </div>
+                <div class="col-12 col-md-6">
+                    <span class="text-600 d-block fs--2">Domisili:</span>
+                    <span class="fw-semi-bold text-dark">{{ $cddVal('domicile') ?: '-' }}</span>
+                </div>
+
+                @if(!empty($supportingFile))
+                <div class="col-12 mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-600 fs--2"><i class="fas fa-paperclip me-1"></i>Lampiran: <strong>{{ basename($supportingFile) }}</strong></span>
+                    <a href="{{ route('transaksi.dokumen', $transaksi->id_transaksi) }}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2">
+                        <i class="fas fa-external-link-alt me-1"></i> Buka / Unduh Berkas
+                    </a>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
     @php
       $formatAngka = function ($val, $maxDec = 4) {
           $floatVal = (float) $val;

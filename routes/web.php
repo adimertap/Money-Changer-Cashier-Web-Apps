@@ -76,6 +76,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::post('master-customer/screen', [\App\Http\Controllers\MasterCustomerController::class, 'screen'])->name('master-customer.screen');
             Route::resource('master-customer', \App\Http\Controllers\MasterCustomerController::class)->except(['create', 'edit']);
             Route::patch('master-customer/{id}/status', [\App\Http\Controllers\MasterCustomerController::class, 'status'])->name('master-customer.status');
+            Route::get('master-customer/{id}/dokumen', [\App\Http\Controllers\MasterCustomerController::class, 'downloadDokumen'])->name('master-customer.dokumen');
             Route::get('master-terduga', [\App\Http\Controllers\MasterTerdugaController::class, 'index'])->name('master-terduga.index');
             Route::post('master-terduga', [\App\Http\Controllers\MasterTerdugaController::class, 'store'])->name('master-terduga.store');
             Route::post('master-terduga/upload', [\App\Http\Controllers\MasterTerdugaController::class, 'upload'])->name('master-terduga.upload');
@@ -127,6 +128,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/api/customer/search', [\App\Http\Controllers\MasterCustomerController::class, 'search'])->name('api.customer.search');
         Route::post('/api/customer/screen', [\App\Http\Controllers\MasterCustomerController::class, 'screen'])->name('api.customer.screen');
         Route::post('/api/customer', [\App\Http\Controllers\MasterCustomerController::class, 'store'])->name('api.customer.store');
+        Route::post('/api/customer/{id}/document', [\App\Http\Controllers\MasterCustomerController::class, 'updateDocument'])->name('api.customer.update-document');
 
         // TRANSAKSI
         Route::post('/api/transaksi/passport-threshold', [TransaksiController::class, 'passportThreshold'])->name('api.transaksi.passport-threshold');

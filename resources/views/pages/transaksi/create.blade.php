@@ -153,8 +153,89 @@
                                 </div>
                                 @enderror
                             </div>
+
+                            {{-- Input hidden data dokumen untuk nasabah baru --}}
+                            <input type="hidden" name="npwp" id="doc_npwp" value="{{ old('npwp') }}">
+                            <input type="hidden" name="position" id="doc_position" value="{{ old('position') }}">
+                            <input type="hidden" name="domicile" id="doc_domicile" value="{{ old('domicile') }}">
+                            <input type="hidden" name="business_sector" id="doc_business_sector" value="{{ old('business_sector') }}">
+                            <input type="hidden" name="income" id="doc_income" value="{{ old('income') }}">
+                            <input type="hidden" name="transaction_purpose" id="doc_transaction_purpose" value="{{ old('transaction_purpose') }}">
+                            <input type="hidden" name="job" id="doc_job" value="{{ old('job') }}">
+                            <input type="hidden" name="relationship" id="doc_relationship" value="{{ old('relationship') }}">
+                            <input type="hidden" name="company" id="doc_company" value="{{ old('company') }}">
+                            <input type="hidden" name="source_of_funds" id="doc_source_of_funds" value="{{ old('source_of_funds') }}">
+                            <input type="hidden" name="company_form" id="doc_company_form" value="{{ old('company_form') }}">
+
+                            {{-- Datalist opsi autocomplete untuk modal Document --}}
+                            <datalist id="position_options">
+                                <option value="CEO">
+                                <option value="Direktur">
+                                <option value="Manager">
+                                <option value="Owner / Pemilik">
+                                <option value="Staf / Karyawan">
+                                <option value="Komisaris">
+                            </datalist>
+                            <datalist id="business_sector_options">
+                                <option value="persero">
+                                <option value="Perdagangan">
+                                <option value="Pariwisata / Perhotelan">
+                                <option value="Jasa / Konsultan">
+                                <option value="Keuangan / Perbankan">
+                                <option value="Konstruksi / Properti">
+                                <option value="F&B / Kuliner">
+                            </datalist>
+                            <datalist id="income_options">
+                                <option value="0-100 Juta">
+                                <option value="100-500 Juta">
+                                <option value="500 Juta - 1 Milyar">
+                                <option value="> 1 Milyar">
+                            </datalist>
+                            <datalist id="transaction_purpose_options">
+                                <option value="Perjalanan Dinas">
+                                <option value="Liburan / Wisata">
+                                <option value="Pendidikan / Sekolah">
+                                <option value="Bisnis / Investasi">
+                                <option value="Pengobatan / Medis">
+                                <option value="Keperluan Keluarga">
+                            </datalist>
+                            <datalist id="job_options">
+                                <option value="Lainnya">
+                                <option value="Pegawai Swasta">
+                                <option value="PNS / ASN">
+                                <option value="Wiraswasta / Pengusaha">
+                                <option value="Profesional">
+                                <option value="TNI / POLRI">
+                                <option value="Ibu Rumah Tangga">
+                                <option value="Pelajar / Mahasiswa">
+                            </datalist>
+                            <datalist id="relationship_options">
+                                <option value="Diri Sendiri">
+                                <option value="Saudara">
+                                <option value="Orang Tua / Anak">
+                                <option value="Suami / Istri">
+                                <option value="Atasan / Karyawan">
+                                <option value="Kuasa / Rekan Kerja">
+                            </datalist>
+                            <datalist id="source_of_funds_options">
+                                <option value="Hasil Sendiri">
+                                <option value="Gaji / Penghasilan">
+                                <option value="Tabungan">
+                                <option value="Hasil Usaha / Bisnis">
+                                <option value="Warisan / Hibah">
+                                <option value="Uang Saku / Tunawisata">
+                            </datalist>
+                            <datalist id="company_form_options">
+                                <option value="Badan Usaha Non-UMKM berbentuk PT">
+                                <option value="Badan Usaha Non-UMKM berbentuk CV">
+                                <option value="UMKM">
+                                <option value="Perorangan">
+                                <option value="BUMN / BUMD / Persero">
+                                <option value="Yayasan / Lembaga">
+                            </datalist>
+
                             <div class="mb-4">
-                                <div class="d-flex gap-2 justify-content-start  mb-3">
+                                <div class="d-flex gap-2 justify-content-start mb-3">
                                     <button class="btn btn-warning btn-sm" type="button" id="validateTerdugaButton">
                                         Validate Terduga
                                     </button>
@@ -196,6 +277,8 @@
                                 </div>
                             </div>
                         </div>
+
+
 
                         {{-- Input hidden untuk kompatibilitas dengan sistem lama --}}
                         <input type="hidden" name="customer_id" id="customer_id">
@@ -329,10 +412,104 @@
                         <div class="col-md-6"><label class="form-label">Pekerjaan</label><input class="form-control" name="pekerjaan" placeholder="Input pekerjaan"></div>
                         <div class="col-md-6"><label class="form-label">NIK</label><input class="form-control" name="nik" placeholder="Input NIK"></div>
                         <div class="col-12"><label class="form-label">Alamat</label><textarea class="form-control" name="alamat" placeholder="Input alamat customer"></textarea></div>
+
+                        <div class="col-12"><hr class="my-2"><h6 class="fw-bold fs--1 text-700 mb-2"><i class="fas fa-file-contract text-primary me-2"></i>Document (CDD / KYC)</h6></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">NPWP (TIN)</label><input class="form-control form-control-sm" name="npwp" placeholder="NPWP / TIN"></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">Position</label><input class="form-control form-control-sm" name="position" list="position_options" placeholder="CEO"></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">Domicile</label><input class="form-control form-control-sm" name="domicile" placeholder="Bali"></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">Business Sector</label><input class="form-control form-control-sm" name="business_sector" list="business_sector_options" placeholder="persero"></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">Income</label><input class="form-control form-control-sm" name="income" list="income_options" placeholder="0-100 Juta"></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">Transaction Purpose</label><input class="form-control form-control-sm" name="transaction_purpose" list="transaction_purpose_options" placeholder="Perjalanan Dinas"></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">Job</label><input class="form-control form-control-sm" name="job" list="job_options" placeholder="Lainnya"></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">Relationship (if represented)</label><input class="form-control form-control-sm" name="relationship" list="relationship_options" placeholder="Saudara"></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">Company</label><input class="form-control form-control-sm" name="company" placeholder="PT Usaha Bersama"></div>
+                        <div class="col-md-6"><label class="form-label fs--2 mb-1">Source of funds</label><input class="form-control form-control-sm" name="source_of_funds" list="source_of_funds_options" placeholder="Hasil Sendiri"></div>
+                        <div class="col-12"><label class="form-label fs--2 mb-1">Company Form</label><input class="form-control form-control-sm" name="company_form" list="company_form_options" placeholder="Badan Usaha Non-UMKM berbentuk PT"></div>
                     </div>
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary" type="submit">Simpan</button></div>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Document (CDD / KYC) Sesuai Tampilan Gambar Referensi --}}
+<div class="modal fade" id="customerDocumentDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header border-bottom-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <h5 class="modal-title fw-bold text-dark fs-1 mb-0" id="modalDocTitle">Document</h5>
+                    <span class="badge bg-danger fs--2" id="modalDocBadgeMandatory">Wajib Diisi</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="modalDocCloseBtn"></button>
+            </div>
+            <div class="modal-body pt-3 pb-3">
+                <div id="modalDocAlertWajib" class="alert alert-warning py-2 px-3 mb-3 fs--1">
+                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                    <strong>Wajib Diisi:</strong> Akumulasi transaksi nasabah ini melebihi batas regulasi. Seluruh isian dokumen nasabah (CDD / KYC) wajib dilengkapi sebelum transaksi dapat diproses.
+                </div>
+
+                <form id="modalDocEditForm" enctype="multipart/form-data">
+                    @csrf
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">NPWP (TIN) <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="npwp" id="m_edit_npwp" type="text" placeholder="741168156686" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">Position <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="position" id="m_edit_position" list="position_options" type="text" placeholder="CEO" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">Domicile <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="domicile" id="m_edit_domicile" type="text" placeholder="Bali" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">Business Sector <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="business_sector" id="m_edit_business_sector" list="business_sector_options" type="text" placeholder="persero" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">Income <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="income" id="m_edit_income" list="income_options" type="text" placeholder="0-100 Juta" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">Transaction Purpose <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="transaction_purpose" id="m_edit_transaction_purpose" list="transaction_purpose_options" type="text" placeholder="Perjalanan Dinas" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">Job <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="job" id="m_edit_job" list="job_options" type="text" placeholder="Lainnya" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">Relationship (if represented) <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="relationship" id="m_edit_relationship" list="relationship_options" type="text" placeholder="Saudara" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">Company <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="company" id="m_edit_company" type="text" placeholder="PT Usaha Bersama" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold fs--1 mb-1">Source of funds <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="source_of_funds" id="m_edit_source_of_funds" list="source_of_funds_options" type="text" placeholder="Hasil Sendiri" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold fs--1 mb-1">Company Form <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-sm doc-mandatory-field" name="company_form" id="m_edit_company_form" list="company_form_options" type="text" placeholder="Badan Usaha Non-UMKM berbentuk PT" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold fs--1 mb-1">Lampiran Dokumen <span class="text-muted fw-normal fs--2">(Opsional)</span></label>
+                            <input class="form-control form-control-sm" type="file" name="supporting_document_file" id="m_edit_lampiran" accept=".pdf,.jpg,.jpeg,.png,.webp" />
+                            <small class="text-muted fs--2">Format file: PDF, JPG, JPEG, PNG, WEBP (maks. 10MB). Boleh dikosongkan jika tidak ada fisik dokumen.</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 d-flex justify-content-end align-items-center">
+                <button type="button" class="btn btn-success btn-sm px-4 fw-bold" id="modalSaveAndProceedBtn">
+                    <i class="fas fa-check-circle me-1"></i>Simpan &amp; Lanjutkan Transaksi
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -513,6 +690,7 @@
     });
 
     var pendingTransactionData = null;
+    var isTransactionDocumentModal = false;
     var initialModalAmount = @json($modal ? (float) $modal->riwayat_modal : 0);
     var passportBaseData = null;
     var currentActivePassport = '';
@@ -577,12 +755,19 @@
         $('#passportAccumulationBadge').slideDown(200);
     }
 
+    var isSubmittingTransaction = false;
+
     function submitTransaction(data, documentData) {
         var payload = new FormData();
         Object.keys(data).forEach(function (key) {
-            if (key !== 'detail') payload.append(key, data[key] == null ? '' : data[key]);
+            if (key !== 'detail' && key !== 'supporting_document_file') {
+                payload.append(key, data[key] == null ? '' : data[key]);
+            }
         });
-        data.detail.forEach(function (detail, index) {
+        if (data.supporting_document_file instanceof File) {
+            payload.append('supporting_document_file', data.supporting_document_file);
+        }
+        (data.detail || []).forEach(function (detail, index) {
             Object.keys(detail).forEach(function (key) {
                 payload.append('detail[' + index + '][' + key + ']', detail[key]);
             });
@@ -593,19 +778,45 @@
             });
         }
 
-        $('#button_submit, #passportDocumentSubmit').prop('disabled', true);
+        isSubmittingTransaction = true;
+        $('#button_submit, #passportDocumentSubmit, #modalSaveAndProceedBtn').prop('disabled', true);
         $.ajax({
             method: 'post',
             url: '{{ route('transaksi.store') }}',
             data: payload,
             processData: false,
             contentType: false,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             success: function (response) {
+                isSubmittingTransaction = false;
+                if (typeof response === 'string') {
+                    try {
+                        response = JSON.parse(response);
+                    } catch (e) {
+                        response = null;
+                    }
+                }
+
+                if (!response || !response.id_transaksi) {
+                    $('#button_submit, #passportDocumentSubmit, #modalSaveAndProceedBtn').prop('disabled', false);
+                    $('#modalSaveAndProceedBtn').html('<i class="fas fa-check-circle me-1"></i>Simpan &amp; Lanjutkan Transaksi');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Transaksi Gagal Disimpan',
+                        text: (response && response.message) ? response.message : 'Server tidak mengembalikan respons yang valid. Silakan periksa kembali data Anda.'
+                    });
+                    return;
+                }
+
                 // 1. Bersihkan memory & form segera agar tidak ada sisa transaksi lama di tabel
                 if (typeof resetTransactionForm === 'function') {
                     resetTransactionForm();
                 }
                 $('#passportDocumentModal').modal('hide');
+                $('#customerDocumentDetailModal').modal('hide');
                 pendingTransactionData = null;
 
                 // 2. Buka struk cetak di tab baru
@@ -627,8 +838,25 @@
                 });
             },
             error: function (response) {
-                $('#button_submit, #passportDocumentSubmit').prop('disabled', false);
+                isSubmittingTransaction = false;
+                $('#button_submit, #passportDocumentSubmit, #modalSaveAndProceedBtn').prop('disabled', false);
+                $('#modalSaveAndProceedBtn').html('<i class="fas fa-check-circle me-1"></i>Simpan &amp; Lanjutkan Transaksi');
                 var errorData = response.responseJSON || {};
+                var errorMsg = errorData.message || 'Terjadi kesalahan saat menyimpan transaksi.';
+                if (errorData.errors) {
+                    var errList = [];
+                    Object.keys(errorData.errors).forEach(function(k) {
+                        if (Array.isArray(errorData.errors[k])) {
+                            errList.push(errorData.errors[k].join(', '));
+                        } else {
+                            errList.push(errorData.errors[k]);
+                        }
+                    });
+                    if (errList.length > 0) {
+                        errorMsg += '<br><br><div class="text-start small text-danger" style="max-height: 150px; overflow-y: auto;"><strong>Detail kesalahan:</strong><br>• ' + errList.join('<br>• ') + '</div>';
+                    }
+                }
+
                 if (response.status === 422 && errorData.requires_screening_confirmation && pendingTransactionData) {
                     Swal.fire({
                         icon: 'warning',
@@ -647,10 +875,14 @@
                     });
                     return;
                 }
+                if (response.status === 422 && pendingTransactionData && errorData.requires_cdd_document) {
+                    openDocumentModalForTransaction(pendingTransactionData);
+                    return;
+                }
                 Swal.fire({
                     icon: 'error',
                     title: 'Transaksi tidak dapat disimpan',
-                    text: errorData.message || 'Terjadi kesalahan saat menyimpan transaksi.'
+                    html: errorMsg
                 });
                 if (response.status === 422 && pendingTransactionData && errorData.requires_supporting_document) {
                     $('#passportDocumentModal').modal('show');
@@ -767,6 +999,15 @@
             return;
         }
 
+        if (!nama_customer || !nama_customer.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Customer Belum Dipilih',
+                text: 'Silakan pilih customer dari daftar atau isi nama customer terlebih dahulu.'
+            });
+            return;
+        }
+
         var totals = recalculateTotals();
         var total = totals.grandTotal;
         var jumlah_modal = totals.sisaModal;
@@ -786,33 +1027,85 @@
             nomor_passport: nomor_passport,
             status_passport: $('input[name="status_passport_radio"]:checked').val() || 'ada',
             asal_negara: asal_negara,
+            npwp: ($('#doc_npwp').val() || '').trim(),
+            domicile: ($('#doc_domicile').val() || '').trim(),
+            income: ($('#doc_income').val() || '').trim(),
+            job: ($('#doc_job').val() || '').trim(),
+            company: ($('#doc_company').val() || '').trim(),
+            company_form: ($('#doc_company_form').val() || '').trim(),
+            position: ($('#doc_position').val() || '').trim(),
+            business_sector: ($('#doc_business_sector').val() || '').trim(),
+            transaction_purpose: ($('#doc_transaction_purpose').val() || '').trim(),
+            relationship: ($('#doc_relationship').val() || '').trim(),
+            source_of_funds: ($('#doc_source_of_funds').val() || '').trim(),
             detail: dataform2
         };
 
         pendingTransactionData = data;
-        $('#button_submit').prop('disabled', true);
+
+        // Cek apakah transaksi nomor paspor ini melebihi batas regulasi BI
+        var submitBtn = $('#button_submit');
+        var originalBtnHtml = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Memeriksa Batas...');
+
         $.post('{{ route('api.transaksi.passport-threshold') }}', {
             _token: _token,
             nomor_passport: nomor_passport,
             total: total,
-            tanggal_transaksi: tanggal_transaksi
-        }).done(function (result) {
-            if (!result.exceeded) {
-                submitTransaction(data, null);
-                return;
+            tanggal_transaksi: tanggal_transaksi || '{{ date('Y-m-d') }}'
+        }).done(function (res) {
+            submitBtn.prop('disabled', false).html(originalBtnHtml);
+            if (res && res.exceeded) {
+                // MELEWATI BATAS!
+                // Munculkan pop-up modal Document dan paksa kasir untuk melengkapi isian dokumen
+                openDocumentModalForTransaction(pendingTransactionData);
+            } else {
+                // TIDAK MELEWATI BATAS!
+                // Langsung simpan transaksi tanpa membuka popup dokumen
+                submitTransaction(pendingTransactionData, null);
             }
-            if (result.limit) {
-                var limitFormatted = formatCurrencyIdr(result.limit);
-                var accumulatedFormatted = formatCurrencyIdr(result.accumulated);
-                var projectedFormatted = formatCurrencyIdr(result.projected);
-                $('#passportThresholdDesc').html(`Akumulasi transaksi nomor paspor dalam 30 hari terakhir: <strong>${accumulatedFormatted}</strong>.<br>Ditambah transaksi saat ini menjadi <strong>${projectedFormatted}</strong>, melebihi batas regulasi BI (<strong>${limitFormatted}</strong>). Silakan lengkapi dokumen pendukung.`);
-            }
-            $('#passportDocumentModal').modal('show');
-        }).fail(function (response) {
-            $('#button_submit').prop('disabled', false);
-            const message = response.responseJSON && response.responseJSON.message;
-            Swal.fire('Gagal', message || 'Validasi batas passport gagal.', 'error');
+        }).fail(function () {
+            submitBtn.prop('disabled', false).html(originalBtnHtml);
+            // Fallback jika request threshold gagal, biarkan server memvalidasi
+            submitTransaction(pendingTransactionData, null);
         });
+    }
+
+    function openDocumentModalForTransaction(data) {
+        data = data || pendingTransactionData || {};
+        isTransactionDocumentModal = true;
+        var custName = data.nama_customer || $('#nama_customer_hidden').val() || $('#nama_customer_input').val() || 'Nasabah';
+
+        $('#modalDocTitle').text('Document' + (custName ? ' - ' + custName : ''));
+        $('#modalDocBadgeMandatory').show();
+        $('#modalDocAlertWajib').show();
+
+        var custId = data.customer_id || $('#customer_id').val();
+        var custData = (custId && typeof customersData !== 'undefined' && customersData[custId]) ? customersData[custId] : {};
+
+        // Ambil data yang ada di input form doc_ atau pendingTransactionData atau data profil customer
+        $('#m_edit_npwp').val(data.npwp || custData.npwp || $('#doc_npwp').val() || '');
+        $('#m_edit_position').val(data.position || custData.position || $('#doc_position').val() || '');
+        $('#m_edit_domicile').val(data.domicile || custData.domicile || $('#doc_domicile').val() || '');
+        $('#m_edit_business_sector').val(data.business_sector || custData.business_sector || $('#doc_business_sector').val() || '');
+        $('#m_edit_income').val(data.income || custData.income || $('#doc_income').val() || '');
+        $('#m_edit_transaction_purpose').val(data.transaction_purpose || custData.transaction_purpose || $('#doc_transaction_purpose').val() || '');
+        $('#m_edit_job').val(data.job || custData.job || $('#doc_job').val() || '');
+        $('#m_edit_relationship').val(data.relationship || custData.relationship || $('#doc_relationship').val() || '');
+        $('#m_edit_company').val(data.company || custData.company || $('#doc_company').val() || '');
+        $('#m_edit_source_of_funds').val(data.source_of_funds || custData.source_of_funds || $('#doc_source_of_funds').val() || '');
+        $('#m_edit_company_form').val(data.company_form || custData.company_form || $('#doc_company_form').val() || '');
+
+        // Bersihkan error validasi sebelumnya
+        $('.doc-mandatory-field').removeClass('is-invalid');
+
+        // Reset input lampiran opsional jika ada
+        $('#m_edit_lampiran').val('');
+
+        // Nonaktifkan tombol submit utama sementara modal terbuka
+        $('#button_submit').prop('disabled', true);
+
+        $('#customerDocumentDetailModal').modal('show');
     }
 
     function tambahdata(event, id_sparepart) {
@@ -987,6 +1280,7 @@
             $('#passport_auto_hint').hide();
             $('#screening_confirmed').val('0');
             $('#customer_id, #nama_customer_hidden, #customer_alias_hidden, #nomor_passport, #asal_negara_select').val('');
+            $('#doc_npwp, #doc_domicile, #doc_income, #doc_job, #doc_company, #doc_company_form, #doc_position, #doc_business_sector, #doc_transaction_purpose, #doc_relationship, #doc_source_of_funds').val('');
             // Clear visible fields juga
             $('#nama_customer_input').val('');
             $('#passportAccumulationBadge').slideUp(150);
@@ -1154,6 +1448,19 @@
             $('#asal_negara_select').val(item.country || '').trigger('change');
             if (!skipScreening) screenCustomer(item.name, item.alias || '');
 
+            // Isi input Document & kartu preview info Document (sesuai gambar)
+            $('#doc_npwp').val(item.npwp || '');
+            $('#doc_domicile').val(item.domicile || '');
+            $('#doc_income').val(item.income || '');
+            $('#doc_job').val(item.job || '');
+            $('#doc_company').val(item.company || '');
+            $('#doc_company_form').val(item.company_form || '');
+            $('#doc_position').val(item.position || '');
+            $('#doc_business_sector').val(item.business_sector || '');
+            $('#doc_transaction_purpose').val(item.transaction_purpose || '');
+            $('#doc_relationship').val(item.relationship || '');
+            $('#doc_source_of_funds').val(item.source_of_funds || '');
+
             if (item && item.passport) {
                 fetchPassportThreshold(item.passport, 'main');
             } else {
@@ -1171,6 +1478,7 @@
         $('#addCustomerButton').on('click', function () {
             // Tampilkan form manual dan sembunyikan dropdown
             $('#customerForm').show();
+            $('#doc_npwp, #doc_domicile, #doc_income, #doc_job, #doc_company, #doc_company_form, #doc_position, #doc_business_sector, #doc_transaction_purpose, #doc_relationship, #doc_source_of_funds').val('');
             $('.customer-picker').hide();
             $(this).hide();
             $('#toggleCustomerForm').show();
@@ -1404,7 +1712,18 @@
                 alias: nama,
                 passport: passport,
                 country: country,
-                cabang_terdaftar: cabangId
+                cabang_terdaftar: cabangId,
+                npwp: ($('#doc_npwp').val() || '').trim(),
+                domicile: ($('#doc_domicile').val() || '').trim(),
+                income: ($('#doc_income').val() || '').trim(),
+                job: ($('#doc_job').val() || '').trim(),
+                company: ($('#doc_company').val() || '').trim(),
+                company_form: ($('#doc_company_form').val() || '').trim(),
+                position: ($('#doc_position').val() || '').trim(),
+                business_sector: ($('#doc_business_sector').val() || '').trim(),
+                transaction_purpose: ($('#doc_transaction_purpose').val() || '').trim(),
+                relationship: ($('#doc_relationship').val() || '').trim(),
+                source_of_funds: ($('#doc_source_of_funds').val() || '').trim()
             };
 
             $.post('{{ route('api.customer.screen') }}', data)
@@ -1629,6 +1948,115 @@
                     button.prop('disabled', false).html(originalText);
                 }
             });
+        });
+
+        // Input validation handler: bersihkan status error saat user mengetik
+        $('.doc-mandatory-field').on('input change', function () {
+            if ($(this).val().trim()) {
+                $(this).removeClass('is-invalid');
+            }
+        });
+
+        // Handler saat modal Document ditutup
+        $('#customerDocumentDetailModal').on('hidden.bs.modal', function () {
+            isTransactionDocumentModal = false;
+            if (!isSubmittingTransaction) {
+                $('#button_submit').prop('disabled', false);
+            }
+            $('.doc-mandatory-field').removeClass('is-invalid');
+        });
+
+        // Handler tombol Simpan & Lanjutkan Transaksi pada modal Document
+        $('#modalSaveAndProceedBtn').on('click', function (e) {
+            e.preventDefault();
+            var saveBtn = $('#modalSaveAndProceedBtn');
+
+            if (!pendingTransactionData) {
+                Swal.fire('Error', 'Data transaksi tidak ditemukan. Silakan ulangi dengan klik tombol Confirm & Pay.', 'error');
+                $('#customerDocumentDetailModal').modal('hide');
+                return;
+            }
+
+            var missingLabels = [];
+            var fieldsToCheck = [
+                { id: 'm_edit_npwp', label: 'NPWP (TIN)' },
+                { id: 'm_edit_position', label: 'Position' },
+                { id: 'm_edit_domicile', label: 'Domicile' },
+                { id: 'm_edit_business_sector', label: 'Business Sector' },
+                { id: 'm_edit_income', label: 'Income' },
+                { id: 'm_edit_transaction_purpose', label: 'Transaction Purpose' },
+                { id: 'm_edit_job', label: 'Job' },
+                { id: 'm_edit_relationship', label: 'Relationship (if represented)' },
+                { id: 'm_edit_company', label: 'Company' },
+                { id: 'm_edit_source_of_funds', label: 'Source of funds' },
+                { id: 'm_edit_company_form', label: 'Company Form' }
+            ];
+
+            $('.doc-mandatory-field').removeClass('is-invalid');
+
+            fieldsToCheck.forEach(function (f) {
+                var val = ($('#' + f.id).val() || '').trim();
+                if (!val) {
+                    $('#' + f.id).addClass('is-invalid');
+                    missingLabels.push(f.label);
+                }
+            });
+
+            if (missingLabels.length > 0) {
+                var firstInvalid = $('.doc-mandatory-field.is-invalid').first();
+                if (firstInvalid.length) {
+                    firstInvalid.focus();
+                }
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Dokumen Wajib Dilengkapi!',
+                    html: `Seluruh 11 isian Dokumen nasabah (CDD / KYC) <strong>wajib diisi lengkap</strong> untuk melanjutkan transaksi.<br><br><div class="text-start small text-danger" style="max-height: 160px; overflow-y: auto;"><strong>Bidang yang belum diisi:</strong><br>• ` + missingLabels.join('<br>• ') + `</div>`,
+                    confirmButtonText: 'Lengkapi Sekarang'
+                });
+                return;
+            }
+
+            saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Menyimpan &amp; Memproses...');
+
+            // Simpan seluruh 11 field ke objek pendingTransactionData transaksi ini
+            pendingTransactionData.npwp = $('#m_edit_npwp').val().trim();
+            pendingTransactionData.position = $('#m_edit_position').val().trim();
+            pendingTransactionData.domicile = $('#m_edit_domicile').val().trim();
+            pendingTransactionData.business_sector = $('#m_edit_business_sector').val().trim();
+            pendingTransactionData.income = $('#m_edit_income').val().trim();
+            pendingTransactionData.transaction_purpose = $('#m_edit_transaction_purpose').val().trim();
+            pendingTransactionData.job = $('#m_edit_job').val().trim();
+            pendingTransactionData.relationship = $('#m_edit_relationship').val().trim();
+            pendingTransactionData.company = $('#m_edit_company').val().trim();
+            pendingTransactionData.source_of_funds = $('#m_edit_source_of_funds').val().trim();
+            pendingTransactionData.company_form = $('#m_edit_company_form').val().trim();
+
+            // Lampiran dokumen opsional (jika diunggah)
+            var lampiranInput = document.getElementById('m_edit_lampiran');
+            if (lampiranInput && lampiranInput.files && lampiranInput.files.length > 0) {
+                pendingTransactionData.supporting_document_file = lampiranInput.files[0];
+            } else {
+                delete pendingTransactionData.supporting_document_file;
+            }
+
+            // Update form inputs di halaman
+            $('#doc_npwp').val(pendingTransactionData.npwp);
+            $('#doc_position').val(pendingTransactionData.position);
+            $('#doc_domicile').val(pendingTransactionData.domicile);
+            $('#doc_business_sector').val(pendingTransactionData.business_sector);
+            $('#doc_income').val(pendingTransactionData.income);
+            $('#doc_transaction_purpose').val(pendingTransactionData.transaction_purpose);
+            $('#doc_job').val(pendingTransactionData.job);
+            $('#doc_relationship').val(pendingTransactionData.relationship);
+            $('#doc_company').val(pendingTransactionData.company);
+            $('#doc_source_of_funds').val(pendingTransactionData.source_of_funds);
+            $('#doc_company_form').val(pendingTransactionData.company_form);
+
+            // Tutup modal dokumen
+            $('#customerDocumentDetailModal').modal('hide');
+
+            // Lanjutkan eksekusi penyimpanan transaksi
+            submitTransaction(pendingTransactionData, null);
         });
 
         // Set nilai awal dari hidden fields ke visible fields jika ada data old

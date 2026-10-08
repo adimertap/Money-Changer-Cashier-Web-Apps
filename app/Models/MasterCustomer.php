@@ -23,6 +23,18 @@ class MasterCustomer extends Model
         'created_by',
         'updated_by',
         'cabang_terdaftar',
+        'npwp',
+        'domicile',
+        'income',
+        'job',
+        'company',
+        'company_form',
+        'position',
+        'business_sector',
+        'transaction_purpose',
+        'relationship',
+        'source_of_funds',
+        'supporting_document_file',
     ];
 
     public $timestamps = true;

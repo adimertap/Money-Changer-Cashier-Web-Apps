@@ -39,5 +39,38 @@ class AppServiceProvider extends ServiceProvider
                 : session('cabangs', []);
             $view->with('cabangOptions', $options);
         });
+
+        // Pastikan kolom Document / CDD & Lampiran tersedia di tb_master_customer dan tb_transaksi
+        try {
+            $documentCols = [
+                'npwp' => 50, 'domicile' => 150, 'income' => 100, 'job' => 100,
+                'company' => 150, 'company_form' => 150, 'position' => 100,
+                'business_sector' => 100, 'transaction_purpose' => 150,
+                'relationship' => 100, 'source_of_funds' => 100,
+                'supporting_document_file' => 255,
+            ];
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('tb_master_customer')) {
+                \Illuminate\Support\Facades\Schema::table('tb_master_customer', function (\Illuminate\Database\Schema\Blueprint $table) use ($documentCols) {
+                    foreach ($documentCols as $c => $l) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('tb_master_customer', $c)) {
+                            $table->string($c, $l)->nullable();
+                        }
+                    }
+                });
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('tb_transaksi')) {
+                \Illuminate\Support\Facades\Schema::table('tb_transaksi', function (\Illuminate\Database\Schema\Blueprint $table) use ($documentCols) {
+                    foreach ($documentCols as $c => $l) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('tb_transaksi', $c)) {
+                            $table->string($c, $l)->nullable();
+                        }
+                    }
+                });
+            }
+        } catch (\Throwable $e) {
+            // Silently ignore if DB connection issue
+        }
     }
 }
