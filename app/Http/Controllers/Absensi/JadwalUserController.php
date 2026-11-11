@@ -23,9 +23,10 @@ class JadwalUserController extends Controller
     {
           // Set the timezone to Asia/Makassar
           $timezone = new \DateTimeZone('Asia/Makassar');
+          $todayDate = Carbon::today($timezone)->toDateString();
 
-          $startOfMonth = Carbon::now($timezone)->startOfMonth();
-          $endOfMonth = Carbon::now($timezone)->endOfMonth();
+          $startOfMonth = Carbon::now($timezone)->startOfMonth()->toDateString();
+          $endOfMonth = Carbon::now($timezone)->endOfMonth()->toDateString();
 
           $jadwal = JadwalKerja::withoutGlobalScope('cabang')
               ->with('Shift', 'User', 'Cabang')
@@ -37,12 +38,14 @@ class JadwalUserController extends Controller
           $jadwalToday = JadwalKerja::withoutGlobalScope('cabang')
               ->with('Shift', 'User', 'Cabang')
               ->where('id', Auth::user()->id)
-              ->where('tanggal', Carbon::today($timezone))
+              ->whereDate('tanggal', $todayDate)
+              ->whereHas('Shift')
               ->get();
 
           $countTodayStatusX = JadwalKerja::withoutGlobalScope('cabang')
               ->where('id', Auth::user()->id)
-              ->where('tanggal', Carbon::today($timezone))
+              ->whereDate('tanggal', $todayDate)
+              ->whereHas('Shift')
               ->whereIn('status', ['X', 'T'])
               ->count();
 
@@ -53,7 +56,8 @@ class JadwalUserController extends Controller
           // Button Absen Setelah 4 Jam Masuk
           $jadwalMasukFilled = JadwalKerja::withoutGlobalScope('cabang')
               ->where('id', Auth::user()->id)
-              ->where('tanggal', Carbon::today($timezone))
+              ->whereDate('tanggal', $todayDate)
+              ->whereHas('Shift')
               ->where('jam_masuk','!=', null)
               ->where('status', 'X')
               ->first();
@@ -126,23 +130,41 @@ class JadwalUserController extends Controller
     {
         try {
             $timezone = new \DateTimeZone('Asia/Makassar');
+            $todayDate = Carbon::today($timezone)->toDateString();
             $currentTime = Carbon::now($timezone)->toTimeString();
-            $jadwal = JadwalKerja::withoutGlobalScope('cabang')
+
+            // Prioritaskan jadwal hari ini yang memiliki shift valid
+            $jadwalQuery = JadwalKerja::withoutGlobalScope('cabang')
                 ->with('Shift', 'User')
                 ->where('id', Auth::user()->id)
-                ->where('tanggal', Carbon::today($timezone))
+                ->whereDate('tanggal', $todayDate)
                 ->whereIn('status', ['X', 'T'])
-                ->first();
+                ->whereHas('Shift');
+
+            if ($request->filled('jadwal_id')) {
+                $jadwal = (clone $jadwalQuery)->where('jadwal_id', $request->jadwal_id)->first();
+            } else {
+                // Prioritas: yang sudah absen masuk (untuk absen pulang), lalu yang belum absen masuk
+                $jadwal = (clone $jadwalQuery)->whereNotNull('jam_masuk')->whereNull('jam_keluar')->first()
+                    ?: (clone $jadwalQuery)->whereNull('jam_masuk')->first()
+                    ?: $jadwalQuery->first();
+            }
 
             if (!$jadwal) {
                 Alert::warning('Warning', 'Absensi Gagal, Tidak Terdapat Jadwal Hari Ini!');
                 return redirect()->back();
             }
 
+            $shift = MasterShift::withoutGlobalScope('cabang')->where('shift_id', $jadwal->shift_id)->first();
+            if (!$shift || empty($shift->shift_in) || empty($shift->shift_out)) {
+                Alert::warning('Warning', 'Absensi Gagal, Shift Kerja tidak valid atau tidak ditemukan!');
+                return redirect()->back();
+            }
+
             DB::beginTransaction();
 
-            $shiftIn = MasterShift::where('shift_id', $jadwal->shift_id)->value('shift_in');
-            $shiftOut = MasterShift::where('shift_id', $jadwal->shift_id)->value('shift_out');
+            $shiftIn = $shift->shift_in;
+            $shiftOut = $shift->shift_out;
 
             $shiftInTime = Carbon::createFromFormat('H:i:s', $shiftIn, $timezone);
             $shiftOutTime = Carbon::createFromFormat('H:i:s', $shiftOut, $timezone);

@@ -120,7 +120,7 @@
             <div class="col-sm-9 text-center mt-3">
                 <h6 class="text-danger fw-bold m-0 ">PT. Riasta Valasindo</h6>
                 <h6 class="m-0 text-600">Authorized Money Changer</h6>
-                <p class="fs--2 text-black m-0 text-600">Legian Street No. 39</p>
+                <p class="fs--2 text-black m-0 text-600">{{ optional($transaksi->Cabang)->alamat ?: (optional(\App\Models\MasterCabang::find(session('cabang_aktif')))->alamat ?: 'Legian Street No. 39') }}</p>
                 <p class="fs--2 text-black m-0 text-600">Phone: (+62) 85-173-254-848</p>
             </div>
         </div>
@@ -148,7 +148,7 @@
                 <p class="fs--2 text-black m-0 text-600">Cust: <strong>{{ $transaksi->nama_customer }}</strong></p>
             </div>
             <div class="col-6 text-end">
-                <p class="fs--2 text-black m-0 text-600">{{ $transaksi->nomor_passport ? 'ID: ' . $transaksi->nomor_passport : '' }} {{ $transaksi->negara_asal ? '(' . $transaksi->negara_asal . ')' : '' }}</p>
+                <p class="fs--2 text-black m-0 text-600">{{ $transaksi->negara_asal ? '(' . $transaksi->negara_asal . ')' : '' }}</p>
             </div>
         </div>
         @endif

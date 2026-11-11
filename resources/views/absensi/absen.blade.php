@@ -85,8 +85,7 @@
                                     <th scope="row" class="no">{{ $loop->iteration}}.</th>
                                     <td class="text-center">{{ Carbon\Carbon::parse($item->tanggal)->format('d F Y') }}
                                     </td>
-                                    <td class="in">{{ $item->Shift->shift_name }} , Jam {{ $item->Shift->shift_in }} -
-                                        {{ $item->Shift->shift_out }}</td>
+                                    <td class="in">{{ optional($item->Shift)->shift_name ? $item->Shift->shift_name . ' , Jam ' . $item->Shift->shift_in . ' - ' . $item->Shift->shift_out : 'Shift Tidak Ditemukan' }}</td>
                                     <td class="text-center">
                                         @if($item->jam_masuk == "" || !$item->jam_masuk)
                                         -
@@ -172,8 +171,7 @@
                                     <th scope="row" class="no">{{ $loop->iteration }}.</th>
                                     <td class="text-center">{{ Carbon\Carbon::parse($item->tanggal)->format('d F Y') }}
                                     </td>
-                                    <td class="in">{{ $item->Shift->shift_name }} , Jam {{ $item->Shift->shift_in }} -
-                                        {{ $item->Shift->shift_out }}</td>
+                                    <td class="in">{{ optional($item->Shift)->shift_name ? $item->Shift->shift_name . ' , Jam ' . $item->Shift->shift_in . ' - ' . $item->Shift->shift_out : 'Shift Tidak Ditemukan' }}</td>
                                     <td class="text-center">
                                         @if(empty($item->jam_masuk))
                                         -

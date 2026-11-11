@@ -44,6 +44,6 @@ class JadwalKerja extends Model
 
     public function Shift(): BelongsTo
     {
-        return $this->belongsTo(MasterShift::class, 'shift_id', 'shift_id');
+        return $this->belongsTo(MasterShift::class, 'shift_id', 'shift_id')->withoutGlobalScope('cabang');
     }
 }

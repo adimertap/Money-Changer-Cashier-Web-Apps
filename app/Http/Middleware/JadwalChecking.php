@@ -23,8 +23,12 @@ class JadwalChecking
         if (Auth::check()) {
             if (Auth::user()->role != 'Owner') {
                 $timezone = new \DateTimeZone('Asia/Makassar');
-                $jadwalToday = JadwalKerja::with('Shift', 'User')->where('id', Auth::user()->id)
-                    ->where('tanggal', Carbon::today($timezone))
+                $todayDate = Carbon::today($timezone)->toDateString();
+                $jadwalToday = JadwalKerja::withoutGlobalScope('cabang')
+                    ->with('Shift', 'User')
+                    ->where('id', Auth::user()->id)
+                    ->whereDate('tanggal', $todayDate)
+                    ->whereHas('Shift')
                     ->first();
 
                 if (!$jadwalToday) {

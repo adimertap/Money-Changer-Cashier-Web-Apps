@@ -15,7 +15,7 @@ class CetakController extends Controller
     public function cetak($id)
     {
         try {
-            $transaksi = Transaksi::with('detailTransaksi','Pegawai')->find($id);
+            $transaksi = Transaksi::withoutGlobalScope('cabang')->with('detailTransaksi', 'Pegawai', 'Cabang')->find($id);
             if ($transaksi) {
                 $transaksi->healCustomerData();
             }
