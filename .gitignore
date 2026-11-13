@@ -9,6 +9,7 @@
 # Ignore environment files
 .env
 .env.*
+!.env.example
 node_modules
 vendor
 history
@@ -18,9 +19,23 @@ history
 /storage/framework/cache/*
 /storage/framework/sessions/*
 /storage/framework/testing/*
-/storage/framework/views/*opencode.json
+/storage/framework/views/*
 
 opencode.json
 
 .DS_Store
 .opencode/
+
+# Sensitive keys & credentials
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*.json
+service-account*.json
+
+lkub.jpeg
