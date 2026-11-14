@@ -27,6 +27,7 @@
             <th>Kurs</th>
             <th>Debit</th>
             <th>Kredit</th>
+            <th>Cabang</th>
         </tr>
     </thead>
     <tbody>
@@ -75,6 +76,7 @@
                 <td>-</td>
                 <td>Rp. {{ number_format($item->jumlah_modal, 0, ',', '.') }}</td>
             @endif
+            <td>{{ $item->Cabang->cabang_name ?? '-' }}</td>
         </tr>
         @endforeach
     </tbody>
@@ -83,6 +85,7 @@
         <th colspan="5">Total Debit dan Kredit</th>
         <th colspan="1">Rp. {{ number_format($total_debit, 0, ',', '.') }}</th>
         <th colspan="1">Rp. {{ number_format($total_kredit + $total_modal, 0, ',', '.') }}</th>
+        <th></th>
     </tr>
 </table>
 
@@ -94,6 +97,7 @@
             <th>Jumlah</th>
             <th>Kurs</th>
             <th>Grand</th>
+            <th>Cabang</th>
         </tr>
     </thead>
     <tbody>
@@ -108,6 +112,7 @@
             <td>{{ $item->total }}</td>
             <td>Rp. {{ number_format($item->jumlah_kurs, 0, ',','.') }}</td>
             <td>Rp. {{ number_format($item->total * $item->jumlah_kurs, 0, ',','.') }}</td>
+            <td>{{ $item->cabang_name ?? '-' }}</td>
         </tr>
         @endforeach
     </tbody>
@@ -115,14 +120,17 @@
     <tr>
         <th colspan="4">Total Debit Tercatat</th>
         <th colspan="1">Rp. {{ number_format($total_debit, 0, ',', '.') }}</th>
+        <th></th>
     </tr>
     <tr>
         <th colspan="4">Penjualan Valas</th>
         <th colspan="1">Rp. {{ number_format($total_kredit, 0, ',', '.') }}</th>
+        <th></th>
     </tr>
     <tr>
         <th colspan="4">Sisa Modal</th>
         <th colspan="1">Rp. {{ number_format($grand, 0, ',', '.') }}</th>
+        <th></th>
     </tr>
 </table>
 

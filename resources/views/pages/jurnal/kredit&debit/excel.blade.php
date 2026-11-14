@@ -1,7 +1,7 @@
 <table>
     <thead>
         <tr>
-            <th colspan="8">Laporan Transaksi - {{ $cabangName ?? 'Semua Cabang' }}</th>
+            <th colspan="9">Laporan Transaksi - {{ $cabangName ?? 'Semua Cabang' }}</th>
         </tr>
         <tr>
             <th>No.</th>
@@ -12,6 +12,7 @@
             <th>Kurs</th>
             <th>Debit</th>
             <th>Kredit</th>
+            <th>Cabang</th>
         </tr>
     </thead>
     <tbody>
@@ -66,6 +67,7 @@
                 <td>-</td>
                 <td data-format="#,##0">{{ round((float) $item->jumlah_modal) }}</td>
             @endif
+            <td>{{ $item->Cabang->cabang_name ?? '-' }}</td>
         </tr>
         @endforeach
     </tbody>
@@ -74,6 +76,7 @@
         <th colspan="5">Total Debit dan Kredit</th>
         <th colspan="1" data-format="#,##0">{{ round((float) $total_debit) }}</th>
         <th colspan="1" data-format="#,##0">{{ round((float) ($total_kredit + $total_modal)) }}</th>
+        <th></th>
     </tr>
 </table>
 
@@ -85,6 +88,7 @@
             <th>Jumlah</th>
             <th>Kurs</th>
             <th>Grand</th>
+            <th>Cabang</th>
         </tr>
     </thead>
     <tbody>
@@ -105,19 +109,23 @@
             <td data-format="{{ $itTotalFmt }}">{{ floor($itTotal) == $itTotal ? (int)$itTotal : $itTotal }}</td>
             <td data-format="{{ $itKursFmt }}">{{ floor($itKurs) == $itKurs ? (int)$itKurs : $itKurs }}</td>
             <td data-format="#,##0">{{ round((float) ($item->total * $item->jumlah_kurs)) }}</td>
+            <td>{{ $item->cabang_name ?? '-' }}</td>
         </tr>
         @endforeach
     </tbody>
     <tr>
         <th colspan="4">Total Debit Tercatat</th>
         <th colspan="1" data-format="#,##0">{{ round((float) $total_debit) }}</th>
+        <th></th>
     </tr>
     <tr>
         <th colspan="4">Penjualan Valas</th>
         <th colspan="1" data-format="#,##0">{{ round((float) $total_kredit) }}</th>
+        <th></th>
     </tr>
     <tr>
         <th colspan="4">Sisa Modal</th>
         <th colspan="1" data-format="#,##0">{{ round((float) $grand) }}</th>
+        <th></th>
     </tr>
 </table>

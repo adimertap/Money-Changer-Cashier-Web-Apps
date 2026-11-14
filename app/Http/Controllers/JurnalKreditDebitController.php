@@ -145,29 +145,30 @@ class JurnalKreditDebitController extends Controller
             return $query->orderBy('updated_at');
         };
 
-        $mainBase = Jurnal::with('Currency')->when($request->filled('cabang_id'), fn ($q) => $q->where('cabang_id', $request->cabang_id));
+        $mainBase = Jurnal::with(['Currency', 'Cabang'])->when($request->filled('cabang_id'), fn ($q) => $q->where('cabang_id', $request->cabang_id));
         $jurnal = $applyJurnalFilters(clone $mainBase)->get();
         $totalDebit = $applyJurnalFilters(clone $mainBase)->where('jenis_jurnal', 'Debit')->get();
         $totalKredit = $applyJurnalFilters(clone $mainBase)->where('jenis_jurnal', 'Kredit Jual')->get();
         $totalModal = $applyJurnalFilters(clone $mainBase)->where('jenis_jurnal', 'Kredit')->get();
 
         $currencyQuery = Jurnal::join('tb_currency', 'tb_jurnal.id_currency', 'tb_currency.id_currency')
-            ->selectRaw('nama_currency as nama, SUM(jumlah_tukar) as total, kurs as jumlah_kurs')
-            ->groupBy('nama_currency', 'kurs');
+            ->leftJoin('tb_master_cabang', 'tb_jurnal.cabang_id', '=', 'tb_master_cabang.cabang_id')
+            ->selectRaw('nama_currency as nama, SUM(jumlah_tukar) as total, kurs as jumlah_kurs, COALESCE(tb_master_cabang.cabang_name, "-") as cabang_name')
+            ->groupBy('nama_currency', 'kurs', 'tb_master_cabang.cabang_name');
         if ($request->from_date_export) {
-            $currencyQuery->where('tanggal_jurnal', '>=', $request->from_date_export);
+            $currencyQuery->where('tb_jurnal.tanggal_jurnal', '>=', $request->from_date_export);
         }
         if ($request->to_date_export) {
-            $currencyQuery->where('tanggal_jurnal', '<=', $request->to_date_export);
+            $currencyQuery->where('tb_jurnal.tanggal_jurnal', '<=', $request->to_date_export);
         }
         if ($request->filled('cabang_id')) {
             $currencyQuery->where('tb_jurnal.cabang_id', $request->cabang_id);
         }
         if ($request->filter_jenis) {
-            $currencyQuery->where('jenis_jurnal', $request->filter_jenis);
+            $currencyQuery->where('tb_jurnal.jenis_jurnal', $request->filter_jenis);
         }
         if (!$isOwner) {
-            $currencyQuery->where('id_pegawai', $user->id);
+            $currencyQuery->where('tb_jurnal.id_pegawai', $user->id);
         }
         $currency = $currencyQuery->get();
 
@@ -176,11 +177,20 @@ class JurnalKreditDebitController extends Controller
             ? (isset($legacyMap[(int) $request->cabang_id]) ? [(int) $request->cabang_id] : [])
             : array_keys($legacyMap);
 
+        $legacyCabangMap = !empty($targetLegacyIds)
+            ? MasterCabang::whereIn('cabang_id', $targetLegacyIds)->get()->keyBy('cabang_id')
+            : collect();
+
         foreach ($targetLegacyIds as $legacyCabangId) {
             $connection = $legacyMap[$legacyCabangId]['connection'];
+            $legacyCabangModel = $legacyCabangMap->get($legacyCabangId)
+                ?: new MasterCabang(['cabang_name' => $legacyMap[$legacyCabangId]['cabang_name'] ?? '-']);
             try {
                 $legacyBase = Jurnal::on($connection)->withoutGlobalScope('cabang')->with('Currency');
-                $jurnal = $jurnal->concat($applyJurnalFilters(clone $legacyBase)->get());
+                $legacyJurnal = $applyJurnalFilters(clone $legacyBase)->get()->each(function ($row) use ($legacyCabangModel) {
+                    $row->setRelation('Cabang', $legacyCabangModel);
+                });
+                $jurnal = $jurnal->concat($legacyJurnal);
                 $totalDebit = $totalDebit->concat($applyJurnalFilters(clone $legacyBase)->where('jenis_jurnal', 'Debit')->get());
                 $totalKredit = $totalKredit->concat($applyJurnalFilters(clone $legacyBase)->where('jenis_jurnal', 'Kredit Jual')->get());
                 $totalModal = $totalModal->concat($applyJurnalFilters(clone $legacyBase)->where('jenis_jurnal', 'Kredit')->get());
@@ -202,7 +212,10 @@ class JurnalKreditDebitController extends Controller
                 if (!$isOwner) {
                     $legacyCurrQuery->where('id_pegawai', $user->id);
                 }
-                $currency = $currency->concat($legacyCurrQuery->get());
+                $legacyCurrRows = $legacyCurrQuery->get()->each(function ($row) use ($legacyCabangModel) {
+                    $row->cabang_name = $legacyCabangModel->cabang_name ?? '-';
+                });
+                $currency = $currency->concat($legacyCurrRows);
             } catch (\Throwable $e) {
                 Log::warning("Gagal export jurnal debit kredit legacy cabang {$legacyCabangId} ({$connection}): " . $e->getMessage());
             }
@@ -211,15 +224,19 @@ class JurnalKreditDebitController extends Controller
         $jurnal = $jurnal->sortBy('updated_at')->values();
         $groupedCurrency = [];
         foreach ($currency as $c) {
-            $k = $c->nama . '|' . $c->jumlah_kurs;
+            $cab = $c->cabang_name ?? '-';
+            $k = $cab . '|' . $c->nama . '|' . $c->jumlah_kurs;
             if (!isset($groupedCurrency[$k])) {
                 $groupedCurrency[$k] = clone $c;
+                $groupedCurrency[$k]->cabang_name = $cab;
                 $groupedCurrency[$k]->total = (float) $c->total;
             } else {
                 $groupedCurrency[$k]->total += (float) $c->total;
             }
         }
-        $currency = collect(array_values($groupedCurrency));
+        $currency = collect(array_values($groupedCurrency))
+            ->sortBy(fn ($c) => [$c->cabang_name, $c->nama, (float) $c->jumlah_kurs])
+            ->values();
 
         $cabangName = $request->filled('cabang_id')
             ? (MasterCabang::where('cabang_id', $request->cabang_id)->value('cabang_name')

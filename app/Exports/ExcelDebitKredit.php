@@ -43,7 +43,7 @@ class ExcelDebitKredit implements FromView, ShouldAutoSize, WithEvents, WithColu
     {
         return [
             AfterSheet::class => function(AfterSheet $event){
-                $event->sheet->getStyle('A1:H2')->applyFromArray([
+                $event->sheet->getStyle('A1:I2')->applyFromArray([
                     'font' => [
                         'bold' => true
                     ],
