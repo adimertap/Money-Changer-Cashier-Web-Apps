@@ -263,7 +263,7 @@ class TransaksiController extends Controller
     public function getkurs($id_currency)
     {
         try {
-            $kurs = MasterCurrency::where('id_currency', '=', $id_currency)->pluck('nilai_kurs');
+            $kurs = MasterCurrency::withoutGlobalScope('cabang')->where('id_currency', '=', $id_currency)->pluck('nilai_kurs');
             return json_encode($kurs);
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
@@ -274,7 +274,7 @@ class TransaksiController extends Controller
     public function getkursedit($id_currency)
     {
         try {
-            $kurs = MasterCurrency::where('id_currency', '=', $id_currency)->pluck('nilai_kurs');
+            $kurs = MasterCurrency::withoutGlobalScope('cabang')->where('id_currency', '=', $id_currency)->pluck('nilai_kurs');
             return json_encode($kurs);
         } catch (\Throwable $th) {
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
@@ -453,7 +453,11 @@ class TransaksiController extends Controller
                 'transaction_purpose', 'relationship', 'source_of_funds'
             ]);
 
-        $currency = MasterCurrency::orderBy('jenis_kurs', 'ASC')->get();
+        $currency = MasterCurrency::withoutGlobalScope('cabang')
+            ->when($selectedCabangId, fn ($query) => $query->where('cabang_id', $selectedCabangId))
+            ->when(!$selectedCabangId && !$isOwner, fn ($query) => $query->where('cabang_id', session('cabang_aktif')))
+            ->orderBy('jenis_kurs', 'ASC')
+            ->get();
         $tesQuery = $isOwner ? ModalTransaksi::withoutGlobalScope('cabang') : ModalTransaksi::query();
         $tes = $selectedCabangId
             ? (clone $tesQuery)->where('cabang_id', $selectedCabangId)->where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first()

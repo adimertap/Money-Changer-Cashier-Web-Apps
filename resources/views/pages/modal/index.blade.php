@@ -16,7 +16,7 @@
                             @endif
                         </div>
                         <div class="col-auto h-100">
-                            @if (count($modal_today) == 0)
+                            @if (count($modal_today) == 0 || (Auth::user()->role === 'Owner' && empty($cabangId)))
                             <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="modal"
                                 data-bs-target="#modaltambah">Tambah Modal</button>
                             @endif
@@ -215,7 +215,7 @@
                             <select class="form-select" id="modal_cabang_id" name="cabang_id" required>
                                 <option value="">Pilih Cabang</option>
                                 @foreach ($cabangs as $cabang)
-                                <option value="{{ $cabang->cabang_id }}" {{ (string) old('cabang_id') === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
+                                <option value="{{ $cabang->cabang_id }}" {{ (string) old('cabang_id', $cabangId) === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
                                 @endforeach
                             </select>
                         </div>

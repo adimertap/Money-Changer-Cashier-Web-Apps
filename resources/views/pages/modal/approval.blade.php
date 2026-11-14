@@ -80,7 +80,7 @@
                                         value="{{ $item->id_modal }}" type="button" data-bs-toggle="tooltip"
                                         data-bs-placement="top" title="Terima Data">Terima</span>
                                     </button>
-                                    <button class="tn btn-danger btn-sm p-2 me-1 mb-1 tolakModalBtn"
+                                    <button class="btn btn-danger btn-sm p-2 me-1 mb-1 tolakModalBtn"
                                         value="{{ $item->id_modal }}" type="button" data-bs-toggle="tooltip"
                                         data-bs-placement="top" title="Tolak Data">Tolak</span>
                                     </button>
@@ -312,21 +312,23 @@
     }
 
     $(document).ready(function () {
-        $('.terimaModalBtn').click(function (e) {
+        $(document).on('click', '.terimaModalBtn', function (e) {
             e.preventDefault();
 
             var id = $(this).val();
-            $('#id_modal').val(id)
+            $('#id_modal').val(id);
+            $('#submit_terima').prop('disabled', false);
             $('#TerimaModal').modal('show');
-        })
+        });
 
-        $('.tolakModalBtn').click(function (e) {
+        $(document).on('click', '.tolakModalBtn', function (e) {
             e.preventDefault();
 
             var id = $(this).val();
-            $('#id_modal2').val(id)
+            $('#id_modal2').val(id);
+            $('#submit_tolak').prop('disabled', false);
             $('#TolakModal').modal('show');
-        })
+        });
     })
 
 </script>

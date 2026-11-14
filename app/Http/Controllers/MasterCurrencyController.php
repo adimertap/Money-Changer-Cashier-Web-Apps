@@ -2,51 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MasterCabang;
 use App\Models\MasterCurrency;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class MasterCurrencyController extends Controller
 {
-    /*
-     * Branch-aware currency handling is intentionally disabled for now.
-     * Currency is a global master and applies to every branch.
-     * The existing cabang_id column and branch rules remain in the repository
-     * history for a future branch-specific currency decision.
-     */
-    // use App\Models\MasterCabang;
-    // private function allowedCabangIds() { ... }
-    // private function resolveCabangId($requestedCabangId = null, $required = true) { ... }
-    // private function currencyQuery($cabangId = null) { ... }
-
-    private function currencyQuery()
+    private function cabangIds(): array
     {
-        return MasterCurrency::withoutGlobalScope('cabang');
+        if (Auth::user()->role === 'Owner') {
+            return MasterCabang::where('is_active', 1)->pluck('cabang_id')->all();
+        }
+
+        return array_map('intval', array_column(session('cabangs', []), 'cabang_id'));
+    }
+
+    private function cabangs()
+    {
+        return MasterCabang::where('is_active', 1)
+            ->whereIn('cabang_id', $this->cabangIds())
+            ->orderBy('cabang_name')
+            ->get();
+    }
+
+    private function currencyQuery($cabangId = null)
+    {
+        return MasterCurrency::withoutGlobalScope('cabang')
+            ->whereIn('cabang_id', $this->cabangIds())
+            ->when($cabangId, fn ($query) => $query->where('cabang_id', $cabangId));
     }
 
     public function index(Request $request)
     {
-        // cabang_id filtering is intentionally disabled; all currency applies to every branch.
-        $currency = $this->currencyQuery()
+        $cabangs = $this->cabangs();
+        $allowedCabangIds = $this->cabangIds();
+        $cabangId = $request->filled('cabang_id')
+            ? (int) $request->input('cabang_id')
+            : (int) (session('cabang_aktif') ?: optional($cabangs->first())->cabang_id);
+
+        if (!$cabangId || !in_array($cabangId, $allowedCabangIds, true)) {
+            $cabangId = (int) optional($cabangs->first())->cabang_id;
+        }
+
+        $currency = $this->currencyQuery($cabangId)
+            ->with('Cabang')
             ->orderBy('jenis_kurs', 'ASC')
             ->get();
-        $currency_edit = $this->currencyQuery()
+        $currency_edit = $this->currencyQuery($cabangId)
+            ->with('Cabang')
             ->orderBy('urutan', 'DESC')
             ->get();
-        $lembar = $this->currencyQuery()->where('jenis_kurs', 'Lembar')->count();
-        $coins = $this->currencyQuery()->where('jenis_kurs', 'Coins')->count();
+        $lembar = $this->currencyQuery($cabangId)->where('jenis_kurs', 'Lembar')->count();
+        $coins = $this->currencyQuery($cabangId)->where('jenis_kurs', 'Coins')->count();
 
         return view('pages.mastercurrency.index', compact(
             'currency',
             'lembar',
             'coins',
-            'currency_edit'
+            'currency_edit',
+            'cabangs',
+            'cabangId'
         ));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
+            'cabang_id' => ['required', 'integer', Rule::in($this->cabangIds())],
             'nama_currency' => 'required|string|max:100',
             'country' => 'required|string|max:150',
             'nilai_kurs' => 'required|numeric|min:0',
@@ -56,18 +81,17 @@ class MasterCurrencyController extends Controller
             'img_flag' => 'required|image|max:2048',
         ]);
 
-        $check = $this->currencyQuery()
+        $check = $this->currencyQuery($data['cabang_id'])
             ->where('nama_currency', $data['nama_currency'])
             ->where('jenis_kurs', $data['jenis_kurs'])
             ->first();
         if ($check) {
-            Alert::warning('Gagal', 'Data Currency tersebut sudah ada.');
+            Alert::warning('Gagal', 'Data Currency tersebut sudah ada pada cabang ini.');
             return redirect()->back()->withInput();
         }
 
         $item = new MasterCurrency;
         $item->fill($data);
-        // $item->cabang_id = ...; // disabled: currency is global for all branches.
         $item->img_flag = CloudinaryStorage::upload(
             $request->file('img_flag')->getRealPath(),
             $request->file('img_flag')->getClientOriginalName()
@@ -94,10 +118,7 @@ class MasterCurrencyController extends Controller
         if ($request->hasFile('img_flag')) {
             $image = $request->file('img_flag');
             $result = CloudinaryStorage::upload($image->getRealPath(), $image->getClientOriginalName());
-            $this->currencyQuery()
-                ->where('nama_currency', $item->nama_currency)
-                ->where('jenis_kurs', $item->jenis_kurs)
-                ->update(['img_flag' => $result]);
+            $item->update(['img_flag' => $result]);
         }
         Alert::success('Berhasil', 'Data Currency Berhasil Diedit');
         return redirect()->back();
@@ -124,12 +145,14 @@ class MasterCurrencyController extends Controller
         }
 
         if ($data) {
-            $this->currencyQuery()
-                ->where('nama_currency', $item->nama_currency)
-                ->where('jenis_kurs', $item->jenis_kurs)
-                ->update($data);
+            $item->update($data);
         }
 
-        return $request;
+        $item->load('Cabang');
+
+        return response()->json([
+            'nama_currency' => $item->nama_currency,
+            'cabang_name' => optional($item->Cabang)->cabang_name ?: '-',
+        ]);
     }
 }

@@ -121,9 +121,17 @@ class ModalController extends Controller
                 ->orderBy('cabang_name')
                 ->get();
 
-            $modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->get();
-            $modal_tf = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
-            $jumlah_modal_today = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->where('status_modal','Terima')->first();
+            $activeCabangId = ($cabangId && in_array((int) $cabangId, $allowedCabangIds, true))
+                ? (int) $cabangId
+                : (session('cabang_aktif') ? (int) session('cabang_aktif') : null);
+
+            $todayBase = ($isOwner ? ModalTransaksi::withoutGlobalScope('cabang') : ModalTransaksi::query())
+                ->where('tanggal_modal', Carbon::now()->format('Y-m-d'))
+                ->when($activeCabangId, fn ($q) => $q->where('cabang_id', $activeCabangId));
+
+            $modal_today = (clone $todayBase)->get();
+            $modal_tf = (clone $todayBase)->first();
+            $jumlah_modal_today = (clone $todayBase)->where('status_modal', 'Terima')->first();
             $today = Carbon::now()->format('Y-m-d');
             if(count($modal_today) == 0){
                 Alert::warning('Modal Belum Diinput', 'Anda Belum Menginputkan Modal Hari Ini, Lakukan Inputan atau Transfer');
@@ -178,6 +186,16 @@ class ModalController extends Controller
         );
 
         abort_unless($cabangId !== null, 403, 'Cabang tidak valid.');
+
+        $existsToday = ModalTransaksi::withoutGlobalScope('cabang')
+            ->where('cabang_id', $cabangId)
+            ->whereDate('tanggal_modal', Carbon::today())
+            ->where('jenis_modal', 'Modal Awal')
+            ->exists();
+        if ($existsToday) {
+            Alert::warning('Modal Sudah Ada', 'Modal awal hari ini untuk cabang tersebut sudah diinput.');
+            return redirect()->back();
+        }
 
         try {
             $modal = new ModalTransaksi();

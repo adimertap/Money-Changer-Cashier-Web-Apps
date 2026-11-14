@@ -4,6 +4,26 @@
 <main>
     <div class="row g-3 mb-3 mt-3">
         <div class="col-md-4">
+            <div class="card h-100 border border-primary">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <form method="GET" action="{{ route('master-currency') }}">
+                        <label class="form-label text-primary fw-bold fs-0 mb-2" for="currencyCabangFilter">
+                            <i class="fas fa-store me-1"></i> Filter Cabang
+                        </label>
+                        <select class="form-select form-select-lg fw-semibold" name="cabang_id" id="currencyCabangFilter" onchange="this.form.submit()">
+                            @forelse($cabangs as $cabang)
+                            <option value="{{ $cabang->cabang_id }}" {{ (string) $cabangId === (string) $cabang->cabang_id ? 'selected' : '' }}>
+                                {{ $cabang->cabang_name }}
+                            </option>
+                            @empty
+                            <option value="">Tidak ada cabang</option>
+                            @endforelse
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
                     <div class="row flex-between-center g-0">
@@ -27,25 +47,10 @@
                             <h5 class="text-primary mb-1">Edit Data!</h5>
                             <p>Edit Data Keseluruhan Currency Disini</p>
                         </div>
-                        <div class="col-auto h-100">
+                        <div class="col-auto h-100 d-flex gap-2">
                             <button class="btn btn-sm btn-info" type="button" data-bs-toggle="modal"
                                 data-bs-target="#modal-edit-kurs">Edit Data Kurs</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="row flex-between-center">
-                        <div class="col d-md-flex d-lg-block flex-between-center">
-                            <h6 class="mb-md-0 mb-lg-2">Total Currency</h6><span
-                                class="badge rounded-pill badge-soft-success">Currency</span>
-                        </div>
-                        <div class="col-auto">
-                            <h4 class="fs-2 fw-normal text-700"><span>{{ $lembar }}</span> Lembar, <span>{{ $coins }}
-                                    Coins</span></h4>
+                            <a href="{{ route('perbandingan-currency.index') }}" class="btn btn-sm btn-warning">Perbandingan</a>
                         </div>
                     </div>
                 </div>
@@ -59,28 +64,11 @@
                     <h5 class="mb-0" data-anchor="data-anchor">Data Currency</h5>
                     <p class="mb-0 pt-1 mt-2 mb-0">Manajemen Data Currency</p>
                 </div>
-                {{--
-                Branch filter intentionally disabled: currency is a global master
-                and applies to every branch.
-                @if(Auth::user()->role === 'Owner')
-                <div class="col-auto">
-                    <form method="GET" action="{{ route('master-currency') }}" class="d-flex align-items-center gap-2">
-                        <label class="form-label mb-0" for="currencyCabangFilter">Cabang</label>
-                        <select class="form-select form-select-sm" name="cabang_id" id="currencyCabangFilter" onchange="this.form.submit()">
-                            <option value="">Semua Cabang</option>
-                            @foreach($cabangs as $cabang)
-                            <option value="{{ $cabang->cabang_id }}" {{ (string) $cabangId === (string) $cabang->cabang_id ? 'selected' : '' }}>{{ $cabang->cabang_name }}</option>
-                            @endforeach
-                        </select>
-                    </form>
-                </div>
-                @endif
-                --}}
             </div>
         </div>
         <div class="card-body">
             <div id="tableExample"
-                data-list='{"valueNames":["no","nama_currency","country"],"page":20,"pagination":true}'>
+                data-list='{"valueNames":["no","nama_currency","country","cabang"],"page":20,"pagination":true}'>
                 <div class="table-responsive scrollbar">
                     <table class="table table-bordered table-striped fs--1 mb-0" id="datatable">
                         <thead class="bg-200 text-900">
@@ -88,12 +76,9 @@
                                 <th class="sort text-center" data-sort="no">No.</th>
                                 <th class="sort text-center" data-sort="nama_currency">Nama Currency</th>
                                 <th class="sort text-center" data-sort="country">Country</th>
-                                {{--
-                                Branch column intentionally disabled: currency is global for every branch.
                                 @if(is_null($cabangId))
                                 <th class="sort text-center" data-sort="cabang">Cabang</th>
                                 @endif
-                                --}}
                                 <th class="sort text-center" data-sort="jenis">Jenis</th>
                                 <th class="sort text-center" data-sort="kurs">Kurs (Rp)</th>
                                 <th class="sort text-center" data-sort="keterangan">Keterangan</th>
@@ -105,17 +90,13 @@
                         </thead>
                         <tbody class="list">
                             @forelse ($currency as $item)
-                            {{-- data-cabang-id intentionally disabled: currency is global. --}}
-                            <tr role="row" class="odd">
+                            <tr role="row" class="odd" data-cabang-id="{{ $item->cabang_id }}">
                                 <th scope="row" class="no">{{ $loop->iteration}}.</th>
                                 <td class="nama_currency">{{ $item->nama_currency }}</td>
                                 <td class="country">{{ $item->country }}</td>
-                                {{--
-                                Branch cell intentionally disabled: currency is global for every branch.
                                 @if(is_null($cabangId))
                                 <td class="cabang text-center">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                 @endif
-                                --}}
                                 <td class="jenis text-center">
                                     @if($item->jenis_kurs == 'Lembar')
                                     <span class="badge badge-soft-primary">{{ $item->jenis_kurs }}</span>
@@ -179,13 +160,19 @@
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 1350px">
         <div class="modal-content position-relative">
             <div class="position-absolute top-0 end-0 mt-2 me-2 z-index-1">
-                <a href="{{ route('master-currency') }}" class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
+                <a href="{{ route('master-currency', $cabangId ? ['cabang_id' => $cabangId] : []) }}" class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
                     aria-label="Close"></a>
             </div>
             <div class="card">
+                <div class="card-header bg-light py-2 d-flex align-items-center justify-content-between pe-5">
+                    <h5 class="mb-0">Edit Data Kurs</h5>
+                    <span class="badge bg-primary fs--1">
+                        <i class="fas fa-store me-1"></i> Cabang: {{ optional($cabangs->firstWhere('cabang_id', $cabangId))->cabang_name ?: '-' }}
+                    </span>
+                </div>
                 <div class="card-body">
                     <div id="tableExample"
-                        data-list='{"valueNames":["no","enama_currency","enama_country","ejenis","ekurs",
+                        data-list='{"valueNames":["no","enama_currency","enama_country","ecabang","ejenis","ekurs",
                             "eketerangan","eurutan","eflag"],"page":20,"pagination":true}'>
                         <div class="table-responsive scrollbar">
                             <table class="table table-bordered table-striped fs--1 mb-0" id="datatable2">
@@ -194,12 +181,7 @@
                                         <th class="sort text-center" data-sort="no">No.</th>
                                         <th class="sort text-center" data-sort="enama_currency">Currency</th>
                                         <th class="sort text-center" data-sort="enama_country">Country</th>
-                                        {{--
-                                        Branch column intentionally disabled: currency is global for every branch.
-                                        @if(is_null($cabangId))
                                         <th class="sort text-center" data-sort="ecabang">Cabang</th>
-                                        @endif
-                                        --}}
                                         <th class="sort text-center" data-sort="ejenis">Jenis</th>
                                         <th class="sort text-center" data-sort="ekurs">Kurs(Rp)</th>
                                         <th class="sort text-center" data-sort="eketerangan">Keterangan.</th>
@@ -222,12 +204,7 @@
                                             type="text" placeholder="Country" id="{{ $item->id_currency }}"
                                             value="{{ $item->country }}" />
                                         </td>
-                                        {{--
-                                        Branch cell intentionally disabled: currency is global for every branch.
-                                        @if(is_null($cabangId))
                                         <td class="ecabang text-center">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
-                                        @endif
-                                        --}}
                                         <td class="ejenis text-center">
                                             <select class="form-select form-select-sm jenis_edit" name="jenis_edit"
                                                 type="text" placeholder="Jenis" id="{{ $item->id_currency }}" value="{{ $item->urutan }}">
@@ -326,7 +303,7 @@
                                 - Pastikan urutan tidak ada angka duplicat atau sama</p>
                         </div>
                                 <div class="col-auto mt-4">
-                            <a href="{{ route('master-currency') }}" class="btn btn-secondary" type="button">Kembali</a>
+                            <a href="{{ route('master-currency', $cabangId ? ['cabang_id' => $cabangId] : []) }}" class="btn btn-secondary" type="button">Kembali</a>
                         </div>
                     </div>
 
@@ -352,9 +329,7 @@
                     </div>
                     <div class="p-4 pb-0">
                         <p class="text-word-break fs--1">Lengkapi Form Currency berikut ini</p>
-                        {{--
-                        Branch selector intentionally disabled: currency is global for every branch.
-                        @if(Auth::user()->role === 'Owner')
+                        @if(Auth::user()->role === 'Owner' || $cabangs->count() > 1)
                         <div class="col-md-12 mb-3">
                             <label class="form-label" for="currency_cabang_id">Cabang Operasional</label><span class="mr-4 mb-3" style="color: red">*</span>
                             <select class="form-select @error('cabang_id') is-invalid @enderror" name="cabang_id" id="currency_cabang_id" required>
@@ -368,10 +343,8 @@
                             @enderror
                         </div>
                         @else
-                        <input type="hidden" name="cabang_id" value="{{ $cabangId }}">
-                        <div class="alert alert-info py-2">Currency akan ditambahkan ke cabang aktif.</div>
+                        <input type="hidden" name="cabang_id" value="{{ $cabangId ?: optional($cabangs->first())->cabang_id }}">
                         @endif
-                        --}}
                         <div class="col-md-12 mb-3">
                             <label class="form-label" for="nama_currency">Nama Kurs</label><span class="mr-4 mb-3"
                                 style="color: red">*</span>
@@ -612,7 +585,7 @@
 
                         Toast.fire({
                             icon: 'success',
-                            title: 'Berhasil Mengupdate Jenis Kurs'
+                            title: 'Berhasil Mengupdate Jenis Kurs ' + (response.nama_currency || '') + ' pada cabang ' + (response.cabang_name || '-')
                         })
                     },
                     error: function(response) {
@@ -659,7 +632,7 @@
 
                         Toast.fire({
                             icon: 'success',
-                            title: 'Berhasil Mengupdate Country Kurs'
+                            title: 'Berhasil Mengupdate Country Kurs ' + (response.nama_currency || '') + ' pada cabang ' + (response.cabang_name || '-')
                         })
                     },
                     error: function(response) {
@@ -706,7 +679,7 @@
 
                         Toast.fire({
                             icon: 'success',
-                            title: 'Berhasil Mengupdate Nama Kurs'
+                            title: 'Berhasil Mengupdate Nama Kurs ' + (response.nama_currency || '') + ' pada cabang ' + (response.cabang_name || '-')
                         })
                     },
                     error: function(response) {
@@ -755,7 +728,7 @@
 
                         Toast.fire({
                             icon: 'success',
-                            title: 'Berhasil Mengupdate Urutan Kurs'
+                            title: 'Berhasil Mengupdate Urutan Kurs ' + (response.nama_currency || '') + ' pada cabang ' + (response.cabang_name || '-')
                         })
                     },
                     error: function(response) {
@@ -816,7 +789,7 @@
 
                         Toast.fire({
                             icon: 'success',
-                            title: 'Berhasil Mengupdate Keterangan Kurs'
+                            title: 'Berhasil Mengupdate Keterangan Kurs ' + (response.nama_currency || '') + ' pada cabang ' + (response.cabang_name || '-')
                         })
                     },
                     error: function(response) {
@@ -863,7 +836,7 @@
 
                         Toast.fire({
                             icon: 'success',
-                            title: 'Berhasil Mengupdate Kurs'
+                            title: 'Berhasil Mengupdate Kurs ' + (response.nama_currency || '') + ' pada cabang ' + (response.cabang_name || '-')
                         })
                     },
                     error: function(response) {

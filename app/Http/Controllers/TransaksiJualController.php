@@ -214,7 +214,7 @@ class TransaksiJualController extends Controller
 
     public function getkursJumlah($id_currency)
     {
-        $kurs = MasterCurrency::where('id_currency', '=', $id_currency)->pluck('jumlah_valas');
+        $kurs = MasterCurrency::withoutGlobalScope('cabang')->where('id_currency', '=', $id_currency)->pluck('jumlah_valas');
         return $kurs;
     }
 
@@ -224,10 +224,22 @@ class TransaksiJualController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        $currency = MasterCurrency::orderBy('jenis_kurs', 'ASC')->get();
-        $modal = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
+        $isOwner = Auth::user()->role === 'Owner';
+        $selectedCabangId = session('cabang_aktif')
+            ? (int) session('cabang_aktif')
+            : ($isOwner ? (int) ($request->input('cabang_id') ?: MasterCabang::where('is_active', 1)->orderBy('cabang_name')->value('cabang_id')) : null);
+
+        $currency = MasterCurrency::withoutGlobalScope('cabang')
+            ->when($selectedCabangId, fn ($query) => $query->where('cabang_id', $selectedCabangId))
+            ->when(!$selectedCabangId && !$isOwner, fn ($query) => $query->where('cabang_id', session('cabang_aktif')))
+            ->orderBy('jenis_kurs', 'ASC')
+            ->get();
+        $modal = ($isOwner ? ModalTransaksi::withoutGlobalScope('cabang') : ModalTransaksi::query())
+            ->where('tanggal_modal', Carbon::now()->format('Y-m-d'))
+            ->when($selectedCabangId, fn ($query) => $query->where('cabang_id', $selectedCabangId))
+            ->first();
         // $tes = ModalTransaksi::where('tanggal_modal', Carbon::now()->format('Y-m-d'))->first();
         // if(empty($tes)){
         //     Alert::warning('Belum Mengajukan Modal', 'Anda Belum Mengajukan Modal');

@@ -5,6 +5,7 @@
         <h6 class="mb-0">Selamat Datang <span class="text-primary">{{ Auth::user()->name }}</span></h6>
     </div>
     <ul class="navbar-nav navbar-nav-icons ms-auto flex-row align-items-center">
+        @unless(request()->routeIs('master-currency', 'perbandingan-currency.*'))
         <li class="nav-item d-flex align-items-center px-2">
             <form action="{{ route('switch-cabang') }}" method="POST" class="d-flex align-items-center mb-0">
                 @csrf
@@ -23,6 +24,7 @@
                 </select>
             </form>
         </li>
+        @endunless
         <li class="nav-item">
             <div class="theme-control-toggle fa-icon-wait px-2">
                 <input class="form-check-input ms-0 theme-control-toggle-input" id="themeControlToggle" type="checkbox"

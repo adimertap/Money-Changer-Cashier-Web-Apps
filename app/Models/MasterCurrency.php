@@ -9,12 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class MasterCurrency extends Model
 {
     use SoftDeletes;
-
-    /*
-     * Currency is currently a global master for every branch.
-     * Branch-specific scope and automatic cabang_id assignment are disabled.
-     * use Concerns\BelongsToCabang;
-     */
+    use Concerns\BelongsToCabang;
 
     protected $table = "tb_currency";
 
@@ -30,7 +25,7 @@ class MasterCurrency extends Model
         'urutan',
         'last_nilai_jual',
         'jumlah_valas',
-        // 'cabang_id', // disabled: currency is global for every branch.
+        'cabang_id',
     ];
 
     protected $hidden = [

@@ -97,6 +97,7 @@ Route::group(['middleware' => 'auth'], function () {
             Route::patch('master-limit-transaksi/{id}/status', [\App\Http\Controllers\MasterLimitTransaksiController::class, 'status'])->name('master-limit-transaksi.status');
             Route::post('/delete-pegawai', [\App\Http\Controllers\MasterPegawaiController::class, 'hapus'])->name('master-pegawai-delete');
             Route::get('/master-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'index'])->name('master-currency');
+            Route::get('/perbandingan-currency', [\App\Http\Controllers\PerbandinganCurrencyController::class, 'index'])->name('perbandingan-currency.index');
             Route::post('/tambah-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'store'])->name('master-currency-store');
             Route::post('/delete-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'hapus']);
             Route::post('/update-currency', [\App\Http\Controllers\MasterCurrencyController::class, 'updatedata']);
