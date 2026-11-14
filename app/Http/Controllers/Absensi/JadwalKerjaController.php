@@ -134,31 +134,64 @@ class JadwalKerjaController extends Controller
 
     public function jadwalUploadExcel(Request $request)
     {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
         try {
             $file = $request->file('file');
-            $data = Excel::toArray([], $file)[0];
+            $data = Excel::toArray([], $file)[0] ?? [];
             $rows = array_slice($data, 1);
-            $cabangId = (int) (session('cabang_aktif') ?: optional($this->cabangs()->first())->cabang_id);
+            $allowedCabangIds = array_map('intval', $this->cabangIds());
+            $cabangNameMap = \App\Models\MasterCabang::whereIn('cabang_id', $allowedCabangIds)
+                ->pluck('cabang_id', 'cabang_name');
 
-            DB::transaction(function () use ($rows, $cabangId) {
+            DB::transaction(function () use ($rows, $allowedCabangIds, $cabangNameMap) {
                 foreach ($rows as $row) {
-                    $shiftId = $row[0];
-                    $pegawaiId = $row[1];
-                    $tanggal = $row[3];
-                    $keterangan = $row[4];
-                    $month = $row[5];
-                    $year = $row[6];
+                    $shiftId = trim((string) ($row[0] ?? ''));
+                    $pegawaiId = trim((string) ($row[1] ?? ''));
+                    $rawTanggal = $row[3] ?? null;
 
-                    $employee = $this->employeeQuery($cabangId)->whereKey($pegawaiId)->firstOrFail();
-                    $shift = MasterShift::where('cabang_id', $cabangId)->findOrFail($shiftId);
-                    $exists = JadwalKerja::where('id', $employee->id)->where('tanggal', $tanggal)->exists();
+                    if ($shiftId === '' || $pegawaiId === '' || $rawTanggal === null || trim((string) $rawTanggal) === '') {
+                        continue;
+                    }
 
-                    if ($exists) {
-                        JadwalKerja::where('id', $employee->id)->where('tanggal', $tanggal)->update([
+                    $tanggal = is_numeric($rawTanggal)
+                        ? \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $rawTanggal)->format('Y-m-d')
+                        : \Carbon\Carbon::parse((string) $rawTanggal)->format('Y-m-d');
+
+                    $keterangan = $row[4] ?? null;
+                    $parsedDate = \Carbon\Carbon::parse($tanggal);
+                    $month = !empty($row[5]) ? (int) $row[5] : (int) $parsedDate->format('m');
+                    $year = !empty($row[6]) ? (int) $row[6] : (int) $parsedDate->format('Y');
+
+                    $shift = MasterShift::withoutGlobalScope('cabang')
+                        ->whereIn('cabang_id', $allowedCabangIds)
+                        ->findOrFail((int) $shiftId);
+
+                    $rowCabangId = (int) $shift->cabang_id;
+                    $cabangName = trim((string) ($row[7] ?? ''));
+                    if ($cabangName !== '' && $cabangNameMap->has($cabangName)) {
+                        $excelCabangId = (int) $cabangNameMap->get($cabangName);
+                        if ($excelCabangId !== $rowCabangId) {
+                            throw new \RuntimeException("Shift {$shiftId} tidak sesuai dengan cabang {$cabangName}");
+                        }
+                    }
+
+                    $employee = $this->employeeQuery($rowCabangId)->whereKey((int) $pegawaiId)->firstOrFail();
+
+                    $existing = JadwalKerja::withoutGlobalScope('cabang')
+                        ->where('id', $employee->id)
+                        ->where('tanggal', $tanggal)
+                        ->first();
+
+                    if ($existing) {
+                        $existing->update([
                             'shift_id' => $shift->shift_id,
                             'month' => $month,
                             'year' => $year,
-                            'cabang_id' => $cabangId,
+                            'keterangan' => $keterangan,
+                            'cabang_id' => $rowCabangId,
                         ]);
                         continue;
                     }
@@ -171,14 +204,15 @@ class JadwalKerjaController extends Controller
                         'year' => $year,
                         'keterangan' => $keterangan,
                         'status' => 'X',
-                        'cabang_id' => $cabangId,
+                        'cabang_id' => $rowCabangId,
                     ]);
                 }
             });
 
             Alert::success('Success', 'Data Berhasil Diimport');
         } catch (\Throwable $th) {
-            Alert::warning('Warning', 'Data Excel tidak valid atau tidak sesuai cabang');
+            \Illuminate\Support\Facades\Log::warning('jadwalUploadExcel failed: ' . $th->getMessage());
+            Alert::warning('Warning', 'Data Excel tidak valid atau tidak sesuai cabang: ' . $th->getMessage());
         }
 
         return redirect()->back();
