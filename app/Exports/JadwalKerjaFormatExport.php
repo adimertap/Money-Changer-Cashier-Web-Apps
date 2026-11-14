@@ -19,15 +19,21 @@ class JadwalKerjaFormatExport implements FromCollection, WithHeadings, ShouldAut
     protected $end_date;
     protected $shift_id;
     protected $shift;
+    protected $cabang_id;
+    protected $cabangName;
     protected $rowPegawaiStartIndexes = [];
 
-    public function __construct($pegawai_ids, $start_date, $end_date, $shift_id)
+    public function __construct($pegawai_ids, $start_date, $end_date, $shift_id, $cabang_id = null)
     {
         $this->pegawai_ids = $pegawai_ids;
         $this->start_date = $start_date;
         $this->end_date = $end_date;
         $this->shift_id = $shift_id;
+        $this->cabang_id = $cabang_id;
         $this->shift = MasterShift::find($shift_id);
+        $this->cabangName = $cabang_id
+            ? (\App\Models\MasterCabang::where('cabang_id', $cabang_id)->value('cabang_name') ?: '-')
+            : null;
     }
 
     public function collection()
@@ -35,8 +41,10 @@ class JadwalKerjaFormatExport implements FromCollection, WithHeadings, ShouldAut
         $rows = [];
         $this->rowPegawaiStartIndexes = [];
         foreach ($this->pegawai_ids as $pegawai_id) {
-            $user = \App\Models\User::find($pegawai_id);
+            $user = \App\Models\User::with('cabangs')->find($pegawai_id);
             $name = $user ? $user->name : '';
+            $cabangName = $this->cabangName
+                ?? ($user ? ($user->cabangs->pluck('cabang_name')->implode(', ') ?: '-') : '-');
             $current = strtotime($this->start_date);
             $end = strtotime($this->end_date ?? $this->start_date);
             $firstRowIndex = count($rows) + 2; // +2 for heading row and 1-based index
@@ -53,6 +61,7 @@ class JadwalKerjaFormatExport implements FromCollection, WithHeadings, ShouldAut
                     '', // keterangan
                     $month, // month
                     $year, // year
+                    $cabangName, // cabang
                 ];
                 $current = strtotime('+1 day', $current);
             }
@@ -70,6 +79,7 @@ class JadwalKerjaFormatExport implements FromCollection, WithHeadings, ShouldAut
             'keterangan',
             'month',
             'year',
+            'cabang',
         ];
     }
 
@@ -80,7 +90,7 @@ class JadwalKerjaFormatExport implements FromCollection, WithHeadings, ShouldAut
                 // Highlight the first row of each pegawai in yellow if exporting for all pegawai
                 if (count($this->pegawai_ids) > 1) {
                     foreach ($this->rowPegawaiStartIndexes as $rowIdx) {
-                        $event->sheet->getStyle('A'.$rowIdx.':G'.$rowIdx)
+                        $event->sheet->getStyle('A'.$rowIdx.':H'.$rowIdx)
                             ->applyFromArray([
                                 'fill' => [
                                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,

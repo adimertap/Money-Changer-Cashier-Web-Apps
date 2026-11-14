@@ -97,7 +97,18 @@ class JadwalKerjaController extends Controller
 
     public function employeesByCabang($cabangId)
     {
-        abort_unless(in_array((int) $cabangId, $this->cabangIds(), true), 403);
+        $allowed = $this->cabangIds();
+        if ($cabangId === 'all' || $cabangId === '' || $cabangId === '0') {
+            $employees = User::where('role', '!=', 'Owner')
+                ->whereHas('cabangs', function ($query) use ($allowed) {
+                    $query->whereIn('tb_master_cabang.cabang_id', $allowed);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name']);
+            return response()->json($employees);
+        }
+
+        abort_unless(in_array((int) $cabangId, $allowed, true), 403);
 
         return response()->json($this->employeeQuery((int) $cabangId)->get(['id', 'name']));
     }
@@ -176,15 +187,33 @@ class JadwalKerjaController extends Controller
     public function jadwalDownloadFormat(Request $request)
     {
         try {
+            $allowed = $this->cabangIds();
+            $requestedCabang = $request->input('cabang_id');
+            $cabangId = ($requestedCabang !== null && $requestedCabang !== '') ? (int) $requestedCabang : null;
+            if ($cabangId !== null) {
+                abort_unless(in_array($cabangId, $allowed, true), 403);
+            }
+
             $pegawaiId = $request->pegawai;
             $startDate = $request->start_date;
             $endDate = $request->end_date ?? $startDate;
-            $pegawaiIds = empty($pegawaiId)
-                ? ($this->selectedCabang($request) ? $this->employeeQuery($this->selectedCabang($request))->pluck('id')->toArray() : [])
-                : [$pegawaiId];
+
+            if (!empty($pegawaiId)) {
+                $pegawaiIds = [(int) $pegawaiId];
+            } elseif ($cabangId !== null) {
+                $pegawaiIds = $this->employeeQuery($cabangId)->pluck('id')->toArray();
+            } else {
+                $pegawaiIds = User::where('role', '!=', 'Owner')
+                    ->whereHas('cabangs', function ($query) use ($allowed) {
+                        $query->whereIn('tb_master_cabang.cabang_id', $allowed);
+                    })
+                    ->orderBy('name')
+                    ->pluck('id')
+                    ->toArray();
+            }
 
             return Excel::download(
-                new \App\Exports\JadwalKerjaFormatExport($pegawaiIds, $startDate, $endDate, $request->shift_id),
+                new \App\Exports\JadwalKerjaFormatExport($pegawaiIds, $startDate, $endDate, $request->shift_id, $cabangId),
                 'jadwal_kerja_format.xlsx'
             );
         } catch (\Throwable $th) {

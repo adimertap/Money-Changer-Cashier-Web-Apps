@@ -190,6 +190,15 @@
                                     type="date" placeholder="Input End Date" value="{{ old('end_date') }}" />
                             </div>
                         </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label" for="download_cabang_id">Cabang</label>
+                            <select id="download_cabang_id" name="cabang_id" class="form-select">
+                                <option value="">Semua Cabang</option>
+                                @foreach ($cabangs as $cab)
+                                    <option value="{{ $cab->cabang_id }}">{{ $cab->cabang_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="col-md-12 mb-5">
                             <label class="form-label" for="pegawai">Pegawai</label>
                             <select type="text" id="pegawai" name="pegawai" class="form-select"
@@ -327,8 +336,20 @@
 
 <script>
     function downloadFormat() {
+        $('#download_cabang_id').val('').trigger('change');
         $('#modal-download-format').modal('show');
     }
+
+    $(document).on('change', '#download_cabang_id', function () {
+        const cabangVal = $(this).val() || 'all';
+        $.get(cabangEmployeesUrl + '/' + cabangVal + '/employees', function (items) {
+            const select = $('#pegawai').empty().append('<option value="">Semua Pegawai</option>');
+            items.forEach(function (item) {
+                select.append(new Option(item.name, item.id));
+            });
+            select.trigger('change');
+        });
+    });
 
     function uploadExcel() {
         $('#modal-upload').modal('show');
