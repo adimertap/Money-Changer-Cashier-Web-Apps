@@ -1,12 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-@if($errors->any())
-<script>
-    // Open the modal-tambah
-        $('#modal-tambah').modal('show');
-</script>
-@endif
 <main>
     <div class="card mb-3">
         <div class="card-header">
@@ -72,9 +66,9 @@
                 <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
                     data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('shift.store') }}" method="POST" id="shiftForm" enctype="multipart/form-data">
+            <form action="{{ route('shift.store') }}" method="POST" id="shiftForm">
                 @csrf
-                <input type="hidden" name="shiftId">
+                <input type="hidden" name="shiftId" id="shiftId">
                 <div class="modal-body p-0">
                     <div class="rounded-top-lg py-3 ps-4 pe-6 bg-light">
                         <h4 class="mb-1" id="modalTitle">Tambah Data Shift Kerja</h4>
@@ -145,13 +139,15 @@
 
 <script>
     $(document).ready(function () {
+        @if($errors->any())
+            $('#modal-tambah').modal('show');
+        @endif
         var table = $('#datatable').DataTable();
         table.on('click', '.editBtn', function () {
             var id = $(this).val();
-            console.log(id)
             $.ajax({
                 method: 'get',
-                url: 'shift/' + id,
+                url: '{{ url('/owner/shift') }}/' + id,
                 success: function (response) {
                     if(response == 404){
                         Swal.fire({
@@ -169,8 +165,8 @@
                         $('#modalTitle').text('Edit Data');
                         $('#shiftId').val(id);
                         $('input[name="shift_name"]').val(response.shift_name);
-                        $('input[name="shift_in"]').val(response.shift_in);
-                        $('input[name="shift_out"]').val(response.shift_out);
+                        $('input[name="shift_in"]').val((response.shift_in || '').substring(0, 5));
+                        $('input[name="shift_out"]').val((response.shift_out || '').substring(0, 5));
                         $('#shiftCabang').val(response.cabang_id);
 
                         if (response.shift_id) {

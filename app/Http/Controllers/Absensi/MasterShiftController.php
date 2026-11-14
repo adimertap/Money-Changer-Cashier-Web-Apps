@@ -30,19 +30,27 @@ class MasterShiftController extends Controller
             ->get();
     }
 
-    private function rules()
+    private function validatedData(Request $request): array
     {
-        return [
+        $request->merge([
+            'shift_in' => substr((string) $request->input('shift_in'), 0, 5),
+            'shift_out' => substr((string) $request->input('shift_out'), 0, 5),
+        ]);
+
+        return $request->validate([
             'shift_name' => 'required|string|max:100',
             'shift_in' => 'required|date_format:H:i',
             'shift_out' => 'required|date_format:H:i',
             'cabang_id' => ['required', 'integer', Rule::in($this->cabangIds())],
-        ];
+        ]);
     }
 
     public function index()
     {
-        $shift = MasterShift::with('Cabang')->get();
+        $shift = MasterShift::withoutGlobalScope('cabang')
+            ->whereIn('cabang_id', $this->cabangIds())
+            ->with('Cabang')
+            ->get();
         $cabangs = $this->cabangs();
 
         return view('absensi.shift', compact('shift', 'cabangs'));
@@ -55,10 +63,10 @@ class MasterShiftController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate($this->rules());
+        $data = $this->validatedData($request);
 
         DB::transaction(function () use ($data) {
-            MasterShift::create($data);
+            MasterShift::withoutGlobalScope('cabang')->create($data);
         });
 
         Alert::success('Success', 'Data Berhasil Ditambahkan');
@@ -67,7 +75,10 @@ class MasterShiftController extends Controller
 
     public function show($id)
     {
-        $item = MasterShift::with('Cabang')->find($id);
+        $item = MasterShift::withoutGlobalScope('cabang')
+            ->whereIn('cabang_id', $this->cabangIds())
+            ->with('Cabang')
+            ->find($id);
         if (!$item) {
             return response()->json(404, 404);
         }
@@ -82,8 +93,10 @@ class MasterShiftController extends Controller
 
     public function update(Request $request, $id)
     {
-        $data = $request->validate($this->rules());
-        $item = MasterShift::findOrFail($id);
+        $data = $this->validatedData($request);
+        $item = MasterShift::withoutGlobalScope('cabang')
+            ->whereIn('cabang_id', $this->cabangIds())
+            ->findOrFail($id);
         $item->update($data);
 
         Alert::success('Success', 'Data Berhasil DiUpdate');
@@ -92,7 +105,10 @@ class MasterShiftController extends Controller
 
     public function destroy($id)
     {
-        MasterShift::findOrFail($id)->delete();
+        MasterShift::withoutGlobalScope('cabang')
+            ->whereIn('cabang_id', $this->cabangIds())
+            ->findOrFail($id)
+            ->delete();
 
         Alert::success('Success', 'Data berhasil dihapus');
         return redirect()->back();
