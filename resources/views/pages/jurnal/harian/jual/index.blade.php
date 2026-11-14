@@ -101,7 +101,7 @@
                             @forelse ($transaksi as $item)
                             <tr role="row" class="odd">
                                 <th scope="row" class="no fs--1">{{ $loop->iteration + ($transaksi->currentPage() - 1) * $transaksi->perPage() }}.</th>
-                                <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
+                                <td class="text-start pegawai fs--1">{{ optional($item->Pegawai)->name ?: ($item->legacy_pegawai_name ?? '-') }}</td>
                                 <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s', strtotime($item->created_at)) }} </td>
                                 <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
                                 <td class="text-center cabang fs--1">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
@@ -111,7 +111,7 @@
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
                                 </td>
                                 <td class="text-center fs--1">
-                                    <a href="{{ route('jurnal-harian.show', $item->id_transaksi) }}"
+                                    <a href="{{ route('jurnal-harian.show', array_filter(['jurnal_harian' => $item->id_transaksi, 'source_cabang' => $item->legacy_cabang_id ?? null])) }}"
                                         class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
                                         data-bs-placement="top" title="Detail"><span class="text-700 fas fa-eye"></span>
                                     </a>
@@ -172,13 +172,13 @@
                             <div class="col-md-6">
                                 <label class="small">Start Date</label>
                                 <input class="form-control datetimepicker" id="from_date_export" type="date"
-                                    name="from_date_export" placeholder="From Date"
+                                    name="from_date_export" value="{{ request('from') }}" placeholder="From Date"
                                     data-options='{"disableMobile":true}' />
                             </div>
                             <div class="col-md-6">
                                 <label class="small">End Date</label>
                                 <input class="form-control datetimepicker" id="to_date_export" type="date"
-                                    name="to_date_export" placeholder="To Date" data-options='{"disableMobile":true}' />
+                                    name="to_date_export" value="{{ request('to') }}" placeholder="To Date" data-options='{"disableMobile":true}' />
                             </div>
                         </div>
                         <div class="row mb-3 mt-3">

@@ -12,8 +12,8 @@
 		}
 	</style>
 	<center>
-		<h5>Laporan Transaksi</h4>
-        <p>PT. Riasta Valasindo</h4>
+		<h5>Laporan Transaksi</h5>
+        <p>PT. Riasta Valasindo — {{ $cabangName ?? 'Semua Cabang' }}</p>
 	</center>
 
 	<table class='table table-bordered'>

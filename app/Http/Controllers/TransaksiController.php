@@ -21,6 +21,8 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -79,6 +81,21 @@ class TransaksiController extends Controller
         return (int) $cabangId;
     }
 
+    private function legacyConnections(): array
+    {
+        $map = [];
+        foreach (['mysql_cabang_2', 'mysql_cabang_4', 'mysql_cabang_5'] as $conn) {
+            $cfg = config("database.connections.{$conn}");
+            if (!empty($cfg['cabang_id']) && !empty($cfg['database'])) {
+                $map[(int) $cfg['cabang_id']] = [
+                    'connection' => $conn,
+                    'cabang_name' => $cfg['cabang_name'] ?? '-',
+                ];
+            }
+        }
+        return $map;
+    }
+
     public function index(Request $request)
     {
         try {
@@ -91,9 +108,9 @@ class TransaksiController extends Controller
             $selectedCabangId = $this->resolveCabangId($request, !$isPegawai);
 
             // Get pagination size from frontend (default to 10)
-            $perPage = $request->input('per_page', 10);
+            $perPage = max(1, (int) $request->input('per_page', 10));
 
-            $transaksiQuery = Transaksi::with('Cabang')
+            $transaksiQuery = Transaksi::with(['Pegawai', 'Cabang'])
                 ->where('tanggal_transaksi', $today)
                 ->where('jenis_transaksi', 'Beli')
                 ->orderBy('updated_at', 'DESC');
@@ -114,11 +131,73 @@ class TransaksiController extends Controller
                 $jurnalQuery2->where('tb_jurnal.cabang_id', $selectedCabangId);
             }
 
-            // Paginate transactions
-            $transaksi = $transaksiQuery->paginate($perPage)->withQueryString();
-            $count = $transaksi->total();
-            $total_transaksi = $transaksiQuery->sum('total');
+            $merged = $transaksiQuery->get();
+
+            $legacyMap = $this->legacyConnections();
+            $allowedIds = $this->allowedCabangIds(!$isPegawai);
+            $targetLegacyIds = $selectedCabangId
+                ? (isset($legacyMap[$selectedCabangId]) ? [$selectedCabangId] : [])
+                : array_values(array_intersect(array_keys($legacyMap), $allowedIds));
+
+            $cabangMap = !empty($targetLegacyIds)
+                ? MasterCabang::whereIn('cabang_id', $targetLegacyIds)->get()->keyBy('cabang_id')
+                : collect();
+
+            foreach ($targetLegacyIds as $legacyCabangId) {
+                $connection = $legacyMap[$legacyCabangId]['connection'];
+                $fallbackCabangName = $legacyMap[$legacyCabangId]['cabang_name'];
+                try {
+                    $legacyQuery = Transaksi::on($connection)
+                        ->withoutGlobalScope('cabang')
+                        ->leftJoin('users', 'tb_transaksi.id_pegawai', '=', 'users.id')
+                        ->select('tb_transaksi.*', 'users.name as legacy_pegawai_name')
+                        ->where('tb_transaksi.tanggal_transaksi', $today)
+                        ->where('tb_transaksi.jenis_transaksi', 'Beli')
+                        ->when($isPegawai, function ($q) use ($user) {
+                            $q->where(function ($sub) use ($user) {
+                                $sub->where('tb_transaksi.id_pegawai', $user->id)
+                                    ->orWhere('users.name', $user->name);
+                            });
+                        })
+                        ->orderBy('tb_transaksi.updated_at', 'DESC');
+
+                    $cabangModel = $cabangMap->get($legacyCabangId) ?: new MasterCabang(['cabang_name' => $fallbackCabangName]);
+                    $legacyRows = $legacyQuery->get()->each(function ($item) use ($legacyCabangId, $cabangModel) {
+                        $item->setRelation('Pegawai', new User(['name' => $item->legacy_pegawai_name ?: '-']));
+                        $item->setRelation('Cabang', $cabangModel);
+                        $item->legacy_cabang_id = $legacyCabangId;
+                    });
+
+                    $merged = $merged->concat($legacyRows);
+                } catch (\Throwable $e) {
+                    Log::warning("Gagal mengambil transaksi legacy cabang {$legacyCabangId} ({$connection}): " . $e->getMessage());
+                }
+            }
+
+            $merged = $merged->sortByDesc(function ($item) {
+                return strtotime((string) ($item->updated_at ?? $item->created_at ?? $item->tanggal_transaksi));
+            })->values();
+
+            $count = $merged->count();
+            $total_transaksi = $merged->sum('total');
+            $currentPage = Paginator::resolveCurrentPage();
+            $transaksi = new LengthAwarePaginator(
+                $merged->forPage($currentPage, $perPage)->values(),
+                $count,
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
             $currency = MasterCurrency::orderBy('jenis_kurs', 'ASC')->get();
+
+            $filterPegawaiId = (!$isPegawai && $request->filterData) ? $request->filterData : ($isPegawai ? $user->id : null);
+            $filterPegawaiName = $filterPegawaiId ? User::where('id', $filterPegawaiId)->value('name') : null;
+
+            if (!$isPegawai && $request->filterData) {
+                $jurnalQuery->where('id_pegawai', $request->filterData);
+                $jurnalQuery2->where('id_pegawai', $request->filterData);
+            }
 
             $report = $jurnalQuery->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs, jenis_kurs as jenis')
                 ->where('jenis_jurnal', 'Debit')
@@ -130,22 +209,42 @@ class TransaksiController extends Controller
                 ->groupBy('nama_currency', 'jenis_kurs')
                 ->get();
 
+            foreach ($targetLegacyIds as $legacyCabangId) {
+                $connection = $legacyMap[$legacyCabangId]['connection'];
+                try {
+                    $legacyJurnalBase = Jurnal::on($connection)
+                        ->withoutGlobalScope('cabang')
+                        ->leftJoin('users', 'tb_jurnal.id_pegawai', '=', 'users.id')
+                        ->join('tb_currency', 'tb_jurnal.id_currency', 'tb_currency.id_currency')
+                        ->where('tb_jurnal.tanggal_jurnal', $today)
+                        ->where('tb_jurnal.jenis_jurnal', 'Debit')
+                        ->when($filterPegawaiId, function ($q) use ($filterPegawaiId, $filterPegawaiName) {
+                            $q->where(function ($sub) use ($filterPegawaiId, $filterPegawaiName) {
+                                $sub->where('tb_jurnal.id_pegawai', $filterPegawaiId);
+                                if ($filterPegawaiName) {
+                                    $sub->orWhere('users.name', $filterPegawaiName);
+                                }
+                            });
+                        });
+
+                    $legacyReport = (clone $legacyJurnalBase)
+                        ->selectRaw('tb_currency.nama_currency as nama_kurs, SUM(tb_jurnal.jumlah_tukar) as jumlah_tukar, tb_jurnal.kurs as nilai_kurs, tb_currency.jenis_kurs as jenis')
+                        ->groupBy('tb_currency.nama_currency', 'tb_jurnal.kurs', 'tb_currency.jenis_kurs')
+                        ->get();
+                    $report = $this->mergeValasSummary($report, $legacyReport, ['nama_kurs', 'nilai_kurs', 'jenis'], ['jumlah_tukar']);
+
+                    $legacyValas = (clone $legacyJurnalBase)
+                        ->selectRaw('tb_currency.nama_currency as nama_kurs, SUM(tb_jurnal.jumlah_tukar) as jumlah, tb_jurnal.kurs as nilai, tb_currency.jenis_kurs as jenis, SUM(tb_jurnal.total_tukar) as total')
+                        ->groupBy('tb_currency.nama_currency', 'tb_currency.jenis_kurs')
+                        ->get();
+                    $valas = $this->mergeValasSummary($valas, $legacyValas, ['nama_kurs', 'jenis'], ['jumlah', 'total']);
+                } catch (\Throwable $e) {
+                    Log::warning("Gagal mengambil valas report legacy cabang {$legacyCabangId} ({$connection}): " . $e->getMessage());
+                }
+            }
+
             if (!$isPegawai) {
                 $pegawai = User::where('role', '!=', 'Owner')->get();
-
-                if ($request->filterData) {
-                    $report = $jurnalQuery->where('id_pegawai', $request->filterData)
-                        ->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah_tukar, kurs as nilai_kurs, jenis_kurs as jenis, id_pegawai as user')
-                        ->where('jenis_jurnal', 'Debit')
-                        ->groupBy('nama_currency', 'jenis_kurs', 'kurs', 'id_pegawai')
-                        ->get();
-
-                    $valas = $jurnalQuery2->where('id_pegawai', $request->filterData)
-                        ->selectRaw('nama_currency as nama_kurs, SUM(jumlah_tukar) as jumlah, kurs as nilai, jenis_kurs as jenis, SUM(total_tukar) as total, id_pegawai as user')
-                        ->where('jenis_jurnal', 'Debit')
-                        ->groupBy('nama_currency', 'jenis_kurs', 'id_pegawai')
-                        ->get();
-                }
 
                 $cabang = MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get(['cabang_id', 'cabang_name']);
                 return view('pages.transaksi.owner', compact('valas', 'transaksi', 'count', 'today', 'total_transaksi', 'currency', 'pegawai', 'report', 'cabang'));
@@ -184,149 +283,138 @@ class TransaksiController extends Controller
 
     }
 
-    public function Export_dokumen(Request $request)
+    private function mergeValasSummary($baseRows, $extraRows, array $groupKeys, array $sumFields)
     {
-        $request->validate([
-            'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
-        ]);
-
-        try {
-            if (Auth::user()->role != 'Owner') {
-                $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
-                    ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency')->where('id_pegawai', Auth::user()->id);
-                if ($request->id_currency) {
-                    $transaksi->where('currency_id', $request->id_currency);
-                }
-                if ($request->filled('cabang_id')) {
-                    $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
-                }
-                $transaksi = $transaksi->where('jenis_transaksi', 'Beli')->where('tanggal_transaksi', Carbon::today())->get();
-                $total = $transaksi->sum('total');
-                $jumlah = $transaksi->count();
-                $today = Carbon::now()->format('d-M-Y');
-                // return $transaksi;
-
-                if (count($transaksi) == 0) {
-                    Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');
-                    return redirect()->back();
-                } else {
-                    if ($request->radio_input == 'pdf') {
-                        $pdf = Pdf::loadview('export.pdf-harian', ['transaksi' => $transaksi, 'total' => $total, 'jumlah' => $jumlah, 'today' => $today]);
-                        return $pdf->download('report-harian ' . $today . ' ' . Auth::user()->name . ' .pdf');
-                        Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
-                    } else {
-                        return new ExcelHarian($transaksi);
-                    }
+        $grouped = [];
+        foreach ($baseRows->concat($extraRows) as $row) {
+            $key = implode('|', array_map(fn ($k) => (string) ($row->{$k} ?? ''), $groupKeys));
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = clone $row;
+                foreach ($sumFields as $f) {
+                    $grouped[$key]->{$f} = (float) ($row->{$f} ?? 0);
                 }
             } else {
-                $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
-                    ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency')
-                    ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->OrderBy('tb_transaksi.updated_at');
-                if ($request->id_currency) {
-                    $transaksi->where('currency_id', $request->id_currency);
-                }
-                if ($request->id_pegawai) {
-                    $transaksi->where('id_pegawai', $request->id_pegawai);
-                }
-                if ($request->filled('cabang_id')) {
-                    $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
-                }
-                $transaksi = $transaksi->where('jenis_transaksi', 'Beli')->get();
-                $total = $transaksi->sum('total');
-                $jumlah = $transaksi->count();
-                $today = Carbon::now()->format('d-M-Y');
-
-                if (count($transaksi) == 0) {
-                    Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');
-                    return redirect()->back();
-                } else {
-                    if ($request->radio_input == 'pdf') {
-                        $pdf = Pdf::loadview('export.pdf-harian-owner', ['transaksi' => $transaksi, 'total' => $total, 'jumlah' => $jumlah, 'today' => $today]);
-                        if ($request->id_pegawai) {
-                            return $pdf->download('report-harian ' . $today . ' ' . $transaksi[0]->Pegawai->name . ' .pdf');
-                        }
-                        return $pdf->download('report-harian ' . $today . ' .pdf');
-                        Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
-                    } else {
-                        return new ExcelHarianOwner($transaksi);
-                    }
+                foreach ($sumFields as $f) {
+                    $grouped[$key]->{$f} = (float) $grouped[$key]->{$f} + (float) ($row->{$f} ?? 0);
                 }
             }
-        } catch (\Throwable $th) {
-            Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
-            return redirect()->back();
         }
+        return collect(array_values($grouped));
+    }
+
+    public function Export_dokumen(Request $request)
+    {
+        return $this->exportHarianByJenis($request, 'Beli');
     }
 
     public function Export_dokumen_jual(Request $request)
     {
+        return $this->exportHarianByJenis($request, 'Jual');
+    }
+
+    private function exportHarianByJenis(Request $request, string $jenisTransaksi)
+    {
         $request->validate([
             'cabang_id' => 'nullable|integer|exists:tb_master_cabang,cabang_id',
         ]);
 
         try {
-            if (Auth::user()->role != 'Owner') {
-                $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
-                    ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency')->where('id_pegawai', Auth::user()->id);
-                if ($request->id_currency) {
-                    $transaksi->where('currency_id', $request->id_currency);
-                }
-                if ($request->filled('cabang_id')) {
-                    $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
-                }
-                $transaksi = $transaksi->where('jenis_transaksi', 'Jual')->where('tanggal_transaksi', Carbon::today())->get();
-                $total = $transaksi->sum('total');
-                $jumlah = $transaksi->count();
-                $today = Carbon::now()->format('d-M-Y');
-                // return $transaksi;
+            $user = Auth::user();
+            $isOwner = $user->role === 'Owner';
+            $todayDate = Carbon::now()->format('Y-m-d');
+            $today = Carbon::now()->format('d-M-Y');
+            $selectedCabangId = $this->resolveCabangId($request, $isOwner);
 
-                if (count($transaksi) == 0) {
-                    Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');
-                    return redirect()->back();
-                } else {
-                    if ($request->radio_input == 'pdf') {
-                        $pdf = Pdf::loadview('export.pdf-harian', ['transaksi' => $transaksi, 'total' => $total, 'jumlah' => $jumlah, 'today' => $today]);
-                        return $pdf->download('report-harian ' . $today . ' ' . Auth::user()->name . ' .pdf');
-                        Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
+            $filterPegawaiId = $isOwner ? $request->id_pegawai : $user->id;
+            $filterPegawaiName = $filterPegawaiId ? User::where('id', $filterPegawaiId)->value('name') : null;
+
+            $applyFilters = function ($query, bool $isLegacy = false) use ($request, $jenisTransaksi, $todayDate, $filterPegawaiId, $filterPegawaiName) {
+                $query->where('tb_transaksi.jenis_transaksi', $jenisTransaksi)
+                    ->where('tb_transaksi.tanggal_transaksi', $todayDate);
+
+                if ($request->id_currency) {
+                    $query->where('tb_detail_transaksi.currency_id', $request->id_currency);
+                }
+                if ($filterPegawaiId) {
+                    if ($isLegacy && $filterPegawaiName) {
+                        $query->where(function ($q) use ($filterPegawaiId, $filterPegawaiName) {
+                            $q->where('tb_transaksi.id_pegawai', $filterPegawaiId)
+                                ->orWhere('users.name', $filterPegawaiName);
+                        });
                     } else {
-                        return new ExcelHarian($transaksi);
+                        $query->where('tb_transaksi.id_pegawai', $filterPegawaiId);
                     }
                 }
-            } else {
-                $transaksi = Transaksi::with('Pegawai')->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
-                    ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency')
-                    ->where('tanggal_transaksi', Carbon::now()->format('Y-m-d'))->OrderBy('tb_transaksi.updated_at');
-                if ($request->id_currency) {
-                    $transaksi->where('currency_id', $request->id_currency);
-                }
-                if ($request->id_pegawai) {
-                    $transaksi->where('id_pegawai', $request->id_pegawai);
-                }
-                if ($request->filled('cabang_id')) {
-                    $transaksi->where('tb_transaksi.cabang_id', $request->cabang_id);
-                }
-                $transaksi = $transaksi->where('jenis_transaksi', 'Jual')->get();
-                $total = $transaksi->sum('total');
-                $jumlah = $transaksi->count();
-                $today = Carbon::now()->format('d-M-Y');
 
-                if (count($transaksi) == 0) {
-                    Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');
-                    return redirect()->back();
-                } else {
-                    if ($request->radio_input == 'pdf') {
-                        $pdf = Pdf::loadview('export.pdf-harian-owner', ['transaksi' => $transaksi, 'total' => $total, 'jumlah' => $jumlah, 'today' => $today]);
-                        if ($request->id_pegawai) {
-                            return $pdf->download('report-harian ' . $today . ' ' . $transaksi[0]->Pegawai->name . ' .pdf');
-                        }
-                        return $pdf->download('report-harian ' . $today . ' .pdf');
-                        Alert::success('Berhasil', 'Data Transaksi Berhasil Didownload');
-                    } else {
-                        return new ExcelHarianOwner($transaksi);
-                    }
+                return $query->orderBy('tb_transaksi.updated_at', 'DESC');
+            };
+
+            $mainQuery = Transaksi::with('Pegawai')
+                ->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
+                ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency');
+            if ($selectedCabangId) {
+                $mainQuery->where('tb_transaksi.cabang_id', $selectedCabangId);
+            }
+            $transaksi = $applyFilters($mainQuery, false)->get();
+
+            $legacyMap = $this->legacyConnections();
+            $allowedIds = $this->allowedCabangIds($isOwner);
+            $targetLegacyIds = $selectedCabangId
+                ? (isset($legacyMap[$selectedCabangId]) ? [$selectedCabangId] : [])
+                : array_values(array_intersect(array_keys($legacyMap), $allowedIds));
+
+            foreach ($targetLegacyIds as $legacyCabangId) {
+                $connection = $legacyMap[$legacyCabangId]['connection'];
+                try {
+                    $legacyQuery = Transaksi::on($connection)
+                        ->withoutGlobalScope('cabang')
+                        ->leftJoin('users', 'tb_transaksi.id_pegawai', '=', 'users.id')
+                        ->join('tb_detail_transaksi', 'tb_transaksi.id_transaksi', 'tb_detail_transaksi.id_transaksi')
+                        ->join('tb_currency', 'tb_detail_transaksi.currency_id', 'tb_currency.id_currency')
+                        ->select('tb_transaksi.*', 'tb_detail_transaksi.*', 'tb_currency.*', 'users.name as legacy_pegawai_name');
+
+                    $legacyRows = $applyFilters($legacyQuery, true)->get()->each(function ($item) {
+                        $item->setRelation('Pegawai', new User(['name' => $item->legacy_pegawai_name ?: '-']));
+                    });
+                    $transaksi = $transaksi->concat($legacyRows);
+                } catch (\Throwable $e) {
+                    Log::warning("Gagal export harian legacy cabang {$legacyCabangId} ({$connection}): " . $e->getMessage());
                 }
             }
+
+            $transaksi = $transaksi->sortByDesc('updated_at')->values();
+            $total = $transaksi->sum('total');
+            $jumlah = $transaksi->count();
+
+            if ($jumlah === 0) {
+                Alert::warning('Tidak Ditemukan Data', 'Data yang Anda Cari Tidak Ditemukan');
+                return redirect()->back();
+            }
+
+            $cabangName = $selectedCabangId
+                ? (MasterCabang::where('cabang_id', $selectedCabangId)->value('cabang_name')
+                    ?: ($legacyMap[$selectedCabangId]['cabang_name'] ?? '-'))
+                : 'Semua Cabang';
+
+            if ($request->radio_input == 'pdf') {
+                if (!$isOwner) {
+                    $pdf = Pdf::loadview('export.pdf-harian', compact('transaksi', 'total', 'jumlah', 'today', 'cabangName'));
+                    return $pdf->download('report-harian ' . $today . ' ' . $user->name . ' .pdf');
+                }
+
+                $pdf = Pdf::loadview('export.pdf-harian-owner', compact('transaksi', 'total', 'jumlah', 'today', 'cabangName'));
+                if ($request->id_pegawai) {
+                    $pegawaiName = optional($transaksi[0]->Pegawai)->name ?: '-';
+                    return $pdf->download('report-harian ' . $today . ' ' . $pegawaiName . ' .pdf');
+                }
+                return $pdf->download('report-harian ' . $today . ' .pdf');
+            }
+
+            return $isOwner
+                ? new ExcelHarianOwner($transaksi, $cabangName)
+                : new ExcelHarian($transaksi, $cabangName);
         } catch (\Throwable $th) {
+            Log::error('TransaksiController exportHarianByJenis error: ' . $th->getMessage());
             Alert::warning('Error', 'Internal Server Error, Try Refreshing The Page');
             return redirect()->back();
         }
@@ -943,8 +1031,27 @@ class TransaksiController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
+        $legacyMap = $this->legacyConnections();
+        $sourceCabang = (int) $request->query('source_cabang');
+        if ($sourceCabang && isset($legacyMap[$sourceCabang])) {
+            $connection = $legacyMap[$sourceCabang]['connection'];
+            $transaksi = Transaksi::on($connection)->withoutGlobalScope('cabang')->find($id);
+            if (!$transaksi) {
+                Alert::warning('Error', 'Transaksi tidak ditemukan');
+                return redirect()->back();
+            }
+
+            $pegawaiName = DB::connection($connection)->table('users')->where('id', $transaksi->id_pegawai)->value('name') ?: '-';
+            $transaksi->setRelation('Pegawai', new User(['name' => $pegawaiName]));
+            $cabangModel = MasterCabang::find($sourceCabang) ?: new MasterCabang(['cabang_name' => $legacyMap[$sourceCabang]['cabang_name']]);
+            $transaksi->setRelation('Cabang', $cabangModel);
+
+            $detail = DetailTransaksi::on($connection)->with('Currency')->where('id_transaksi', $id)->get();
+            return view('pages.transaksi.detail', compact('transaksi', 'detail'));
+        }
+
         $transaksi = Transaksi::with('Pegawai', 'Cabang', 'detailTransaksi.Currency')->find($id);
         if (!$transaksi) {
             Alert::warning('Error', 'Transaksi tidak ditemukan');

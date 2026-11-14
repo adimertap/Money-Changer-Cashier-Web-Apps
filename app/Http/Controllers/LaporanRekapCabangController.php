@@ -9,11 +9,42 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
 class LaporanRekapCabangController extends Controller
 {
+    private function legacyConnections(): array
+    {
+        $map = [];
+        foreach (['mysql_cabang_2', 'mysql_cabang_4', 'mysql_cabang_5'] as $conn) {
+            $cfg = config("database.connections.{$conn}");
+            if (!empty($cfg['cabang_id']) && !empty($cfg['database'])) {
+                $map[(int) $cfg['cabang_id']] = [
+                    'connection' => $conn,
+                    'cabang_name' => $cfg['cabang_name'] ?? '-',
+                ];
+            }
+        }
+        return $map;
+    }
+
+    private function mergeCurrencyTotals($baseRows, $extraRows)
+    {
+        $grouped = [];
+        foreach ($baseRows->concat($extraRows) as $row) {
+            $key = $row->nama . '|' . $row->jumlah_kurs;
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = clone $row;
+                $grouped[$key]->total = (float) $row->total;
+            } else {
+                $grouped[$key]->total += (float) $row->total;
+            }
+        }
+        return collect(array_values($grouped))->sortBy('nama')->values();
+    }
+
     public function index()
     {
         $cabangs = $this->allowedCabangs();
@@ -39,6 +70,7 @@ class LaporanRekapCabangController extends Controller
             ->whereIn('cabang_id', $branchIds)
             ->orderBy('cabang_name')
             ->get(['cabang_id', 'cabang_name']);
+        $legacyMap = $this->legacyConnections();
         $reports = [];
 
         foreach ($cabangs as $cabang) {
@@ -50,23 +82,47 @@ class LaporanRekapCabangController extends Controller
                 ->orderBy('tb_currency.nama_currency')
                 ->get();
 
-            $totalDebit = $this->jurnalQuery($cabang->cabang_id, $data)
+            $totalDebit = (float) $this->jurnalQuery($cabang->cabang_id, $data)
                 ->where('jenis_jurnal', 'Debit')
                 ->sum('total_tukar');
-            $totalKredit = $this->jurnalQuery($cabang->cabang_id, $data)
+            $totalKredit = (float) $this->jurnalQuery($cabang->cabang_id, $data)
                 ->where('jenis_jurnal', 'Kredit Jual')
                 ->sum('total_tukar');
-            $totalModal = $this->jurnalQuery($cabang->cabang_id, $data)
+            $totalModal = (float) $this->jurnalQuery($cabang->cabang_id, $data)
                 ->where('jenis_jurnal', 'Kredit')
                 ->sum('jumlah_modal');
+
+            if (isset($legacyMap[(int) $cabang->cabang_id])) {
+                $connection = $legacyMap[(int) $cabang->cabang_id]['connection'];
+                try {
+                    $legacyBase = fn () => Jurnal::on($connection)
+                        ->withoutGlobalScope('cabang')
+                        ->whereDate('tb_jurnal.tanggal_jurnal', '>=', $data['from_date_export'])
+                        ->whereDate('tb_jurnal.tanggal_jurnal', '<=', $data['to_date_export']);
+
+                    $legacyCurrency = $legacyBase()
+                        ->join('tb_currency', 'tb_jurnal.id_currency', '=', 'tb_currency.id_currency')
+                        ->where('tb_jurnal.jenis_jurnal', 'Debit')
+                        ->selectRaw('tb_currency.nama_currency as nama, SUM(tb_jurnal.jumlah_tukar) as total, tb_jurnal.kurs as jumlah_kurs')
+                        ->groupBy('tb_currency.nama_currency', 'tb_jurnal.kurs')
+                        ->get();
+
+                    $currency = $this->mergeCurrencyTotals($currency, $legacyCurrency);
+                    $totalDebit += (float) $legacyBase()->where('jenis_jurnal', 'Debit')->sum('total_tukar');
+                    $totalKredit += (float) $legacyBase()->where('jenis_jurnal', 'Kredit Jual')->sum('total_tukar');
+                    $totalModal += (float) $legacyBase()->where('jenis_jurnal', 'Kredit')->sum('jumlah_modal');
+                } catch (\Throwable $e) {
+                    Log::warning("Gagal mengambil rekap cabang legacy {$cabang->cabang_id} ({$connection}): " . $e->getMessage());
+                }
+            }
 
             $reports[] = [
                 'cabang' => $cabang,
                 'currency' => $currency,
-                'totalDebit' => (float) $totalDebit,
-                'totalKredit' => (float) $totalKredit,
-                'totalModal' => (float) $totalModal,
-                'grand' => (float) $totalKredit + (float) $totalModal - (float) $totalDebit,
+                'totalDebit' => $totalDebit,
+                'totalKredit' => $totalKredit,
+                'totalModal' => $totalModal,
+                'grand' => $totalKredit + $totalModal - $totalDebit,
             ];
         }
 

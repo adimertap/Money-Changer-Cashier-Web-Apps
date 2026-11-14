@@ -4,20 +4,34 @@ namespace App\Http\Controllers;
 
 use App\Models\LogEdit;
 use App\Models\LogEditDetail;
+use App\Models\MasterCabang;
+use App\Models\ModalTransaksi;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class LogEditController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    private function legacyConnections(): array
+    {
+        $map = [];
+        foreach (['mysql_cabang_2', 'mysql_cabang_4', 'mysql_cabang_5'] as $conn) {
+            $cfg = config("database.connections.{$conn}");
+            if (!empty($cfg['cabang_id']) && !empty($cfg['database'])) {
+                $map[(int) $cfg['cabang_id']] = [
+                    'connection' => $conn,
+                    'cabang_name' => $cfg['cabang_name'] ?? '-',
+                ];
+            }
+        }
+        return $map;
+    }
+
     public function index(Request $request)
     {
         $isOwner = auth()->user()->role === 'Owner';
         $allowedCabangIds = $isOwner
-            ? \App\Models\MasterCabang::where('is_active', 1)->pluck('cabang_id')->all()
+            ? MasterCabang::where('is_active', 1)->pluck('cabang_id')->all()
             : array_column(session('cabangs', []), 'cabang_id');
         $cabangId = $isOwner ? $request->input('cabang_id') : session('cabang_aktif');
         if ($cabangId !== null && !in_array((int) $cabangId, array_map('intval', $allowedCabangIds), true)) {
@@ -51,8 +65,56 @@ class LogEditController extends Controller
             });
         }
         $log = $log->orderBy('updated_at','DESC')->get();
+
+        $legacyMap = $this->legacyConnections();
+        $allowedIntIds = array_map('intval', $allowedCabangIds);
+        $targetLegacyIds = $cabangId
+            ? (isset($legacyMap[(int) $cabangId]) ? [(int) $cabangId] : [])
+            : array_values(array_intersect(array_keys($legacyMap), $allowedIntIds));
+
+        $cabangMap = !empty($targetLegacyIds)
+            ? MasterCabang::whereIn('cabang_id', $targetLegacyIds)->get()->keyBy('cabang_id')
+            : collect();
+
+        foreach ($targetLegacyIds as $legacyCabangId) {
+            $connection = $legacyMap[$legacyCabangId]['connection'];
+            $fallbackName = $legacyMap[$legacyCabangId]['cabang_name'];
+            try {
+                $cabangModel = $cabangMap->get($legacyCabangId) ?: new MasterCabang(['cabang_name' => $fallbackName]);
+                $legacyQuery = LogEdit::on($connection)
+                    ->leftJoin('users', 'new_log_edit.id_pegawai', '=', 'users.id')
+                    ->select('new_log_edit.*', 'users.name as legacy_pegawai_name');
+
+                if ($request->from) {
+                    $legacyQuery->where('new_log_edit.tanggal_transaksi', '>=', $request->from);
+                }
+                if ($request->to) {
+                    $legacyQuery->where('new_log_edit.tanggal_transaksi', '<=', $request->to);
+                }
+                if ($request->jenis) {
+                    $legacyQuery->where('new_log_edit.jenis_log', '=', $request->jenis);
+                }
+
+                $legacyRows = $legacyQuery->orderBy('new_log_edit.updated_at', 'DESC')->get()->each(function ($item) use ($legacyCabangId, $cabangModel) {
+                    $item->setRelation('Pegawai', new User(['name' => $item->legacy_pegawai_name ?: '-']));
+                    $modalModel = new ModalTransaksi();
+                    $modalModel->setRelation('Cabang', $cabangModel);
+                    $item->setRelation('Modal', $modalModel);
+                    $item->legacy_cabang_id = $legacyCabangId;
+                });
+
+                $log = $log->concat($legacyRows);
+            } catch (\Throwable $e) {
+                Log::warning("Gagal mengambil log edit legacy cabang {$legacyCabangId} ({$connection}): " . $e->getMessage());
+            }
+        }
+
+        $log = $log->sortByDesc(function ($item) {
+            return strtotime((string) ($item->updated_at ?? $item->created_at ?? $item->tanggal_transaksi));
+        })->values();
+
         $cabangs = $isOwner
-            ? \App\Models\MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get(['cabang_id', 'cabang_name'])
+            ? MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get(['cabang_id', 'cabang_name'])
             : collect();
         return view('pages.log.index', compact('log', 'cabangs', 'cabangId'));
     }
@@ -102,6 +164,15 @@ class LogEditController extends Controller
      */
     public function show(Request $request, $id)
     {
+        $legacyMap = $this->legacyConnections();
+        $sourceCabang = (int) $request->query('source_cabang');
+        if ($sourceCabang && isset($legacyMap[$sourceCabang])) {
+            $connection = $legacyMap[$sourceCabang]['connection'];
+            $log = LogEdit::on($connection)->find($id);
+            $detail = LogEditDetail::on($connection)->where('id_log', $id)->get();
+            return view('pages.log.detail', compact('log', 'detail'));
+        }
+
         $log = LogEdit::find($id);
         $detail = LogEditDetail::where('id_log', $id)->get();
         return view('pages.log.detail', compact('log','detail'));
@@ -109,10 +180,16 @@ class LogEditController extends Controller
 
     public function getdetail(Request $request, $id)
     {
-        $log = LogEditDetail::
-        join('new_log_edit','new_detail_log_edit.id_log','new_log_edit.id_log')
-        ->leftjoin('tb_currency','new_detail_log_edit.currency_id','tb_currency.id_currency')
-        ->where('new_detail_log_edit.id_log', $id)->get();
+        $legacyMap = $this->legacyConnections();
+        $sourceCabang = (int) $request->query('source_cabang');
+        $query = ($sourceCabang && isset($legacyMap[$sourceCabang]))
+            ? LogEditDetail::on($legacyMap[$sourceCabang]['connection'])
+            : LogEditDetail::query();
+
+        $log = $query->join('new_log_edit', 'new_detail_log_edit.id_log', 'new_log_edit.id_log')
+            ->leftjoin('tb_currency', 'new_detail_log_edit.currency_id', 'tb_currency.id_currency')
+            ->where('new_detail_log_edit.id_log', $id)
+            ->get();
         return $log;
     }
 

@@ -104,7 +104,7 @@
                         @forelse ($transaksi as $index => $item)
                         <tr>
                             <td class="text-center">{{ $transaksi->firstItem() + $index }}</td>
-                            <td class="text-start">{{ $item->Pegawai->name }}</td>
+                            <td class="text-start">{{ optional($item->Pegawai)->name ?: ($item->legacy_pegawai_name ?? '-') }}</td>
                             <td class="text-center">
                                 {{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }},
                                 {{ date('H:i:s', strtotime($item->created_at)) }}
@@ -118,21 +118,25 @@
                                 <span class="badge rounded-pill badge-soft-success">Lunas</span>
                             </td>
                             <td class="text-center">
-                                <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0 ms-1"
-                                    title="Print">
-                                    <span class="text-700 fas fa-print"></span>
-                                </a>
-                                <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0 ms-1"
+                                <a href="{{ route('transaksi.show', array_filter(['transaksi' => $item->id_transaksi, 'source_cabang' => $item->legacy_cabang_id ?? null])) }}" class="btn p-0 ms-1"
                                     title="Detail">
                                     <span class="text-700 fas fa-eye"></span>
                                 </a>
-                                <a href="{{ route('transaksi.edit', $item->id_transaksi) }}" class="btn p-0 ms-1"
-                                    title="Edit">
-                                    <span class="text-700 fas fa-edit"></span>
-                                </a>
-                                <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}" title="Delete">
-                                    <span class="text-700 fas fa-trash-alt"></span>
-                                </button>
+                                @if (empty($item->legacy_cabang_id))
+                                    <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0 ms-1"
+                                        title="Print">
+                                        <span class="text-700 fas fa-print"></span>
+                                    </a>
+                                    <a href="{{ route('transaksi.edit', $item->id_transaksi) }}" class="btn p-0 ms-1"
+                                        title="Edit">
+                                        <span class="text-700 fas fa-edit"></span>
+                                    </a>
+                                    <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}" title="Delete">
+                                        <span class="text-700 fas fa-trash-alt"></span>
+                                    </button>
+                                @else
+                                    <span class="badge rounded-pill badge-soft-secondary ms-1">Legacy 1.0</span>
+                                @endif
                             </td>
                         </tr>
                         @empty

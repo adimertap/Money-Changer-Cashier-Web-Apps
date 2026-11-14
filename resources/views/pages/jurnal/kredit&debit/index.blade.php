@@ -74,19 +74,19 @@
                                 <th scope="row" class="no fs--1">{{ $loop->iteration + ($jurnal->currentPage() - 1) * $jurnal->perPage() }}.</th>
                                 <td class="text-start tanggal fs--1">{{ date('d-M-Y H:i:s', strtotime($item->updated_at)) }}</td>
                                 @if ($item->jenis_jurnal == 'Debit')
-                                    <td class="text-center text-center fs--1 jenis">{{ $item->Transaksi->kode_transaksi }}</td>
+                                    <td class="text-center text-center fs--1 jenis">{{ optional($item->Transaksi)->kode_transaksi ?: '-' }}</td>
                                     <td class="text-center text-center fs--1 cabang">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                     <td class="text-center text-center fs--1 jenis">Penjualan Customer</td>
-                                    <td class="text-center text-center fs--1">{{ $item->Currency->nama_currency }}, {{ $item->Currency->jenis_kurs }}</td>
+                                    <td class="text-center text-center fs--1">{{ optional($item->Currency)->nama_currency ?: '-' }}, {{ optional($item->Currency)->jenis_kurs ?: '-' }}</td>
                                     <td class="text-center text-center fs--1">{{ $item->jumlah_tukar }}</td>
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->kurs, 0, ',', '.') }}</td>
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->total_tukar, 0, ',', '.') }}</td>
                                     <td>-</td>
                                 @elseif ($item->jenis_jurnal == 'Kredit Jual')
-                                    <td class="text-center text-center fs--1 jenis">{{ $item->Transaksi->kode_transaksi }}</td>
+                                    <td class="text-center text-center fs--1 jenis">{{ optional($item->Transaksi)->kode_transaksi ?: '-' }}</td>
                                     <td class="text-center text-center fs--1 cabang">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                     <td class="text-center text-center fs--1 jenis">Penjualan Valas</td>
-                                    <td class="text-center text-center fs--1">{{ $item->Currency->nama_currency }}, {{ $item->Currency->jenis_kurs }}</td>
+                                    <td class="text-center text-center fs--1">{{ optional($item->Currency)->nama_currency ?: '-' }}, {{ optional($item->Currency)->jenis_kurs ?: '-' }}</td>
                                     <td class="text-center text-center fs--1">{{ $item->jumlah_tukar }}</td>
                                     <td class="text-center text-center fs--1">Rp. {{ number_format($item->kurs, 0, ',', '.') }}</td>
                                     <td>-</td>

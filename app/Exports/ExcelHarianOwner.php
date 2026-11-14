@@ -19,13 +19,15 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell, Wi
 {
     use Exportable;
     public $transaksi;
+    public string $cabangName;
     private $fileName = "report-transaksi-harian.xlsx";
     /**
     * @return \Illuminate\Support\Collection
     */
-    public function __construct($transaksi)
+    public function __construct($transaksi, string $cabangName = 'Semua Cabang')
     {
         $this->transaksi = $transaksi;
+        $this->cabangName = $cabangName;
     }
     public function collection()
     {
@@ -86,6 +88,12 @@ WithMapping, WithHeadings, WithColumnWidths, WithEvents, WithCustomStartCell, Wi
     {
         return [
             AfterSheet::class => function(AfterSheet $event){
+                $event->sheet->mergeCells('A1:J1');
+                $event->sheet->setCellValue('A1', 'Laporan Transaksi Harian - ' . $this->cabangName);
+                $event->sheet->getStyle('A1')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 12],
+                    'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+                ]);
                 $event->sheet->getStyle('A2:J2')->applyFromArray([
                     'font' => [
                         'bold' => true

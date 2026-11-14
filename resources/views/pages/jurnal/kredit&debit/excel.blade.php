@@ -1,6 +1,9 @@
 <table>
     <thead>
         <tr>
+            <th colspan="8">Laporan Transaksi - {{ $cabangName ?? 'Semua Cabang' }}</th>
+        </tr>
+        <tr>
             <th>No.</th>
             <th>Tanggal</th>
             <th>Jenis</th>

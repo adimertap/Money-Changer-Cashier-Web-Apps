@@ -1,11 +1,11 @@
 {
     "schema_version": 2,
-    "commit": "7a275cfdd2a4aa1bcdc18d4cfbb1ef631265fb40",
-    "indexed_at": "2026-11-13T12:36:34Z",
+    "commit": "374b67cb5ccf9f38cede2c82ccd79ae4f04b33b7",
+    "indexed_at": "2026-11-14T12:12:37Z",
     "project": "Users-adim-Documents-Freelance-ptriasta-Money-Changer-Cashier-Web-Apps",
-    "nodes": 8952,
-    "edges": 42458,
-    "original_size": 52035584,
-    "compressed_size": 7083485,
+    "nodes": 8990,
+    "edges": 42631,
+    "original_size": 52166656,
+    "compressed_size": 7115026,
     "compression_level": 3
 }

@@ -12,8 +12,8 @@
 		}
 	</style>
 	<center>
-		<h5>Laporan Transaksi Anda Hari Ini</h4>
-        <p>{{ Auth::user()->name }}, {{ $today }}</h4>
+		<h5>Laporan Transaksi Anda Hari Ini</h5>
+        <p>{{ Auth::user()->name }}, {{ $today }} — {{ $cabangName ?? 'Semua Cabang' }}</p>
 	</center>
  
 	<table class='table table-bordered'>

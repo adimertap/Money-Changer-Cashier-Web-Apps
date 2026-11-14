@@ -5,17 +5,34 @@ namespace App\Http\Controllers;
 use App\Exports\LkubExport;
 use App\Models\Jurnal;
 use App\Models\MasterCabang;
+use App\Models\MasterCurrency;
 use App\Models\MasterThreshold;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
 class LkubController extends Controller
 {
+    private function legacyConnections(): array
+    {
+        $map = [];
+        foreach (['mysql_cabang_2', 'mysql_cabang_4', 'mysql_cabang_5'] as $conn) {
+            $cfg = config("database.connections.{$conn}");
+            if (!empty($cfg['cabang_id']) && !empty($cfg['database'])) {
+                $map[(int) $cfg['cabang_id']] = [
+                    'connection' => $conn,
+                    'cabang_name' => $cfg['cabang_name'] ?? '-',
+                ];
+            }
+        }
+        return $map;
+    }
+
     public function index()
     {
         return view('pages.laporan.lkub.index', [
@@ -266,8 +283,69 @@ class LkubController extends Controller
                 'tb_jurnal.jenis_jurnal',
                 'tb_jurnal.jumlah_tukar',
                 'tb_jurnal.total_tukar',
-                'tb_jurnal.kurs'
+                'tb_jurnal.kurs',
+                'tb_jurnal.tanggal_jurnal',
+                'tb_jurnal.id_jurnal',
             ]);
+
+        $legacyMap = $this->legacyConnections();
+        if (isset($legacyMap[(int) $cabangId])) {
+            $connection = $legacyMap[(int) $cabangId]['connection'];
+            try {
+                $forexToCurrencyId = MasterCurrency::pluck('id_currency', 'nama_currency');
+                $legacyBase = Jurnal::on($connection)
+                    ->withoutGlobalScope('cabang')
+                    ->join('tb_currency', 'tb_jurnal.id_currency', '=', 'tb_currency.id_currency');
+
+                $legacyOpening = (clone $legacyBase)
+                    ->whereDate('tb_jurnal.tanggal_jurnal', '<', $start->toDateString())
+                    ->whereIn('tb_jurnal.jenis_jurnal', ['Debit', 'Kredit Jual'])
+                    ->selectRaw('tb_jurnal.id_currency, tb_currency.nama_currency as forex')
+                    ->selectRaw("SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Debit' THEN tb_jurnal.jumlah_tukar ELSE 0 END) - SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Kredit Jual' THEN tb_jurnal.jumlah_tukar ELSE 0 END) as opening_quantity")
+                    ->selectRaw("SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Debit' THEN tb_jurnal.total_tukar ELSE 0 END) - SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Kredit Jual' THEN tb_jurnal.total_tukar ELSE 0 END) as opening_rupiah")
+                    ->groupBy('tb_jurnal.id_currency', 'tb_currency.nama_currency')
+                    ->get();
+
+                $openingByForex = $opening->keyBy('forex');
+                foreach ($legacyOpening as $legOpen) {
+                    $mappedId = $forexToCurrencyId->get($legOpen->forex, 'legacy_' . $legOpen->id_currency);
+                    if ($existing = $openingByForex->get($legOpen->forex)) {
+                        $existing->opening_quantity = (float) $existing->opening_quantity + (float) $legOpen->opening_quantity;
+                        $existing->opening_rupiah = (float) $existing->opening_rupiah + (float) $legOpen->opening_rupiah;
+                    } else {
+                        $legOpen->id_currency = $mappedId;
+                        $opening->put($mappedId, $legOpen);
+                        $openingByForex->put($legOpen->forex, $legOpen);
+                    }
+                }
+
+                $legacyPeriod = (clone $legacyBase)
+                    ->whereDate('tb_jurnal.tanggal_jurnal', '>=', $start->toDateString())
+                    ->whereDate('tb_jurnal.tanggal_jurnal', '<=', $end->toDateString())
+                    ->whereIn('tb_jurnal.jenis_jurnal', ['Debit', 'Kredit Jual'])
+                    ->orderBy('tb_jurnal.tanggal_jurnal', 'asc')
+                    ->orderBy('tb_jurnal.id_jurnal', 'asc')
+                    ->get([
+                        'tb_jurnal.id_currency',
+                        'tb_currency.nama_currency as forex',
+                        'tb_jurnal.jenis_jurnal',
+                        'tb_jurnal.jumlah_tukar',
+                        'tb_jurnal.total_tukar',
+                        'tb_jurnal.kurs',
+                        'tb_jurnal.tanggal_jurnal',
+                        'tb_jurnal.id_jurnal',
+                    ])
+                    ->each(function ($row) use ($forexToCurrencyId) {
+                        $row->id_currency = $forexToCurrencyId->get($row->forex, 'legacy_' . $row->id_currency);
+                    });
+
+                $periodJournals = $periodJournals->concat($legacyPeriod)
+                    ->sortBy(fn ($r) => ($r->tanggal_jurnal ?? '') . '-' . str_pad((string) ($r->id_jurnal ?? 0), 10, '0', STR_PAD_LEFT))
+                    ->values();
+            } catch (\Throwable $e) {
+                Log::warning("Gagal mengambil data LKUB legacy cabang {$cabangId} ({$connection}): " . $e->getMessage());
+            }
+        }
 
         $groupedJournals = $periodJournals->groupBy('id_currency');
         $periodData = [];

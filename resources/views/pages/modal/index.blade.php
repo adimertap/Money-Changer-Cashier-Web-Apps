@@ -133,34 +133,40 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    @if ($item->riwayat_modal != 0 && $item->tanggal_modal != $today)
-                                    <button class="btn p-0 ms-2 transferModalBtn" value="{{ $item->id_modal }}"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Transfer Modal"><span class="text-700 fas fa-sync-alt"></span>
-                                    </button>
-                                    @endif
-                                    @if ($item->tanggal_modal == $today && $item->status_modal == 'Terima')
-                                    <button class="btn p-0 ms-2 ajukanModalBtn" value="{{ $item->id_modal }}"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Ajukan Penambahan"><span class="text-700 fas fa-plus-circle"></span>
-                                    </button>
-                                    {{-- <button class="btn p-0 ms-2" type="button" data-bs-toggle="modal"
-                                        value="{{ $item->id_modal }}"
-                                        data-bs-target="#modaltambah-{{ $item->id_modal }}"><span
-                                            class="text-700 fas fa-plus-circle"></span></button> --}}
-                                    @endif
+                                    @if (empty($item->is_legacy))
+                                        @if ($item->riwayat_modal != 0 && $item->tanggal_modal != $today)
+                                        <button class="btn p-0 ms-2 transferModalBtn" value="{{ $item->id_modal }}"
+                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Transfer Modal"><span class="text-700 fas fa-sync-alt"></span>
+                                        </button>
+                                        @endif
+                                        @if ($item->tanggal_modal == $today && $item->status_modal == 'Terima')
+                                        <button class="btn p-0 ms-2 ajukanModalBtn" value="{{ $item->id_modal }}"
+                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Ajukan Penambahan"><span class="text-700 fas fa-plus-circle"></span>
+                                        </button>
+                                        {{-- <button class="btn p-0 ms-2" type="button" data-bs-toggle="modal"
+                                            value="{{ $item->id_modal }}"
+                                            data-bs-target="#modaltambah-{{ $item->id_modal }}"><span
+                                                class="text-700 fas fa-plus-circle"></span></button> --}}
+                                        @endif
 
-                                    @if ($item->status_modal == 'Tolak')
-                                    <button class="btn p-0 ms-2 editModalBtn" value="{{ $item->id_modal }}"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Edit"><span class="text-700 fas fa-edit"></span>
-                                    </button>
-                                    @elseif ($item->status_modal == 'Pending')
-                                    <span class="badge rounded-pill badge-soft-primary">Pending</span>
+                                        @if ($item->status_modal == 'Tolak')
+                                        <button class="btn p-0 ms-2 editModalBtn" value="{{ $item->id_modal }}"
+                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Edit"><span class="text-700 fas fa-edit"></span>
+                                        </button>
+                                        @elseif ($item->status_modal == 'Pending')
+                                        <span class="badge rounded-pill badge-soft-primary">Pending</span>
+                                        @endif
+                                    @else
+                                        <span class="badge rounded-pill badge-soft-secondary">Legacy 1.0</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    @if ($item->status_modal == 'Pending')
+                                    @if (!empty($item->is_legacy))
+                                        <span class="badge rounded-pill badge-soft-secondary">Read-only</span>
+                                    @elseif ($item->status_modal == 'Pending')
                                     <button class="btn p-0 ms-2 deleteModalBtn" value="{{ $item->id_modal }}"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Delete"><span class="text-700 fas fa-trash-alt"></span>

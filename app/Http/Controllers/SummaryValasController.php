@@ -11,11 +11,27 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SummaryValasController extends Controller
 {
+    private function legacyConnections(): array
+    {
+        $map = [];
+        foreach (['mysql_cabang_2', 'mysql_cabang_4', 'mysql_cabang_5'] as $conn) {
+            $cfg = config("database.connections.{$conn}");
+            if (!empty($cfg['cabang_id']) && !empty($cfg['database'])) {
+                $map[(int) $cfg['cabang_id']] = [
+                    'connection' => $conn,
+                    'cabang_name' => $cfg['cabang_name'] ?? '-',
+                ];
+            }
+        }
+        return $map;
+    }
+
     public function index()
     {
         return view('pages.laporan.summary-valas.index', [
@@ -126,6 +142,74 @@ class SummaryValasController extends Controller
             ->groupBy('tb_jurnal.id_currency', 'tb_currency.nama_currency', 'tb_currency.country')
             ->get()
             ->keyBy('id_currency');
+
+        $legacyMap = $this->legacyConnections();
+        $targetLegacyIds = array_values(array_intersect(array_keys($legacyMap), array_map('intval', $branchIds)));
+        if (!empty($targetLegacyIds)) {
+            $selectedCurrencies = MasterCurrency::withoutGlobalScope('cabang')
+                ->whereIn('id_currency', $currencyIds)
+                ->get(['id_currency', 'nama_currency']);
+            $codeToId = $selectedCurrencies->pluck('id_currency', 'nama_currency');
+            $targetCodes = $selectedCurrencies->pluck('nama_currency')->filter()->unique()->values()->all();
+
+            $openingByCode = $opening->keyBy('currency_code');
+            $periodByCode = $period->keyBy('currency_code');
+
+            foreach ($targetLegacyIds as $legacyCabangId) {
+                $connection = $legacyMap[$legacyCabangId]['connection'];
+                try {
+                    $legacyBase = Jurnal::on($connection)
+                        ->withoutGlobalScope('cabang')
+                        ->join('tb_currency', 'tb_jurnal.id_currency', '=', 'tb_currency.id_currency')
+                        ->when(!empty($targetCodes), fn ($q) => $q->whereIn('tb_currency.nama_currency', $targetCodes))
+                        ->whereIn('tb_jurnal.jenis_jurnal', ['Debit', 'Kredit Jual']);
+
+                    $legacyOpening = (clone $legacyBase)
+                        ->where('tb_jurnal.tanggal_jurnal', '<', $start->toDateTimeString())
+                        ->selectRaw('tb_jurnal.id_currency, tb_currency.nama_currency as currency_code, tb_currency.country as currency_name')
+                        ->selectRaw("COALESCE(SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Debit' THEN tb_jurnal.jumlah_tukar ELSE 0 END), 0) - COALESCE(SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Kredit Jual' THEN tb_jurnal.jumlah_tukar ELSE 0 END), 0) as beginning_balance")
+                        ->groupBy('tb_jurnal.id_currency', 'tb_currency.nama_currency', 'tb_currency.country')
+                        ->get();
+
+                    foreach ($legacyOpening as $legOpen) {
+                        $mappedId = $codeToId->get($legOpen->currency_code, 'legacy_' . $legOpen->id_currency);
+                        if ($existing = $openingByCode->get($legOpen->currency_code)) {
+                            $existing->beginning_balance = (float) $existing->beginning_balance + (float) $legOpen->beginning_balance;
+                        } else {
+                            $legOpen->id_currency = $mappedId;
+                            $opening->put($mappedId, $legOpen);
+                            $openingByCode->put($legOpen->currency_code, $legOpen);
+                        }
+                    }
+
+                    $legacyPeriod = (clone $legacyBase)
+                        ->whereBetween('tb_jurnal.tanggal_jurnal', [$start->toDateTimeString(), $end->toDateTimeString()])
+                        ->selectRaw('tb_jurnal.id_currency, tb_currency.nama_currency as currency_code, tb_currency.country as currency_name')
+                        ->selectRaw("COALESCE(SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Debit' THEN tb_jurnal.jumlah_tukar ELSE 0 END), 0) as buy_quantity")
+                        ->selectRaw("COALESCE(SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Kredit Jual' THEN tb_jurnal.jumlah_tukar ELSE 0 END), 0) as sell_quantity")
+                        ->selectRaw("COALESCE(SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Debit' THEN tb_jurnal.total_tukar ELSE 0 END), 0) as buy_idr")
+                        ->selectRaw("COALESCE(SUM(CASE WHEN tb_jurnal.jenis_jurnal = 'Kredit Jual' THEN tb_jurnal.total_tukar ELSE 0 END), 0) as sell_idr")
+                        ->groupBy('tb_jurnal.id_currency', 'tb_currency.nama_currency', 'tb_currency.country')
+                        ->get();
+
+                    foreach ($legacyPeriod as $legPer) {
+                        $mappedId = $codeToId->get($legPer->currency_code, 'legacy_' . $legPer->id_currency);
+                        if ($existing = $periodByCode->get($legPer->currency_code)) {
+                            $existing->buy_quantity = (float) $existing->buy_quantity + (float) $legPer->buy_quantity;
+                            $existing->sell_quantity = (float) $existing->sell_quantity + (float) $legPer->sell_quantity;
+                            $existing->buy_idr = (float) $existing->buy_idr + (float) $legPer->buy_idr;
+                            $existing->sell_idr = (float) $existing->sell_idr + (float) $legPer->sell_idr;
+                        } else {
+                            $legPer->id_currency = $mappedId;
+                            $period->put($mappedId, $legPer);
+                            $periodByCode->put($legPer->currency_code, $legPer);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning("Gagal mengambil summary valas legacy cabang {$legacyCabangId} ({$connection}): " . $e->getMessage());
+                }
+            }
+        }
 
         return self::reportCurrencyIds($opening, $period)
             ->map(function ($currencyId) use ($opening, $period) {

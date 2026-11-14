@@ -13,7 +13,10 @@ use App\Models\RiwayatModal;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -25,10 +28,25 @@ class ModalController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    private function legacyConnections(): array
+    {
+        $map = [];
+        foreach (['mysql_cabang_2', 'mysql_cabang_4', 'mysql_cabang_5'] as $conn) {
+            $cfg = config("database.connections.{$conn}");
+            if (!empty($cfg['cabang_id']) && !empty($cfg['database'])) {
+                $map[(int) $cfg['cabang_id']] = [
+                    'connection' => $conn,
+                    'cabang_name' => $cfg['cabang_name'] ?? '-',
+                ];
+            }
+        }
+        return $map;
+    }
+
     public function index(Request $request)
     {
         try {
-            $perPage = $request->input('per_page', 10);
+            $perPage = max(1, (int) $request->input('per_page', 10));
             $cabangId = $request->input('cabang_id');
             $isOwner = Auth::user()->role === 'Owner';
             $allowedCabangIds = $isOwner
@@ -45,7 +63,59 @@ class ModalController extends Controller
                     $query->where('cabang_id', $cabangId);
                 })
                 ->orderByDesc('created_at');
-            $modal = $modalQuery->with(['Pegawai', 'Cabang'])->paginate($perPage)->withQueryString();
+
+            $merged = $modalQuery->with(['Pegawai', 'Cabang'])->get();
+
+            $legacyMap = $this->legacyConnections();
+            $targetLegacyIds = ($cabangId && in_array((int) $cabangId, $allowedCabangIds, true))
+                ? (isset($legacyMap[(int) $cabangId]) ? [(int) $cabangId] : [])
+                : array_values(array_intersect(array_keys($legacyMap), array_map('intval', $allowedCabangIds)));
+
+            $cabangMap = !empty($targetLegacyIds)
+                ? MasterCabang::whereIn('cabang_id', $targetLegacyIds)->get()->keyBy('cabang_id')
+                : collect();
+
+            foreach ($targetLegacyIds as $legacyCabangId) {
+                $connection = $legacyMap[$legacyCabangId]['connection'];
+                $fallbackCabangName = $legacyMap[$legacyCabangId]['cabang_name'];
+                try {
+                    $legacyQuery = ModalTransaksi::on($connection)
+                        ->withoutGlobalScope('cabang')
+                        ->leftJoin('users', 'tb_modal_transaksi.id_pegawai', '=', 'users.id')
+                        ->select('tb_modal_transaksi.*', 'users.name as legacy_pegawai_name')
+                        ->when(!$isOwner, function ($query) {
+                            $query->where(function ($query) {
+                                $query->where('tb_modal_transaksi.tanggal_modal', Carbon::now()->format('Y-m-d'))
+                                    ->orWhere('tb_modal_transaksi.riwayat_modal', '>', 0);
+                            });
+                        })
+                        ->orderByDesc('tb_modal_transaksi.created_at');
+
+                    $cabangModel = $cabangMap->get($legacyCabangId) ?: new MasterCabang(['cabang_name' => $fallbackCabangName]);
+                    $legacyRows = $legacyQuery->get()->each(function ($item) use ($cabangModel) {
+                        $item->setRelation('Pegawai', new User(['name' => $item->legacy_pegawai_name ?: '-']));
+                        $item->setRelation('Cabang', $cabangModel);
+                        $item->is_legacy = true;
+                    });
+                    $merged = $merged->concat($legacyRows);
+                } catch (\Throwable $e) {
+                    Log::warning("Gagal mengambil modal legacy cabang {$legacyCabangId} ({$connection}): " . $e->getMessage());
+                }
+            }
+
+            $merged = $merged->sortByDesc(function ($item) {
+                return strtotime((string) ($item->created_at ?? $item->tanggal_modal));
+            })->values();
+
+            $currentPage = Paginator::resolveCurrentPage();
+            $modal = new LengthAwarePaginator(
+                $merged->forPage($currentPage, $perPage)->values(),
+                $merged->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
             $cabangs = MasterCabang::where('is_active', 1)
                 ->whereIn('cabang_id', $allowedCabangIds)
                 ->orderBy('cabang_name')

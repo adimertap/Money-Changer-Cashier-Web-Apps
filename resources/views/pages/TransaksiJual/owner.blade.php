@@ -100,7 +100,7 @@
                             @forelse ($transaksi as $item)
                             <tr role="row" class="odd">
                                 <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
-                                <td class="text-start pegawai fs--1">{{ $item->Pegawai->name }}</td>
+                                <td class="text-start pegawai fs--1">{{ optional($item->Pegawai)->name ?: ($item->legacy_pegawai_name ?? '-') }}</td>
                                 <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y',
                                     strtotime($item->tanggal_transaksi)) }}, {{ date('H:i:s',
                                     strtotime($item->created_at)) }}</td>
@@ -112,24 +112,30 @@
                                     <span class="badge rounded-pill badge-soft-success">Lunas</span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Print"><span class="text-700 fas fa-print"></span>
-                                    </a>
+                                    @if (empty($item->legacy_cabang_id))
+                                        <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank" class="btn p-0"
+                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Print"><span class="text-700 fas fa-print"></span>
+                                        </a>
+                                    @else
+                                        <span class="badge rounded-pill badge-soft-secondary">Legacy 1.0</span>
+                                    @endif
                                 </td>
                                 <td class="text-center fs--1">
-                                    <a href="{{ route('transaksi.show', $item->id_transaksi) }}" class="btn p-0"
+                                    <a href="{{ route('transaksi.show', array_filter(['transaksi' => $item->id_transaksi, 'source_cabang' => $item->legacy_cabang_id ?? null])) }}" class="btn p-0"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Detail"><span class="text-700 fas fa-eye"></span>
                                     </a>
-                                    <a href="{{ route('transaksi-jual.edit', $item->id_transaksi) }}" class="btn p-0"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Edit"><span class="text-700 fas fa-edit"></span>
-                                    </a>
-                                    <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}"
-                                        type="button" data-bs-toggle="tooltip" data-bs-placement="top"
-                                        title="Delete"><span class="text-700 fas fa-trash-alt"></span>
-                                    </button>
+                                    @if (empty($item->legacy_cabang_id))
+                                        <a href="{{ route('transaksi-jual.edit', $item->id_transaksi) }}" class="btn p-0"
+                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Edit"><span class="text-700 fas fa-edit"></span>
+                                        </a>
+                                        <button class="btn p-0 deleteModalBtn" value="{{ $item->id_transaksi }}"
+                                            type="button" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Delete"><span class="text-700 fas fa-trash-alt"></span>
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
 

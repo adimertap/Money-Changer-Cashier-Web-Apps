@@ -74,9 +74,13 @@
                                 </td>
                                 <td class="text-center fs--1">
                                     <button class="btn p-0 ms-2 detailLog" value="{{ $item->id_log }}"
+                                        data-source-cabang="{{ $item->legacy_cabang_id ?? '' }}"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
                                         title="Detail"><span class="text-700 fas fa-eye"></span>
                                     </button>
+                                    @if (!empty($item->legacy_cabang_id))
+                                        <span class="badge rounded-pill badge-soft-secondary ms-1">Legacy 1.0</span>
+                                    @endif
 
                                     {{-- <a href="{{ route('log-edit.show', $item->id_log) }}" class="btn p-0 ms-2"
                                         type="button" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -206,9 +210,11 @@
         // $('#datatable2').DataTable();
         table.on('click', '.detailLog', function () {
             var id = $(this).val();
+            var sourceCabang = $(this).data('source-cabang');
+            var detailUrl = 'log-edit/getdetail/' + id + (sourceCabang ? '?source_cabang=' + sourceCabang : '');
             $('#modaldetail').modal('show');
             $.ajax({
-                url: 'log-edit/getdetail/' + id,
+                url: detailUrl,
                 type: "GET",
                 dataType: "json",
                 success: function (response) {

@@ -12,8 +12,8 @@
 		}
 	</style>
 	<center>
-		<h5>Laporan Transaksi</h4>
-        <p>PT. Riasta Valasindo</h4>
+		<h5>Laporan Transaksi</h5>
+        <p>PT. Riasta Valasindo — {{ $cabangName ?? 'Semua Cabang' }}</p>
 	</center>
  
 	<table class='table table-bordered'>
@@ -44,7 +44,7 @@
 				<td>{{ $i++ }}</td>
                 <td>{{$p->kode_transaksi}}</td>
 				<td>{{ date('d-M-Y', strtotime($p->tanggal_transaksi)) }}</td>
-				<td>{{$p->Pegawai->name}}</td>
+				<td>{{ optional($p->Pegawai)->name ?: ($p->legacy_pegawai_name ?? '-') }}</td>
 				<td>{{$p->nama_currency}}, {{ $p->jenis_Kurs }}</td>
 				<td>Rp. {{ number_format($p->jumlah_currency)}}</td>
 				<td>{{$p->jumlah_tukar}}</td>

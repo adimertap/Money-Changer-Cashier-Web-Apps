@@ -108,7 +108,7 @@
                                     @forelse ($transaksi_seluruh as $item)
                                     <tr role="row" class="odd">
                                         <th scope="row" class="no fs--1">{{ $loop->iteration}}.</th>
-                                        <td class="text-center pegawai fs--1">{{ $item->Pegawai->name }}</td>
+                                        <td class="text-center pegawai fs--1">{{ optional($item->Pegawai)->name ?: ($item->legacy_pegawai_name ?? '-') }}</td>
                                         <td class="text-center kode_transaksi fs--1">{{ $item->kode_transaksi }}</td>
                                         <td class="text-center cabang fs--1">{{ optional($item->Cabang)->cabang_name ?: '-' }}</td>
                                         <td class="text-center nama_customer fs--1">{{ $item->nama_customer }}</td>
@@ -117,14 +117,18 @@
                                         <td class="text-center tanggal_transaksi fs--1">{{ date('d-M-Y', strtotime($item->tanggal_transaksi)) }}</td>
                                         <td class="text-center total fs--1">Rp. {{ number_format($item->total, 0, ',', '.') }}</td>
                                         <td class="text-center fs--1">
-                                            <a href="{{ route('bulanan-transaksi', [$item->id_transaksi, 'cabang_id' => request('cabang_id')]) }}"
+                                            <a href="{{ route('bulanan-transaksi', array_filter(['id' => $item->id_transaksi, 'cabang_id' => request('cabang_id'), 'source_cabang' => $item->legacy_cabang_id ?? null])) }}"
                                                 class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
                                                 data-bs-placement="top" title="Detail"><span class="text-700 fas fa-eye"></span>
                                             </a>
-                                            <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank"
-                                                class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
-                                                data-bs-placement="top" title="Print"><span class="text-700 fas fa-print"></span>
-                                            </a>
+                                            @if (empty($item->legacy_cabang_id))
+                                                <a href="{{ route('cetak', $item->id_transaksi) }}" target="_blank"
+                                                    class="btn p-0 ms-2" type="button" data-bs-toggle="tooltip"
+                                                    data-bs-placement="top" title="Print"><span class="text-700 fas fa-print"></span>
+                                                </a>
+                                            @else
+                                                <span class="badge rounded-pill badge-soft-secondary ms-1">Legacy 1.0</span>
+                                            @endif
                                         </td>
                                     </tr>
                                     @empty

@@ -12,18 +12,21 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
 class ExcelDebitKredit implements FromView, ShouldAutoSize, WithEvents, WithColumnFormatting
 {
-    public function __construct($jurnal, $currency, $totalDebit, $totalKredit, $totalModal)
+    public string $cabangName;
+
+    public function __construct($jurnal, $currency, $totalDebit, $totalKredit, $totalModal, string $cabangName = 'Semua Cabang')
     {
         $this->jurnal = $jurnal;
         $this->currency = $currency;
         $this->totalDebit = $totalDebit;
         $this->totalKredit = $totalKredit;
         $this->totalModal = $totalModal;
+        $this->cabangName = $cabangName;
     }
 
     public function view(): View
     {
-        return view('pages.jurnal.kredit&debit.excel',['jurnal' => $this->jurnal, 'kurs' => $this->currency, 'totalDebit' => $this->totalDebit, 'totalKredit'=> $this->totalKredit,'totalModal'=> $this->totalModal]);
+        return view('pages.jurnal.kredit&debit.excel',['jurnal' => $this->jurnal, 'kurs' => $this->currency, 'totalDebit' => $this->totalDebit, 'totalKredit'=> $this->totalKredit,'totalModal'=> $this->totalModal, 'cabangName' => $this->cabangName]);
     }
 
     public function columnFormats(): array
@@ -40,7 +43,7 @@ class ExcelDebitKredit implements FromView, ShouldAutoSize, WithEvents, WithColu
     {
         return [
             AfterSheet::class => function(AfterSheet $event){
-                $event->sheet->getStyle('A1:H1')->applyFromArray([
+                $event->sheet->getStyle('A1:H2')->applyFromArray([
                     'font' => [
                         'bold' => true
                     ],
@@ -50,7 +53,7 @@ class ExcelDebitKredit implements FromView, ShouldAutoSize, WithEvents, WithColu
                 ]);
 
                 $highestRow = $event->sheet->getHighestRow();
-                for ($row = 2; $row <= $highestRow; $row++) {
+                for ($row = 3; $row <= $highestRow; $row++) {
                     $jtCell = $event->sheet->getCell('E' . $row);
                     $jtVal = $jtCell->getValue();
                     if (is_numeric($jtVal) && floor((float)$jtVal) != (float)$jtVal) {
