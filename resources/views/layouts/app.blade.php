@@ -130,6 +130,38 @@
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="modalWebExchange" tabindex="-1" aria-labelledby="modalWebExchangeLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content border-0">
+                    <div class="position-absolute top-0 end-0 mt-3 me-3 z-index-1">
+                        <button class="btn-close btn btn-sm btn-circle d-flex flex-center transition-base"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="formWebExchange" onsubmit="event.preventDefault(); var slug = document.getElementById('webExchangeCabangSlug').value; if (slug) { window.location.href = 'https://www.rate.ptriastavalasindo.com/' + encodeURIComponent(slug); }">
+                        <div class="modal-body p-0">
+                            <div class="bg-light rounded-top-lg py-3 ps-4 pe-6">
+                                <h4 class="mb-1" id="modalWebExchangeLabel">Pilih Cabang Web Exchange</h4>
+                            </div>
+                            <div class="p-3">
+                                <label class="form-label" for="webExchangeCabangSlug">Cabang</label>
+                                <select id="webExchangeCabangSlug" class="form-select" required>
+                                    <option value="">-- Pilih Cabang --</option>
+                                    @foreach ($cabangOptions ?? [] as $c)
+                                    <option value="{{ \Illuminate\Support\Str::slug($c['cabang_name']) }}" {{ session('cabang_aktif') == $c['cabang_id'] ? 'selected' : '' }}>
+                                        {{ $c['cabang_name'] }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary btn-sm" type="button" data-bs-dismiss="modal">Close</button>
+                            <button class="btn btn-primary btn-sm" type="submit">Buka</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </main>
   
   

@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // pilihan cabang di header: Owner semua cabang aktif, Pegawai cabang miliknya
-        View::composer('layouts.header', function ($view) {
+        View::composer(['layouts.header', 'layouts.app'], function ($view) {
             $options = Auth::check() && Auth::user()->role === 'Owner'
                 ? MasterCabang::where('is_active', 1)->orderBy('cabang_name')->get(['cabang_id', 'cabang_name'])->toArray()
                 : session('cabangs', []);

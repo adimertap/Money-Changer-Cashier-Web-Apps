@@ -54,7 +54,7 @@
                     </a>
                     @endmenuAccess
                     @menuAccess('web-exchange')
-                    <a class="nav-link" href="{{ url('https://www.rate.ptriastavalasindo.com') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                    <a class="nav-link" href="#" role="button" data-bs-toggle="modal" data-bs-target="#modalWebExchange" aria-expanded="false">
                         <div class="d-flex align-items-center">
                             <span class="nav-link-icon"><i class="fas fa-server"></i></span>
                             <span class="nav-link-text ps-1">Web Exchange</span>
