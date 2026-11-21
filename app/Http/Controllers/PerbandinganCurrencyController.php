@@ -8,6 +8,14 @@ use Illuminate\Support\Facades\Auth;
 
 class PerbandinganCurrencyController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            abort_unless(app(\App\Services\MenuAccessService::class)->allows('master-currency'), 403);
+            return $next($request);
+        });
+    }
+
     private function cabangIds(): array
     {
         if (Auth::user()->role === 'Owner') {

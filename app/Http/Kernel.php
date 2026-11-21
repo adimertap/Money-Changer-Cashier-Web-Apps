@@ -66,6 +66,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'Owner' => \App\Http\Middleware\Owner::class,
         'Pegawai' => \App\Http\Middleware\Pegawai::class,
-        'jadwal.checking' => \App\Http\Middleware\JadwalChecking::class
+        'jadwal.checking' => \App\Http\Middleware\JadwalChecking::class,
+        'menu' => \App\Http\Middleware\MenuAccess::class,
     ];
 }

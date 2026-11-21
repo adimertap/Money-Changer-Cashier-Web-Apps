@@ -42,7 +42,7 @@ class MenuAccessService
             return true;
         }
 
-        $keys = (array) session('allowed_menu_keys', []);
+        $keys = $this->keysFor($user);
         foreach ((array) $menuOrMenus as $menuKey) {
             if (in_array($menuKey, $keys, true)) {
                 return true;
